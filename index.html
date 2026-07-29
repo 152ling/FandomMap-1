@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>應援地圖 | 演唱會應援與卡片交換平台 (Firebase RWD 整合版)</title>
+  <!-- 引入極簡且強大的 Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 自訂 Tailwind 設定與動畫 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'fade-in': 'fadeIn 0.25s ease-out forwards',
+            'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(100%)' },
+              '100%': { transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -ms-overflow-style: none !important;  /* IE and Edge */
+      scrollbar-width: none !important;  /* Firefox */
+    }
+    *::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari, Opera */
+    }
+    .pb-safe {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+    }
+    body {
+      -webkit-tap-highlight-color: transparent;
+      background: radial-gradient(circle at 8% 0%, rgba(124, 58, 237, .10), transparent 28rem), radial-gradient(circle at 92% 100%, rgba(236, 72, 153, .08), transparent 30rem), #f8fafc;
+    }
+    .app-icon { width: 1.05rem; height: 1.05rem; stroke-width: 1.9; flex: 0 0 auto; }
+    .section-kicker { letter-spacing: .12em; }
+    .ui-card { box-shadow: 0 1px 2px rgba(15, 23, 42, .03), 0 12px 32px rgba(15, 23, 42, .035); }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(124, 58, 237, .28); outline-offset: 2px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex justify-center font-sans antialiased min-h-screen">
+
+  <!-- 連線/初始化 Loading 遮罩 -->
+  <div id="loading-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white space-y-4">
+    <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-sm font-bold tracking-wide" id="loading-status-text">安全防護連線中...</p>
+    <p class="text-[10px] text-slate-400">正在初始化即時資料庫與身分驗證</p>
+  </div>
+
+  <!-- 響應式主外框（手機版滿版、桌機版適配寬螢幕、具備圓角與柔和陰影） -->
+  <div class="w-full max-w-7xl bg-white md:shadow-2xl md:my-6 md:rounded-3xl flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-slate-100 overflow-hidden">
+    
+    <!-- ==================== TOP HEADER (響應式雙向導覽列) ==================== -->
+    <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-slate-200/70 sticky top-0 z-30 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div id="header-back-btn" class="hidden">
+          <button onclick="navigateBack()" class="flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors">
+            <!-- 向左箭頭 SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="font-semibold text-sm">返回</span>
+          </button>
+        </div>
+        <div id="header-logo" class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-slate-900 text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
+          <span class="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">應援地圖</span>
+          <span class="text-[10px] bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full font-semibold border border-violet-100">FAN BOARD</span>
+        </div>
+      </div>
+
+      <!-- 桌機版選單列 (RWD: md 以上顯示) -->
+      <div class="hidden md:flex items-center gap-8 border-l border-slate-200 pl-8 mr-auto">
+        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-1 transition-all">
+          探索場次
+        </button>
+        <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="text-sm font-medium text-slate-400 hover:text-slate-600 pb-1 transition-all">
+          我的收藏
+        </button>
+        <button onclick="switchTab('profile')" id="dk-nav-btn-profile" class="text-sm font-medium text-slate-400 hover:text-slate-600 pb-1 transition-all">
+          個人中心
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- 提案新增演唱會按鈕 -->
+        <button id="add-concert-btn" onclick="openAddConcertModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs md:text-sm px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1 active:scale-95 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          提案新場次
+        </button>
+        <!-- 模擬頭像 -->
+        <img id="user-avatar-snapshot" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="avatar" class="w-9 h-9 rounded-full border border-slate-200 bg-slate-50 cursor-pointer" onclick="switchTab('profile')">
+      </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+    <main class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
+      
+      <!-- SCREEN 1: 探索演唱會列表 -->
+      <section id="screen-explore" class="space-y-6 animate-fade-in">
+        <!-- 宣傳看板 (桌機版適配為優雅通欄) -->
+        <div class="bg-gradient-to-r from-violet-50 via-white to-fuchsia-50/50 border border-violet-100/80 p-5 rounded-2xl flex gap-4 items-start ui-card">
+          <span class="w-10 h-10 shrink-0 rounded-xl bg-white border border-violet-100 text-violet-700 grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 3.75 12l4.5 7.5M15.75 4.5l4.5 7.5-4.5 7.5M12 3v18" /></svg></span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 md:text-base">即時應援看板與粉絲卡片交換</h3>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-3xl">
+              探索各場演唱會周邊的熱門應援。每篇貼文皆可設定外部連結（如 IG 原文）與當日即時位置更新處（如 Threads 個人動態），支援即時相片上傳，讓現場排隊不迷路！
+            </p>
+          </div>
+        </div>
+
+        <!-- 搜尋與篩選列 (RWD: 在大螢幕下更顯大器) -->
+        <div class="relative max-w-xl">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </span>
+          <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="輸入明星藝人、演出場館或巡演名稱..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-11 pr-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 text-slate-800 transition-all">
+        </div>
+
+        <!-- 熱門演唱會列表 -->
+        <div class="space-y-4">
+          <h3 class="text-slate-500 text-xs font-bold uppercase section-kicker">熱門演出看板</h3>
+          <div id="concert-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <!-- 動態渲染 RWD 卡片 -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: 收藏的應援與交換看板 -->
+      <section id="screen-bookmarks" class="hidden space-y-4 animate-fade-in text-left">
+        <h3 id="bookmarks-title" class="text-slate-800 text-sm font-bold">我的收藏 (0)</h3>
+        <div id="bookmarks-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- 動態渲染 RWD 收藏卡 -->
+        </div>
+      </section>
+
+      <!-- SCREEN 3: 個人中心與發布管理 -->
+      <section id="screen-profile" class="hidden space-y-6 animate-fade-in text-left">
+        
+        <!-- 大螢幕採用 雙網格排列：左側為名片/設定，右側為貼文管理 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          
+          <div class="lg:col-span-1 space-y-4">
+            <!-- Firebase 登入與個人頭像卡 -->
+            <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-150 p-5 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
+              <div class="relative group">
+                <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="個人頭像" class="w-20 h-20 rounded-full border-2 border-white bg-white shadow-md object-cover">
+                <label for="profile-avatar-file" class="absolute inset-0 rounded-full bg-slate-900/60 text-white text-[10px] font-bold grid place-items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-pointer transition-opacity">更換頭像</label>
+                  <label for="profile-avatar-file" 
+                        class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center cursor-pointer shadow-md border-2 border-white hover:bg-violet-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                  </label>
+                <input type="file" id="profile-avatar-file" accept="image/*" class="sr-only" onchange="processProfileAvatarUpload(event)">
+              </div>
+               <!-- 登入狀態標籤 -->
+              <div id="auth-status-badge" class="mt-1 text-[10px] px-2.5 py-0.5 rounded-full font-bold"></div>
+              <div class="w-full mt-4 text-left">
+                <label for="profile-input-username" class="block text-[12px] text-slate-500 font-bold mb-1">顯示名稱</label>
+                <input type="text" id="profile-input-username" class="w-full bg-white text-center border border-slate-200 rounded-xl py-2 px-3 text-sm font-black text-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-400" value="匿名用戶">
+              </div>
+              
+
+              
+              <!-- 個人資料 -->
+              <div class="flex flex-col gap-2 w-full mt-4 text-left">
+                <div>
+                  <label for="profile-input-contact" class="block text-[12px] text-slate-500 font-bold mb-1">社群連結</label>
+                  <input type="text" id="profile-input-contact" placeholder="例:https://www.threads.com/@..." class="w-full bg-white text-slate-700 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400">
+                  <span class="block text-[10px] text-slate-400 ml-2 mt-1">填寫 Threads、Instagram 等社群個人檔案連結，方便交換應援物時找到你</span>
+                 </div>
+                <span id="profile-display-uid" class="text-[9px] bg-slate-100 text-slate-400 px-3 py-1.5 rounded-xl border border-slate-200/40 block truncate text-center font-mono">UID: 驗證中</span>
+              </div>
+
+              <button onclick="saveUserProfile()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">儲存個人資料</button>
+
+              <!-- Firebase Authentication 互動控制區 -->
+              <div class="w-full mt-4 pt-4 border-t border-slate-200/60">
+                <!-- 匿名狀態提示與登入按鈕 -->
+                <div id="anonymous-warning-box" class="hidden text-left bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl mb-3 text-[10px] leading-relaxed">
+                  目前使用臨時匿名帳號。若更換設備或清除瀏覽器快取，發布的資料將會遺失。建議登入以綁定資料。
+                </div>
+                
+                <button id="google-login-btn" onclick="handleGoogleSignIn()" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-3 rounded-xl text-xs border border-slate-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
+                  <!-- Google 彩色 G Logo SVG -->
+                  <svg class="h-4 w-4" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.529-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.111C18.29 1.905 15.43 1 12.24 1c-6.075 0-11 4.925-11 11s4.925 11 11 11c6.34 0 10.56-4.455 10.56-10.75 0-.725-.08-1.28-.175-1.835h-10.385z"/>
+                  </svg>
+                  使用 Google 帳號安全登入
+                </button>
+
+                <button id="logout-btn" onclick="handleSignOut()" class="hidden w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all mt-2">
+                  登出此帳號
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 我的發布與管理 (在大螢幕上佔據 2 欄寬度) -->
+          <div class="lg:col-span-2 bg-white border border-slate-200/80 p-5 rounded-2xl space-y-4">
+            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              我的發布與管理
+            </h4>
+            <p class="text-xs text-slate-500 leading-normal">
+              以下為您現場發佈的應援或卡片項目。您可以隨時點選進行「修改內容」或「標記結束/下架」。
+            </p>
+            <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- 動態渲染個人專屬貼文 -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SCREEN 4: 演唱會看板詳細頁 -->
+      <section id="screen-concert-detail" class="hidden space-y-6 animate-fade-in">
+        <!-- 演唱會頭部 Banner -->
+        <div class="relative rounded-2xl overflow-hidden h-40 md:h-56 border border-slate-100 shadow-sm">
+          <img id="detail-concert-image" src="" alt="" class="w-full h-full object-cover brightness-75">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+          <div class="absolute bottom-4 left-6 right-6 text-white text-left">
+            <div class="flex gap-2 items-center mb-1.5">
+              <span id="detail-concert-artist" class="text-[10px] md:text-xs bg-white/20 backdrop-blur-sm text-white px-2.5 py-0.5 rounded font-extrabold"></span>
+              <span id="detail-concert-venue" class="text-[10px] md:text-xs text-white/90 flex items-center gap-0.5"></span>
+            </div>
+            <h2 id="detail-concert-tour" class="text-lg md:text-2xl font-black leading-snug drop-shadow-md"></h2>
+          </div>
+        </div>
+
+        <!-- 審核中提案提示區 -->
+        <div id="detail-concert-pending-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between text-xs text-amber-800">
+          <div class="space-y-0.5">
+            <p class="font-bold text-sm">本場次由粉絲自行提案</p>
+            <p id="detail-concert-pending-stats" class="text-slate-500 text-[11px]"></p>
+          </div>
+          <button onclick="voteForConcert()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm">
+            我有去這場
+          </button>
+        </div>
+
+        <!-- 雙欄桌面視圖佈局：左側面板放置篩選、右側展示對應卡片 -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start text-left">
+          
+          <div class="lg:col-span-1 space-y-5">
+            <!-- 日期選擇 -->
+            <div class="bg-slate-50/50 p-4 rounded-2xl border border-slate-200/50">
+              <p class="text-slate-500 text-[11px] font-bold mb-2.5 uppercase section-kicker">選擇演唱會日</p>
+              <div id="detail-date-tabs-container" class="flex lg:flex-col gap-2 overflow-x-auto pb-1 lg:pb-0">
+                <!-- 動態渲染日期卡 -->
+              </div>
+            </div>
+
+            <!-- 看板分類切換 -->
+            <div class="flex lg:flex-col bg-slate-100 lg:bg-transparent p-1 lg:p-0 rounded-xl lg:space-y-2">
+              <button onclick="setSubCategory('support')" id="btn-toggle-support" class="flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-slate-900 shadow-sm lg:border lg:border-slate-200">
+                <span id="label-toggle-support">免費應援 (0)</span>
+              </button>
+              <button onclick="setSubCategory('exchange')" id="btn-toggle-exchange" class="flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-slate-500 lg:border lg:border-transparent">
+                <span id="label-toggle-exchange">交換/贈送 (0)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 右側動態應援項目網格 -->
+          <div class="lg:col-span-3">
+            <div id="detail-event-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- 動態渲染卡片 -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== 底部行動導覽列 (僅在手機 md 以下顯示) ==================== -->
+    <nav id="bottom-nav-bar" class="md:hidden absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/70 z-30 flex py-2 px-6 justify-between items-center shadow-[0_-6px_24px_rgba(15,23,42,0.06)] pb-safe">
+      <button onclick="switchTab('explore')" id="nav-btn-explore" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-900">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" /></svg>
+        <span class="text-[10px] font-bold">探索場次</span>
+      </button>
+      <button onclick="switchTab('bookmarks')" id="nav-btn-bookmarks" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-400 hover:text-slate-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>
+        <span class="text-[10px] font-bold">我的收藏</span>
+      </button>
+      <button onclick="switchTab('profile')" id="nav-btn-profile" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-slate-400 hover:text-slate-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" /></svg>
+        <span class="text-[10px] font-bold">個人中心</span>
+      </button>
+    </nav>
+
+    <!-- 懸浮發布按鈕 (只限於詳細頁顯示) -->
+    <button id="floating-publish-btn" onclick="openPublishModal()" class="hidden fixed bottom-24 right-6 md:absolute md:bottom-8 md:right-8 z-45 w-14 h-14 md:w-16 md:h-16 rounded-full bg-slate-900 text-white shadow-xl flex items-center justify-center hover:bg-slate-800 active:scale-95 transition-all border border-slate-700/20">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+
+    <!-- ==================== TOAST 通知 ==================== -->
+    <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm bg-slate-900/95 backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
+      <span id="toast-text"></span>
+    </div>
+
+    <!-- ==================== MODAL 1: 提案新增場次 ==================== -->
+    <div id="modal-add-concert" onclick="closeAddConcertModal()" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-sm md:text-base font-black text-slate-850">提案新增演出</h3>
+          <button onclick="closeAddConcertModal()" class="text-slate-400 hover:text-slate-800 bg-slate-100 p-1.5 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <form onsubmit="handleAddConcertSubmit(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">明星藝人名稱</label>
+            <input type="text" id="add-concert-artist" placeholder="例如: SEVENTEEN, IU, AESPA" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800" required>
+          </div>
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">巡迴演唱會全稱</label>
+            <input type="text" id="add-concert-tour" placeholder="例如: WORLD TOUR [RIGHT HERE] IN TAIPEI" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800" required>
+          </div>
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">演出場館</label>
+            <input type="text" id="add-concert-venue" placeholder="例如: 台北大巨蛋, 高雄巨蛋" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800" required>
+          </div>
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">演唱會場次日期</label>
+            <div class="space-y-1.5">
+              <input type="date" id="add-concert-date-1" aria-label="第一場日期" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800" required>
+              <input type="date" id="add-concert-date-2" aria-label="第二場日期（選填）" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+              <input type="date" id="add-concert-date-3" aria-label="第三場日期（選填）" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">確認建立演出</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL 2: 發布與編輯應援/交換貼文 ==================== -->
+    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <h3 id="publish-modal-title" class="text-sm md:text-base font-black text-slate-850">發布新看板項目</h3>
+            <span id="publish-edit-badge" class="hidden text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-black">僅限自己編輯</span>
+          </div>
+          <button onclick="closePublishModal()" class="text-slate-400 hover:text-slate-800 bg-slate-100 p-1.5 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <!-- 類型切換 (僅新增模式下顯示) -->
+        <div id="publish-type-toggle-container" class="flex bg-slate-100 p-1 rounded-xl">
+          <button type="button" id="publish-type-btn-free-support" onclick="setPublishType('free-support')" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-850 shadow-xs">
+            免費應援
+          </button>
+          <button type="button" id="publish-type-btn-support-exchange" onclick="setPublishType('support-exchange')" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400">
+            交換應援
+          </button>
+          <button type="button" id="publish-type-btn-photocard-exchange" onclick="setPublishType('photocard-exchange')" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-400">
+            交換小卡
+          </button>
+        </div>
+
+        <form onsubmit="handlePublishPostSubmit(event)" class="space-y-3.5 text-xs text-slate-800">
+          <div>
+            <label id="label-post-title" class="block text-slate-500 font-bold mb-1">應援物品標題</label>
+            <input type="text" id="post-title" placeholder="例:oo吊飾、oo杯套" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-slate-800" required>
+          </div>
+
+          <!-- 應援相片上傳區 (現場拍照/上傳、自動安全等比 Canvas 壓縮) -->
+          <div>
+            <label class="block text-slate-500 font-bold mb-1">上傳實體照片（系統將自動壓縮）</label>
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="triggerFileInput()" class="bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold px-4 py-2.5 rounded-xl border border-purple-200 transition-all flex items-center gap-1.5 text-[11px]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                選擇或拍攝照片
+              </button>
+              <input type="file" id="post-image-file" accept="image/*" class="hidden" onchange="processImageUpload(event)">
+              <div id="image-upload-preview-container" class="hidden w-12 h-12 rounded-lg border overflow-hidden bg-slate-100 relative shrink-0">
+                <img id="image-upload-preview" src="" alt="preview" class="w-full h-full object-cover">
+                <button type="button" onclick="clearUploadedImage()" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center font-bold text-[9px]">移除</button>
+              </div>
+              <p id="image-upload-hint" class="text-[9px] text-slate-400">若未上傳，系統將套用預設動態背景</p>
+            </div>
+          </div>
+
+          <div id="support-only-fields" class="flex flex-col gap-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-500 font-bold mb-1">應援種類</label>
+                <select id="post-category" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+                  <option value="吊飾/掛件" selected>吊飾/掛件</option>
+                  <option value="小卡/卡類">小卡/卡類</option>
+                  <option value="杯套">杯套</option>
+                  <option value="生活用品">生活用品</option>
+                  <option value="紙類/貼紙">紙類/貼紙</option>
+                  <option value="布類/手幅">布類/手幅</option>
+                  <option value="配件">配件(徽章/戒指)</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-500 font-bold mb-1">發放數量 (份)</label>
+                <input type="number" id="post-quantity" placeholder="例: 100" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800" required>
+              </div>
+            </div>
+            <!-- 日期選擇 -->
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">選擇活動發放日期</label>
+              <div id="post-date-options" class="flex gap-2">
+                <!-- 動態生成日期按鈕 checkbox/radio -->
+              </div>
+            </div>
+
+            <!-- 網址外宣與即時更新 -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+              <p class="font-bold text-slate-800 text-[10px]">外部宣傳與位置更新連結</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-400 text-[9px] mb-0.5 font-semibold">原始貼文連結 (例：Threads應援圖貼文)</label>
+                  <input type="url" id="post-original-link" placeholder="https://www.threads.com/@.../post" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-slate-800 text-[11px]">
+                </div>
+                <div>
+                  <label class="block text-slate-400 text-[9px] mb-0.5 font-semibold">即時位置更新處 (例：個人IG、Threads、指定貼文)</label>
+                  <input type="url" id="post-live-update-link" placeholder="https://www.threads.com/@..." class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-slate-800 text-[11px]">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-500 font-bold mb-1">即時位置更新說明</label>
+              <input type="text" id="post-approx-location" placeholder="例: 當天公布在Threads貼文底下或是IG限時動態" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+            </div>
+
+            <div class="space-y-2">
+              <div>
+                <label id="label-post-requirement" class="block text-slate-500 font-bold mb-1">領取條件／交換對象限制</label>
+                <input type="text" id="post-requirement" placeholder="例: 出示粉絲證明" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+              </div>
+              <div>
+                <label class="block text-slate-500 font-bold mb-1">注意事項</label>
+                <input type="text" id="post-notice" placeholder="例: 應援物不得轉售、拿去與其他人交換應援" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800">
+              </div>
+              <div>
+                <label class="block text-slate-500 font-bold mb-1">備註說明</label>
+                <textarea id="post-description" rows="2" placeholder="例: 想到什麼可補充在這" class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-slate-800 resize-none"></textarea>
+              </div>
+            </div>
+          </div>
+
+
+
+          <button id="publish-submit-btn" type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">發布看板項目</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL 3: 看板詳細情報彈窗 ==================== -->
+    <div id="modal-post-detail" onclick="closePostDetailModal()" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg p-6 space-y-4 max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-2xl text-left border-t border-slate-100 overflow-hidden">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span id="detail-item-tag" class="text-[10px] px-2.5 py-0.5 rounded font-black border"></span>
+            <button id="detail-bookmark-btn" onclick="toggleDetailBookmark()" class="p-1.5 rounded-full hover:bg-slate-100 transition-all">
+              <!-- 愛心 SVG -->
+              <svg id="detail-bookmark-heart" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+          <button onclick="closePostDetailModal()" class="text-slate-400 hover:text-slate-800 bg-slate-100 p-1.5 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- 封面圖片 (大螢幕限制比例防止撐開) -->
+        <div class="h-44 md:h-56 w-full rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+          <img id="detail-item-image" src="" alt="Detail" class="w-full h-full object-cover">
+        </div>
+
+        <div>
+          <h3 id="detail-item-title" class="text-sm md:text-base font-extrabold text-slate-900 leading-snug"></h3>
+          <p id="detail-item-quantity-row" class="text-xs text-slate-500 mt-1 font-bold"></p>
+        </div>
+
+        <!-- 連結按鈕 (響應式雙欄排版) -->
+        <div class="space-y-2">
+          <p class="text-[10px] text-slate-400 font-bold uppercase section-kicker">外部宣傳與位置更新連結</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div id="detail-link-original-container"></div>
+            <div id="detail-link-live-container"></div>
+          </div>
+        </div>
+        <!-- 位置說明 -->
+        <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-150">
+          <div class="space-y-0.5 text-left">
+            <p class="text-[9px] text-slate-400 font-bold uppercase">即時位置更新說明</p>
+            <p id="detail-item-approx" class="font-extrabold text-slate-800 leading-tight"></p>
+          </div>
+        </div>
+
+        <!-- 獨立三大說明區塊 -->
+        <div class="space-y-2">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <span class="text-[9px] bg-slate-200 text-slate-755 font-bold px-1.5 py-0.5 rounded">領取條件限制</span>
+            <p id="detail-item-requirement" class="text-xs text-slate-700 mt-1.5 leading-relaxed font-medium"></p>
+          </div>
+          <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+            <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">注意事項</span>
+            <p id="detail-item-notice" class="text-xs text-slate-700 mt-1.5 leading-relaxed font-medium"></p>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <span class="text-[9px] bg-slate-200 text-slate-755 font-bold px-1.5 py-0.5 rounded">備註說明</span>
+            <p id="detail-item-description" class="text-xs text-slate-600 mt-1.5 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- 操作按鈕 -->
+        <div id="detail-action-container" class="border-t border-slate-100 pt-3">
+          <!-- 根據發布者是自己與否渲染 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL 4: 自訂防呆刪除確認彈窗 ==================== -->
+    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-slate-100 overflow-hidden">
+        <span class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 mx-auto grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16m-10 4v6m4-6v6M9 7l1-3h4l1 3m-8 0 1 13h8l1-13" /></svg></span>
+        <div>
+          <h4 class="text-sm font-extrabold text-slate-900">確認要刪除此項目嗎？</h4>
+          <p class="text-[11px] text-slate-500 mt-1 leading-normal">刪除後，其他現場粉絲將無法在當天看板上看見，此動作無法復原。</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+          <button onclick="closeDeleteConfirmModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg font-bold transition-all">取消</button>
+          <button onclick="executeDeletePost()" class="bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-bold transition-all shadow-sm">確認刪除</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 取得環境注入配置，若無則降級為預設模擬配置
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'concert-support-map';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+      ? JSON.parse(__firebase_config) 
+      : {
+        apiKey: "AIzaSyAhjvu_SHZJUkJYTyXEaBA5HZfGdvObfIY",
+        authDomain: "fan-map-68117.firebaseapp.com",
+        projectId: "fan-map-68117",
+        storageBucket: "fan-map-68117.firebasestorage.app",
+        messagingSenderId: "1066740158853",
+        appId: "1:1066740158853:web:1ea5f5283c20fed067f4ec",
+        measurementId: "G-NYL7N1MX39"
+    };
+
+    // 初始化 Firebase 與服務
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let unsubscribeConcerts = null;
+    let unsubscribeSupport = null;
+    let unsubscribeExchange = null;
+
+    function unsubscribeListeners() {
+        if (unsubscribeConcerts) unsubscribeConcerts();
+        if (unsubscribeSupport) unsubscribeSupport();
+        if (unsubscribeExchange) unsubscribeExchange();
+    }
+
+
+
+    // ==================== SEED MOCK DATA (若即時資料庫為空，用來自動初始化填入) ====================
+    const SEED_CONCERTS = [
+      {
+        id: "concert_001",
+        artist: "SEVENTEEN",
+        tourName: "WORLD TOUR [RIGHT HERE] IN TAIPEI",
+        venue: "台北大巨蛋",
+        dates: ["2026-01-10", "2026-01-11", "2026-01-12"],
+        image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=600&q=80",
+        isPending: false,
+        verifiedCount: 12
+      },
+      {
+        id: "concert_002",
+        artist: "IU",
+        tourName: "H.E.R. WORLD TOUR CONCERT",
+        venue: "台北小巨蛋",
+        dates: ["2026-03-07", "2026-03-08"],
+        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+        isPending: false,
+        verifiedCount: 8
+      }
+    ];
+
+    // ==================== APP RUNTIME STATE ====================
+    let concerts = [];
+    let supportEvents = [];
+    let exchangePosts = [];
+    let bookmarkedPostIds = []; // 預設為空
+
+    let activeTab = "explore"; 
+    let selectedConcert = null; 
+    let selectedDate = "";      
+    let selectedSubCategory = "support"; 
+    let searchQuery = "";
+
+    // 模態框與照片上傳狀態暫存
+    let activeDetailItem = null; 
+    let publishPostType = "free-support"; 
+    let isEditingMode = false;
+    let editingItemId = null;
+    let deleteTarget = null;
+    let currentUploadedImageBase64 = ""; // 儲存經 Canvas 壓縮過的 Base64 安全編碼字串
+
+    // 當前使用者狀態與自訂頭像設定
+    let currentUser = {
+      id: "user_me",
+      username: "匿名用戶",
+      avatar: "https://api.dicebear.com/10.x/glyphs/svg",
+      contact: "",
+      isAnonymous: true
+    };
+
+    // ==================== STREAMING_CHUNK: 監聽 Firebase 身分狀態變更並初始化 Profile ====================
+    onAuthStateChanged(auth, async (user) => {
+        
+      try {
+        startRealtimeListeners();
+        const statusText = document.getElementById("loading-status-text");
+
+        if (user) {
+          statusText.innerText = "驗證粉絲特許資料中...";
+          currentUser.id = user.uid;
+          currentUser.isAnonymous = user.isAnonymous;
+          document.getElementById("profile-display-uid").innerText = `UID: ${user.uid}`;
+
+          // 連接至私有安全路徑 /users/{userId}/profile/data 讀取或註冊 Profile
+          const profileDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+          const profileSnap = await getDoc(profileDocRef);
+
+          if (profileSnap.exists()) {
+            const profileData = profileSnap.data();
+            currentUser.username = profileData.username || user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`;
+            currentUser.avatar = profileData.avatar || user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`;
+            currentUser.contact = profileData.contact || "";
+          } else {
+            // 自動初始化並將 Google 資訊或匿名預設值存入
+            const initialProfile = {
+              username: user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`,
+              avatar: user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`,
+              contact: "",
+            };
+            await setDoc(profileDocRef, initialProfile);
+            currentUser.username = initialProfile.username;
+            currentUser.avatar = initialProfile.avatar;
+            currentUser.contact = initialProfile.contact;
+          }
+
+          // 同步個人中心編輯欄位
+          document.getElementById("profile-input-username").value = currentUser.username;
+          document.getElementById("profile-input-contact").value = currentUser.contact;
+          document.getElementById("profile-display-avatar").src = currentUser.avatar;
+          document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
+
+          // 更新 Firebase 登入 UI 顯示樣式
+          const badge = document.getElementById("auth-status-badge");
+          const warningBox = document.getElementById("anonymous-warning-box");
+          const gLoginBtn = document.getElementById("google-login-btn");
+          const logoutBtn = document.getElementById("logout-btn");
+
+          if (user.isAnonymous) {
+            badge.className = "mt-2 text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200/50";
+            badge.innerText = "臨時匿名帳號";
+            warningBox.classList.remove("hidden");
+            gLoginBtn.classList.remove("hidden");
+            logoutBtn.classList.add("hidden");
+          } else {
+            badge.className = "mt-2 text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/50";
+            badge.innerText = `Google 安全登入 (${user.email})`;
+            warningBox.classList.add("hidden");
+            gLoginBtn.classList.add("hidden");
+            logoutBtn.classList.remove("hidden");
+          }
+
+          statusText.innerText = "同步現場即時看板中...";
+          
+
+        } else {
+          // 未登入時，不做處理
+            console.log("使用者未登入，功能限制為唯讀模式");
+            document.getElementById("loading-overlay").classList.add("hidden");
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        showToast("Firebase 安全認證出錯，請確認後台設定");
+        document.getElementById("loading-overlay").classList.add("hidden");
+      }
+    });
+
+    // ==================== STREAMING_CHUNK: Google 登入與登出管理控制 ====================
+    async function handleGoogleSignIn() {
+      const provider = new GoogleAuthProvider();
+      showToast("正在連線至 Google 安全登入程序...");
+      try {
+        await signInWithPopup(auth, provider);
+
+    } catch (err) {
+        if (err.code === 'auth/popup-closed-by-user') {
+            showToast("ℹ️ 登入程序已被手動取消");
+          } else {
+            console.error("登入失敗:", err);
+            showToast("登入程序發生錯誤");
+          }
+        
+    }
+    }
+
+    async function handleSignOut() {
+      showToast("正在安全登出...");
+      
+      try {
+        unsubscribeListeners(); // 先關閉監聽
+        await signOut(auth);
+        showToast("已成功登出");
+        window.location.reload(); // 強制重整以確保所有狀態歸零
+      } catch (error) {
+        console.error("Sign out error:", error);
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 開啟 Firestore 三大即時監聽即時更新 ====================
+    function startRealtimeListeners() {
+        unsubscribeListeners(); // 確保重新開啟前先清理
+      // 1. Concerts 監聽
+      const concertsCol = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
+      onSnapshot(concertsCol, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        if (list.length === 0) {
+          // 寫入種子數據
+          SEED_CONCERTS.forEach(async (c) => {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', c.id), c);
+          });
+          concerts = [...SEED_CONCERTS];
+        } else {
+          concerts = list;
+        }
+        renderAll();
+        document.getElementById("loading-overlay").classList.add("hidden");
+      }, (err) => {
+        console.error("Concert sync error:", err);
+      });
+
+      // 2. Support Events 監聽
+      const supportsCol = collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents');
+      onSnapshot(supportsCol, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        supportEvents = list;
+        renderAll();
+      }, (err) => {
+        console.error("Support sync error:", err);
+      });
+
+      // 3. Exchange Posts 監聽
+      const exchangesCol = collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts');
+      onSnapshot(exchangesCol, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        exchangePosts = list;
+        renderAll();
+      }, (err) => {
+        console.error("Exchange sync error:", err);
+      });
+    }
+
+    // ==================== STREAMING_CHUNK: 圖片即時 Canvas 壓縮上傳與防溢位機制 ====================
+    function triggerFileInput() {
+      document.getElementById("post-image-file").click();
+    }
+
+    function processImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        showToast("請選擇有效的圖片格式！");
+        return;
+      }
+
+      showToast("照片正在壓縮優化中...");
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          // 限制最大寬高，避免儲存 Base64 超出 Firestore 1MB 上限
+          const max_size = 480; 
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > max_size) {
+              height *= max_size / width;
+              width = max_size;
+            }
+          } else {
+            if (height > max_size) {
+              width *= max_size / height;
+              height = max_size;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 進行中度壓縮（0.68 品質，產出輕量小尺寸 JPEG 格式，完美相容無伺服器架構）
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.68);
+          currentUploadedImageBase64 = compressedBase64;
+
+          // 展示即時上傳預覽
+          const previewContainer = document.getElementById("image-upload-preview-container");
+          const previewImg = document.getElementById("image-upload-preview");
+          previewImg.src = compressedBase64;
+          previewContainer.classList.remove("hidden");
+          document.getElementById("image-upload-hint").innerText = "照片壓縮就緒";
+          showToast("現場實體照片儲存成功！");
+        };
+      };
+    }
+
+    function clearUploadedImage() {
+      currentUploadedImageBase64 = "";
+      document.getElementById("post-image-file").value = "";
+      document.getElementById("image-upload-preview-container").classList.add("hidden");
+      document.getElementById("image-upload-hint").innerText = "若未上傳，系統將套用預設動態背景";
+    }
+
+    // ==================== STREAMING_CHUNK: 個人資料與頭像管理 ====================
+    function processProfileAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !file.type.startsWith("image/")) {
+        showToast("請選擇有效的圖片格式");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        const image = new Image();
+        image.onload = () => {
+          const maxSize = 320;
+          const scale = Math.min(maxSize / image.width, maxSize / image.height, 1);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(image.width * scale);
+          canvas.height = Math.round(image.height * scale);
+          canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+          currentUser.avatar = canvas.toDataURL("image/jpeg", 0.82);
+          document.getElementById("profile-display-avatar").src = currentUser.avatar;
+          document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
+          showToast("頭像已更新，請儲存個人資料");
+        };
+        image.src = loadEvent.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveUserProfile() {
+      if (!auth.currentUser) return;
+      const username = document.getElementById("profile-input-username").value.trim() || currentUser.username;
+      const contact = document.getElementById("profile-input-contact").value.trim();
+
+      showToast("保存中...");
+      try {
+        const profileDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data');
+        const updateData = { username, contact, avatar: currentUser.avatar };
+        await updateDoc(profileDocRef, updateData);
+
+        currentUser.username = username;
+        currentUser.contact = contact;
+
+        document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
+        showToast("個人資料已儲存！");
+        renderAll();
+      } catch (error) {
+        console.error("Save profile error:", error);
+        showToast("保存失敗，請稍後再試");
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 路由切換控制 ====================
+    function renderAll() {
+      renderConcerts();
+      renderBookmarks();
+      renderMyPosts();
+      renderConcertDetail();
+    }
+
+    function switchTab(tabId) {
+      activeTab = tabId;
+      selectedConcert = null; 
+
+      document.getElementById("screen-explore").classList.add("hidden");
+      document.getElementById("screen-bookmarks").classList.add("hidden");
+      document.getElementById("screen-profile").classList.add("hidden");
+      document.getElementById("screen-concert-detail").classList.add("hidden");
+
+      document.getElementById(`screen-${tabId}`).classList.remove("hidden");
+      document.getElementById("header-back-btn").classList.add("hidden");
+      document.getElementById("header-logo").classList.remove("hidden");
+      document.getElementById("add-concert-btn").classList.remove("hidden");
+      document.getElementById("floating-publish-btn").classList.add("hidden");
+
+      const tabs = ["explore", "bookmarks", "profile"];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (btn) {
+          if (t === tabId) {
+            btn.classList.add("text-slate-900");
+            btn.classList.remove("text-slate-400", "hover:text-slate-600");
+          } else {
+            btn.classList.remove("text-slate-900");
+            btn.classList.add("text-slate-400", "hover:text-slate-600");
+          }
+        }
+
+        const dkBtn = document.getElementById(`dk-nav-btn-${t}`);
+        if (dkBtn) {
+          if (t === tabId) {
+            dkBtn.className = "text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-1 transition-all";
+          } else {
+            dkBtn.className = "text-sm font-medium text-slate-400 hover:text-slate-600 pb-1 transition-all";
+          }
+        }
+      });
+
+      renderAll();
+    }
+
+    function navigateToConcert(concertId) {
+      selectedConcert = concerts.find(c => c.id === concertId);
+      if (!selectedConcert) return;
+
+      selectedDate = selectedConcert.dates[0];
+      selectedSubCategory = "support";
+
+      document.getElementById("screen-explore").classList.add("hidden");
+      document.getElementById("screen-bookmarks").classList.add("hidden");
+      document.getElementById("screen-profile").classList.add("hidden");
+      document.getElementById("screen-concert-detail").classList.remove("hidden");
+
+      document.getElementById("header-back-btn").classList.remove("hidden");
+      document.getElementById("header-logo").classList.add("hidden");
+      document.getElementById("add-concert-btn").classList.add("hidden");
+      document.getElementById("floating-publish-btn").classList.remove("hidden");
+
+      renderConcertDetail();
+    }
+
+    function navigateBack() {
+      switchTab("explore");
+    }
+
+    function handleSearch(val) {
+      searchQuery = val;
+      renderConcerts();
+    }
+
+    // ==================== STREAMING_CHUNK: 演唱會列表卡片 RWD 渲染 ====================
+    function renderConcerts() {
+      const container = document.getElementById("concert-list-container");
+      container.innerHTML = "";
+
+      const queryStr = searchQuery.trim().toLowerCase();
+      const filtered = concerts.filter(c => {
+        return c.artist.toLowerCase().includes(queryStr) ||
+               c.tourName.toLowerCase().includes(queryStr) ||
+               c.venue.toLowerCase().includes(queryStr);
+      });
+
+      if (filtered.length === 0) {
+        container.className = "block";
+        container.innerHTML = `
+          <div class="text-center py-16 text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+            <p class="text-xs">找不到相符場次。您可以點擊右上角「提案新場次」自行建立！</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
+
+      filtered.forEach(c => {
+        const supportCount = supportEvents.filter(e => e.concertId === c.id).length;
+        const exchangeCount = exchangePosts.filter(p => p.concertId === c.id).length;
+
+        const card = document.createElement("div");
+        card.className = "bg-white hover:bg-slate-50 border border-slate-150 rounded-2xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
+        card.onclick = () => navigateToConcert(c.id);
+
+        card.innerHTML = `
+          <div class="w-28 md:w-32 shrink-0 overflow-hidden relative border-r border-slate-100 bg-slate-100">
+            <img src="${c.image}" alt="${c.artist}" class="w-full h-full object-cover">
+            ${c.isPending ? `
+              <span class="absolute top-2 left-2 bg-amber-500 text-white text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                審核中
+              </span>
+            ` : ""}
+          </div>
+          <div class="flex-1 flex flex-col justify-between min-w-0 text-left m-4">
+            <div>
+              <span class="text-slate-800 text-xs font-black bg-slate-100 px-2 py-0.5 rounded">${c.artist}</span>
+              <h4 class="text-xs md:text-sm font-bold text-slate-800 truncate mt-1.5">${c.tourName}</h4>
+              <p class="text-[10px] md:text-xs text-slate-500 mt-1">${c.venue} · ${c.dates.length} Days</p>
+            </div>
+            <div class="flex gap-3 text-[10px] md:text-xs text-slate-500 border-t border-slate-50 pt-2.5 font-semibold">
+              <span class="flex items-center gap-1">應援 ${supportCount}</span>
+              <span class="text-slate-200">|</span>
+              <span class="flex items-center gap-1">交換 ${exchangeCount}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ==================== STREAMING_CHUNK: 收藏夾清單 RWD 渲染 ====================
+    function renderBookmarks() {
+      const container = document.getElementById("bookmarks-list-container");
+      container.innerHTML = "";
+
+      const matchedSupports = supportEvents
+        .filter(item => bookmarkedPostIds.includes(item.id))
+        .map(item => ({ ...item, bookmarkType: "support" }));
+
+      const matchedExchanges = exchangePosts
+        .filter(item => bookmarkedPostIds.includes(item.id))
+        .map(item => ({ ...item, bookmarkType: "exchange" }));
+
+      const allBookmarked = [...matchedSupports, ...matchedExchanges];
+      document.getElementById("bookmarks-title").innerText = `我的收藏 (${allBookmarked.length})`;
+
+      if (allBookmarked.length === 0) {
+        container.className = "block";
+        container.innerHTML = `
+          <div class="text-center py-24 text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+            <p class="text-xs mt-2.5 font-bold">尚未收藏任何應援或卡片項目</p>
+            <p class="text-[11px] text-slate-400 mt-1">在詳細看板的卡片詳情中，點選愛心即可加入！</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+
+      allBookmarked.forEach(item => {
+        const isSupport = item.bookmarkType === "support";
+        const card = document.createElement("div");
+        card.className = "bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm";
+        card.onclick = () => openPostDetailModal(item.bookmarkType, item.id);
+
+        card.innerHTML = `
+          <img src="${item.image}" alt="Cover" class="w-16 h-16 rounded-xl object-cover border border-slate-100 shrink-0">
+          <div class="flex-1 min-w-0 flex flex-col justify-between text-left">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] px-2 py-0.5 rounded font-black border ${
+                  isSupport 
+                    ? "bg-purple-50 text-purple-700 border-purple-100" 
+                    : "bg-pink-50 text-pink-700 border-pink-100"
+                }">
+                  ${isSupport ? "免費應援" : "卡片交換"}
+                </span>
+                <button onclick="toggleBookmarkAction('${item.id}', event)" class="text-pink-500 hover:text-slate-400 p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 fill-pink-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              </div>
+              <h4 class="text-xs md:text-sm font-bold text-slate-800 truncate mt-1">${item.title}</h4>
+            </div>
+            <p class="text-[10px] text-slate-400 truncate mt-1">位置：${item.approxLocation || "現場尋找"}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleBookmarkAction(id, event) {
+      if (event) event.stopPropagation();
+      if (bookmarkedPostIds.includes(id)) {
+        bookmarkedPostIds = bookmarkedPostIds.filter(postId => postId !== id);
+        showToast("已將該項目移出我的收藏");
+      } else {
+        bookmarkedPostIds.push(id);
+        showToast("已成功收藏該項目");
+      }
+      renderAll();
+    }
+
+    // ==================== STREAMING_CHUNK: 演唱會詳細看板 RWD 渲染 ====================
+    function renderConcertDetail() {
+      if (!selectedConcert) return;
+
+      document.getElementById("detail-concert-image").src = selectedConcert.image;
+      document.getElementById("detail-concert-artist").innerText = selectedConcert.artist;
+      document.getElementById("detail-concert-venue").innerText = selectedConcert.venue;
+      document.getElementById("detail-concert-tour").innerText = selectedConcert.tourName;
+
+      const pendingBox = document.getElementById("detail-concert-pending-box");
+      if (selectedConcert.isPending) {
+        pendingBox.classList.remove("hidden");
+        document.getElementById("detail-concert-pending-stats").innerText = `已有 ${selectedConcert.verifiedCount} 人確認真實性（達 5 人即正式發布）`;
+      } else {
+        pendingBox.classList.add("hidden");
+      }
+
+      // 日期 Tabs 繪製
+      const dateTabsContainer = document.getElementById("detail-date-tabs-container");
+      dateTabsContainer.innerHTML = "";
+      selectedConcert.dates.forEach((dateStr, idx) => {
+        const formattedDate = dateStr.substring(5).replace("-", "/");
+        const isSelected = selectedDate === dateStr;
+
+        const btn = document.createElement("button");
+        btn.className = `flex-1 lg:flex-none min-w-[85px] lg:w-full py-2.5 px-3 rounded-xl flex flex-row lg:justify-between items-center justify-center border transition-all active:scale-95 ${
+          isSelected 
+            ? "bg-slate-900 border-slate-900 text-white shadow-sm" 
+            : "bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+        }`;
+        btn.onclick = () => {
+          selectedDate = dateStr;
+          renderConcertDetail();
+        };
+        btn.innerHTML = `
+          <span class="text-xs font-bold">Day ${idx + 1}</span>
+          <span class="text-[10px] opacity-80 font-medium ml-1 lg:ml-0">${formattedDate}</span>
+        `;
+        dateTabsContainer.appendChild(btn);
+      });
+
+      // 分類統計
+      const currentSupportCount = supportEvents.filter(e => e.concertId === selectedConcert.id && e.dates.includes(selectedDate)).length;
+      const currentExchangeCount = exchangePosts.filter(p => p.concertId === selectedConcert.id && p.concertDate === selectedDate).length;
+      document.getElementById("label-toggle-support").innerText = `免費應援 (${currentSupportCount})`;
+      document.getElementById("label-toggle-exchange").innerText = `交換/贈送 (${currentExchangeCount})`;
+
+      const listContainer = document.getElementById("detail-event-list-container");
+      listContainer.innerHTML = "";
+
+      if (selectedSubCategory === "support") {
+        const matched = supportEvents.filter(e => e.concertId === selectedConcert.id && e.dates.includes(selectedDate));
+        if (matched.length === 0) {
+          listContainer.className = "block";
+          listContainer.innerHTML = `
+            <div class="text-center py-16 text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+              <p class="text-xs mt-2 font-bold">此場次當天目前暫無免費應援</p>
+              <p class="text-[10px] text-slate-400 mt-1">點擊右下角「+」即可發布第一個現場應援！</p>
+            </div>
+          `;
+          return;
+        }
+
+        listContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+
+        matched.forEach(item => {
+          const isEnded = item.status === "ENDED";
+          const card = document.createElement("div");
+          card.className = `bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3.5 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm ${isEnded ? "opacity-60" : ""}`;
+          card.onclick = () => openPostDetailModal("support", item.id);
+
+          card.innerHTML = `
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-100">
+              <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between text-left">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold border border-slate-200/50">
+                    ${item.category}
+                  </span>
+                </div>
+                <h4 class="text-xs md:text-sm font-bold text-slate-900 truncate">${item.title}</h4>
+              </div>
+              <div class="flex items-center justify-between mt-2.5 text-[10px] md:text-xs">
+                <span class="text-slate-500 font-medium truncate max-w-[140px] md:max-w-[180px]">
+                  位置：${item.approxLocation || "現場尋找"}
+                </span>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-400">發放 ${item.quantity} 份</span>
+                  <span class="font-bold ${isEnded ? "text-slate-400" : "text-purple-600"}">
+                    ${isEnded ? "已領完" : "領取中"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+
+      } else {
+        const matched = exchangePosts.filter(p => p.concertId === selectedConcert.id && p.concertDate === selectedDate);
+        if (matched.length === 0) {
+          listContainer.className = "block";
+          listContainer.innerHTML = `
+            <div class="text-center py-16 text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+              <p class="text-xs mt-2 font-bold">此場次當天目前暫無交換需求</p>
+              <p class="text-[10px] text-slate-400 mt-1">點擊右下角「+」發布卡片與現場交換需求！</p>
+            </div>
+          `;
+          return;
+        }
+
+        listContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+
+        matched.forEach(item => {
+          const isClosed = item.status === "CLOSED";
+          const isPhotocardExchange = item.type === "PHOTO_CARD_EXCHANGE" || item.type === "GIVEAWAY";
+          const card = document.createElement("div");
+          card.className = `bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3.5 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm ${isClosed ? "opacity-60" : ""}`;
+          card.onclick = () => openPostDetailModal("exchange", item.id);
+
+          card.innerHTML = `
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border border-slate-100 bg-slate-100">
+              <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between text-left">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10px] px-2 py-0.5 rounded font-bold border ${
+                    isPhotocardExchange 
+                      ? "bg-violet-50 text-violet-700 border-violet-100" 
+                      : "bg-sky-50 text-sky-700 border-sky-100"
+                  }">
+                    ${isPhotocardExchange ? "交換小卡" : "交換應援"}
+                  </span>
+                </div>
+                <h4 class="text-xs md:text-sm font-bold text-slate-900 truncate">${item.title}</h4>
+              </div>
+              <div class="flex items-center justify-between mt-2.5 text-[10px] md:text-xs">
+                <span class="text-slate-500 font-medium truncate max-w-[140px] md:max-w-[180px]">
+                  位置：${item.approxLocation || "現場尋找"}
+                </span>
+                <span class="font-bold ${isClosed ? "text-slate-400" : "text-emerald-600"}">
+                  ${isClosed ? "已結束" : "開放中"}
+                </span>
+              </div>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+      }
+    }
+
+    function setSubCategory(cat) {
+      selectedSubCategory = cat;
+      const btnSupport = document.getElementById("btn-toggle-support");
+      const btnExchange = document.getElementById("btn-toggle-exchange");
+
+      if (cat === "support") {
+        btnSupport.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-slate-900 shadow-sm lg:border lg:border-slate-200";
+        btnExchange.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-slate-500 lg:border lg:border-transparent";
+      } else {
+        btnExchange.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-slate-900 shadow-sm lg:border lg:border-slate-200";
+        btnSupport.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-slate-500 lg:border lg:border-transparent";
+      }
+
+      renderConcertDetail();
+    }
+
+    // 演唱會安全確認 (防呆點讚統計)
+    async function voteForConcert() {
+      if (!selectedConcert || !auth.currentUser) return;
+      try {
+        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
+        const nextCount = selectedConcert.verifiedCount + 1;
+        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
+
+        await updateDoc(concertDocRef, {
+          verifiedCount: nextCount,
+          isPending: isVerified
+        });
+
+        if (nextCount >= 5 && selectedConcert.isPending) {
+          showToast("此演唱會確認票數足夠，正式完成上架！");
+        } else {
+          showToast("感謝確認！防呆票數 +1");
+        }
+      } catch (error) {
+        console.error("Vote concert error:", error);
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 個人發布管理網格渲染 ====================
+    function renderMyPosts() {
+      const container = document.getElementById("my-posts-list-container");
+      container.innerHTML = "";
+
+      const mySupports = supportEvents.filter(s => s.userId === currentUser.id);
+      const myExchanges = exchangePosts.filter(e => e.userId === currentUser.id);
+      const allMyPosts = [
+        ...mySupports.map(s => ({ ...s, myType: "support" })),
+        ...myExchanges.map(e => ({ ...e, myType: "exchange" }))
+      ];
+
+      if (allMyPosts.length === 0) {
+        container.className = "block";
+        container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">您目前在任何看版中尚未發文</p>`;
+        return;
+      }
+
+      container.className = "grid grid-cols-1 md:grid-cols-2 gap-3";
+
+      allMyPosts.forEach(item => {
+        const isSupport = item.myType === "support";
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between bg-slate-50 hover:bg-slate-100 p-3 rounded-xl border border-slate-150 cursor-pointer text-xs";
+        row.onclick = () => openPostDetailModal(item.myType, item.id);
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <span class="text-[9px] px-1.5 py-0.5 rounded font-black border shrink-0 ${
+              isSupport 
+                ? "bg-purple-100 text-purple-700 border-purple-200" 
+                : "bg-pink-100 text-pink-700 border-pink-200"
+            }">
+              ${isSupport ? "應援" : "交換"}
+            </span>
+            <span class="font-bold text-slate-800 truncate">${item.title}</span>
+          </div>
+          <span class="text-purple-600 font-bold shrink-0 text-[10px] ml-2 font-semibold">管理</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ==================== STREAMING_CHUNK: 貼文詳情視窗控制與複製 ====================
+    function openPostDetailModal(type, itemId) {
+      const isSupport = type === "support";
+      const item = isSupport 
+        ? supportEvents.find(s => s.id === itemId)
+        : exchangePosts.find(e => e.id === itemId);
+
+      if (!item) return;
+      activeDetailItem = { type, data: item };
+
+      const tag = document.getElementById("detail-item-tag");
+      if (isSupport) {
+        tag.className = "text-[10px] px-2.5 py-0.5 rounded font-black border bg-slate-100 text-slate-800 border-slate-200";
+        tag.innerText = `應援：${item.category}`;
+      } else {
+        const isPhotocardExchange = item.type === "PHOTO_CARD_EXCHANGE" || item.type === "GIVEAWAY";
+        tag.className = `text-[10px] px-2.5 py-0.5 rounded font-black border ${isPhotocardExchange ? "bg-violet-50 text-violet-700 border-violet-100" : "bg-sky-50 text-sky-700 border-sky-100"}`;
+        tag.innerText = isPhotocardExchange ? "交換小卡" : "交換應援";
+      }
+
+      const heart = document.getElementById("detail-bookmark-heart");
+      if (bookmarkedPostIds.includes(item.id)) {
+        heart.classList.add("fill-pink-500", "text-pink-500");
+        heart.classList.remove("text-slate-400");
+      } else {
+        heart.classList.remove("fill-pink-500", "text-pink-500");
+        heart.classList.add("text-slate-400");
+      }
+
+      document.getElementById("detail-item-image").src = item.image;
+      document.getElementById("detail-item-title").innerText = item.title;
+      
+      const qtyRow = document.getElementById("detail-item-quantity-row");
+      if (isSupport) {
+        qtyRow.innerText = `發放數量：共 ${item.quantity} 份`;
+        qtyRow.classList.remove("hidden");
+      } else {
+        qtyRow.classList.add("hidden");
+      }
+
+      document.getElementById("detail-item-requirement").innerText = item.requirement || "無特殊限制";
+      document.getElementById("detail-item-notice").innerText = item.notice || "無特殊注意事項";
+      document.getElementById("detail-item-description").innerText = item.description || "無特別備註說明";
+
+      document.getElementById("detail-item-approx").innerText = item.approxLocation || "現場尋找";
+
+      const origContainer = document.getElementById("detail-link-original-container");
+      const liveContainer = document.getElementById("detail-link-live-container");
+      origContainer.innerHTML = "";
+      liveContainer.innerHTML = "";
+
+      if (item.originalLink) {
+        origContainer.innerHTML = `
+          <a href="${item.originalLink}" target="_blank" rel="noopener noreferrer" class="bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-xl p-2.5 flex items-center gap-1.5 text-purple-700 text-xs font-bold transition-all w-full">
+            <span>宣傳</span>
+            <div class="text-left leading-tight truncate">
+              <p class="text-[9px] text-purple-400 font-medium">原始應援宣傳</p>
+              <p class="truncate max-w-[130px] md:max-w-[180px]">點擊開啟原貼文</p>
+            </div>
+          </a>
+        `;
+      } else {
+        origContainer.innerHTML = `
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 flex items-center gap-1.5 text-slate-400 text-xs w-full">
+            <span>宣傳</span><p class="text-[10px] leading-tight">未提供外宣連結</p>
+          </div>
+        `;
+      }
+
+      if (item.liveUpdateLink) {
+        liveContainer.innerHTML = `
+          <a href="${item.liveUpdateLink}" target="_blank" rel="noopener noreferrer" class="bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-xl p-2.5 flex items-center gap-1.5 text-pink-700 text-xs font-bold transition-all w-full">
+            <span>位置</span>
+            <div class="text-left leading-tight truncate">
+              <p class="text-[9px] text-pink-400 font-medium">當日即時位置</p>
+              <p class="truncate max-w-[130px] md:max-w-[180px]">點擊看即時動態</p>
+            </div>
+          </a>
+        `;
+      } else {
+        liveContainer.innerHTML = `
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 flex items-center gap-1.5 text-slate-400 text-xs w-full">
+            <span>位置</span><p class="text-[10px] leading-tight font-medium">未提供即時連結</p>
+          </div>
+        `;
+      }
+
+      const actionContainer = document.getElementById("detail-action-container");
+      actionContainer.innerHTML = "";
+
+      if (item.userId === currentUser.id) {
+        actionContainer.innerHTML = `
+          <div class="bg-slate-50 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-slate-200 bg-white object-cover">
+              <div class="text-left">
+                <p class="text-[9px] text-slate-400">發布用戶</p>
+                <p class="text-xs font-bold text-slate-700">${item.authorName || "現場粉絲"}</p>
+              </div>
+            </div>
+            <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-slate-900 text-white hover:bg-slate-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              <span>查看社群</span>
+            </a>
+          </div>
+          <div class="space-y-2 mt-2">
+            <p class="text-[10px] text-purple-600 font-bold">這是您發佈的看板項目：</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="startEditPost()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 shadow-xs transition-all">
+                編輯項目
+              </button>
+              <button onclick="triggerDeletePost()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 transition-all">
+                刪除項目
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        actionContainer.innerHTML = `
+          <div class="bg-slate-50 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-slate-200 bg-white object-cover">
+              <div class="text-left">
+                <p class="text-[9px] text-slate-400">發布用戶</p>
+                <p class="text-xs font-bold text-slate-700">${item.authorName || "現場粉絲"}</p>
+              </div>
+            </div>
+            <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-slate-900 text-white hover:bg-slate-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              <span>查看帳號</span>
+            </a>
+          </div>
+        `;
+      }
+
+      document.getElementById("modal-post-detail").classList.remove("hidden");
+    }
+
+    function closePostDetailModal() {
+      document.getElementById("modal-post-detail").classList.add("hidden");
+      activeDetailItem = null;
+    }
+
+    function toggleDetailBookmark() {
+      if (!activeDetailItem) return;
+      if (!auth.currentUser){
+        alert("請先前往登入才能收藏應援");
+        return;
+      }
+      toggleBookmarkAction(activeDetailItem.data.id);
+      
+      const heart = document.getElementById("detail-bookmark-heart");
+      if (bookmarkedPostIds.includes(activeDetailItem.data.id)) {
+        heart.classList.add("fill-pink-500", "text-pink-500");
+        heart.classList.remove("text-slate-400");
+      } else {
+        heart.classList.remove("fill-pink-500", "text-pink-500");
+        heart.classList.add("text-slate-400");
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
+    function openPublishModal() {
+      if (!selectedConcert) return;
+      if (!auth.currentUser){
+        showToast("請先前往登入才能發布");
+        return;
+      }
+      const contactHandle = currentUser.contact.trim();
+      if (!contactHandle){
+        showToast("請先前往個人中心填寫社群連結");
+        return;
+      }
+      isEditingMode = false;
+      editingItemId = null;
+      clearUploadedImage();
+
+      document.getElementById("publish-modal-title").innerText = "發布新看板項目";
+      document.getElementById("publish-edit-badge").classList.add("hidden");
+      document.getElementById("publish-type-toggle-container").classList.remove("hidden");
+
+      document.getElementById("post-title").value = "";
+      document.getElementById("post-category").value = "吊飾/掛件";
+      document.getElementById("post-quantity").value = "100";
+      document.getElementById("post-requirement").value = "";
+      document.getElementById("post-notice").value = "";
+      document.getElementById("post-description").value = "";
+      document.getElementById("post-approx-location").value = "";
+      document.getElementById("post-original-link").value = "";
+      document.getElementById("post-live-update-link").value = "";
+
+      setPublishType("free-support");
+      buildPublishDateOptions();
+
+      document.getElementById("modal-publish-post").classList.remove("hidden");
+    }
+
+    function closePublishModal() {
+      document.getElementById("modal-publish-post").classList.add("hidden");
+      isEditingMode = false;
+      editingItemId = null;
+    }
+
+    function setPublishType(type) {
+      publishPostType = type;
+      const btnSupport = document.getElementById("publish-type-btn-free-support");
+      const btnExchange = document.getElementById("publish-type-btn-support-exchange");
+      const btnPhotocardExchange = document.getElementById("publish-type-btn-photocard-exchange");
+
+      [btnSupport, btnExchange, btnPhotocardExchange].forEach(btn => {
+        btn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400";
+      });
+
+      const activeBtn = type === "free-support" ? btnSupport : (type === "support-exchange" ? btnExchange : btnPhotocardExchange);
+      activeBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-850 shadow-xs";
+
+      const supOnly = document.getElementById("support-only-fields");
+      const labelTitle = document.getElementById("label-post-title");
+      const labelRequire = document.getElementById("label-post-requirement");
+
+      if (type === "free-support") {
+        supOnly.classList.remove("hidden");
+        labelTitle.innerText = "應援物品標題";
+      } else if(type === "support-exchange"){
+        supOnly.classList.remove("hidden");
+        labelTitle.innerText = "應援物品標題";
+      } else {
+        supOnly.classList.add("hidden");
+        labelTitle.innerText ="我有";
+        labelRequire.innerText="我要交換"
+      }
+
+      buildPublishDateOptions();
+    }
+
+    function buildPublishDateOptions(selectedDatesArray = [], singleDateStr = "") {
+      const container = document.getElementById("post-date-options");
+      container.innerHTML = "";
+      if (!selectedConcert) return;
+
+      selectedConcert.dates.forEach(dateStr => {
+        const dateSub = dateStr.substring(5);
+        
+        if (publishPostType === "free-support") {
+          const isChecked = selectedDatesArray.includes(dateStr);
+          const label = document.createElement("label");
+          label.className = `flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold ${
+            isChecked ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-200 text-slate-500"
+          }`;
+          
+          label.innerHTML = `
+            <input type="checkbox" name="pub-dates" value="${dateStr}" class="hidden" ${isChecked ? "checked" : ""} onchange="togglePublishDateCheckbox(this)">
+            ${dateSub}
+          `;
+          container.appendChild(label);
+        } else {
+          const isSelected = singleDateStr === dateStr || (singleDateStr === "" && selectedDate === dateStr);
+          const label = document.createElement("label");
+          label.className = `flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold ${
+            isSelected ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-200 text-slate-500"
+          }`;
+
+          label.innerHTML = `
+            <input type="radio" name="pub-date" value="${dateStr}" class="hidden" ${isSelected ? "checked" : ""} onchange="togglePublishDateRadio(this)">
+            ${dateSub}
+          `;
+          container.appendChild(label);
+        }
+      });
+    }
+
+    function togglePublishDateCheckbox(el) {
+      const label = el.parentNode;
+      if (el.checked) {
+        label.className = "flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold bg-slate-900 border-slate-900 text-white";
+      } else {
+        label.className = "flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold bg-slate-50 border-slate-200 text-slate-500";
+      }
+    }
+
+    function togglePublishDateRadio(el) {
+      const radios = document.getElementsByName("pub-date");
+      radios.forEach(r => {
+        r.parentNode.className = "flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold bg-slate-50 border-slate-200 text-slate-500";
+      });
+      el.parentNode.className = "flex-1 flex items-center justify-center p-2 rounded-lg border cursor-pointer font-bold bg-slate-900 border-slate-900 text-white";
+    }
+
+    // ==================== STREAMING_CHUNK: 發布與編輯存檔（寫入 Cloud Firestore） ====================
+    async function handlePublishPostSubmit(event) {
+      event.preventDefault();
+
+      if (!auth.currentUser) {
+        showToast("請先完成身分驗證");
+        return;
+      }
+
+      const title = document.getElementById("post-title").value.trim();
+      const category = document.getElementById("post-category").value;
+      const quantity = parseInt(document.getElementById("post-quantity").value) || 100;
+      const approxLocation = document.getElementById("post-approx-location").value.trim(); //即時位置更新說明
+      const originalLink = document.getElementById("post-original-link").value.trim();//原始貼文連結
+      const liveUpdateLink = document.getElementById("post-live-update-link").value.trim(); //即時位置更新處
+      const requirement = document.getElementById("post-requirement").value.trim();//領取條件／交換對象限制
+      const notice = document.getElementById("post-notice").value.trim();//注意事項
+      const description = document.getElementById("post-description").value.trim();//備註
+
+      const contactHandle = currentUser.contact.trim();
+      const authorData = {
+        userId: currentUser.id,
+        authorName: currentUser.username,
+        userAvatar: currentUser.avatar,
+        contactInfo: contactHandle 
+      };
+
+      if (!title) {
+        showToast("請填寫完整基本資訊");
+        return;
+      }
+
+      // 如果有上傳 Canvas 壓縮照片就使用它，否則套用 Unsplash 的動態配圖
+      const finalImage = currentUploadedImageBase64 || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80";
+
+      const submitBtn = document.getElementById("publish-submit-btn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "資料同步中...";
+
+      try {
+        if (isEditingMode && editingItemId) {
+          // A. 編輯存檔
+          if (publishPostType === "free-support") {
+            const checkboxes = document.getElementsByName("pub-dates");
+            const selectedDates = [];
+            checkboxes.forEach(c => { if (c.checked) selectedDates.push(c.value); });
+            if (selectedDates.length === 0) {
+              showToast("請至少選取一個發放日期");
+              submitBtn.disabled = false;
+              submitBtn.innerText = "發布看板項目";
+              return;
+            }
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', editingItemId);
+            await updateDoc(docRef, {
+              title, category, quantity, requirement, notice, description, approxLocation,
+              originalLink, liveUpdateLink, dates: selectedDates,
+              image: finalImage,
+              ...authorData
+            });
+          } else {
+            const radios = document.getElementsByName("pub-date");
+            let chosenDate = selectedDate;
+            radios.forEach(r => { if (r.checked) chosenDate = r.value; });
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', editingItemId);
+            await updateDoc(docRef, {
+              title, requirement, notice, description, approxLocation,
+              originalLink, liveUpdateLink, concertDate: chosenDate,
+              type: publishPostType === "photocard-exchange" ? "PHOTO_CARD_EXCHANGE" : "SUPPORT_EXCHANGE",
+              image: finalImage,
+              ...authorData
+            });
+          }
+          showToast("看板資料成功修改儲存！");
+
+        } else {
+          // B. 發布全新項目
+          if (publishPostType === "free-support") {
+            const checkboxes = document.getElementsByName("pub-dates");
+            const selectedDates = [];
+            checkboxes.forEach(c => { if (c.checked) selectedDates.push(c.value); });
+            if (selectedDates.length === 0) {
+              showToast("請至少選取一個發放日期");
+              submitBtn.disabled = false;
+              submitBtn.innerText = "發布看板項目";
+              return;
+            }
+
+            const newSupportId = `sup_${Date.now()}`;
+            const newSupport = {
+              id: newSupportId,
+              concertId: selectedConcert.id,
+              title, category, quantity, requirement, notice, description, approxLocation,
+              originalLink, liveUpdateLink, dates: selectedDates,
+              status: "ACTIVE",
+              ...authorData,
+              image: finalImage
+            };
+
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', newSupportId), newSupport);
+            showToast("成功新增免費現場應援！");
+          } else {
+            const radios = document.getElementsByName("pub-date");
+            let chosenDate = selectedDate;
+            radios.forEach(r => { if (r.checked) chosenDate = r.value; });
+
+            const newExchangeId = `exch_${Date.now()}`;
+            const newExchange = {
+              id: newExchangeId,
+              concertId: selectedConcert.id,
+              title, requirement, notice, description, approxLocation,
+              originalLink, liveUpdateLink, concertDate: chosenDate,
+              type: publishPostType === "photocard-exchange" ? "PHOTO_CARD_EXCHANGE" : "SUPPORT_EXCHANGE",
+              status: "OPEN",
+              ...authorData,
+              image: finalImage
+            };
+
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', newExchangeId), newExchange);
+            showToast("成功新增卡片交換需求！");
+          }
+        }
+
+        closePublishModal();
+      } catch (error) {
+        console.error("Publish error:", error);
+        showToast("儲存失敗，請確認 Firestore 安全規則設定");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "發布看板項目";
+      }
+    }
+
+    // 啟動編輯
+    function startEditPost() {
+      if (!activeDetailItem) return;
+      const { type, data } = activeDetailItem;
+
+      isEditingMode = true;
+      editingItemId = data.id;
+      closePostDetailModal();
+
+      document.getElementById("publish-modal-title").innerText = "編輯看板項目";
+      document.getElementById("publish-edit-badge").classList.remove("hidden");
+      document.getElementById("publish-type-toggle-container").classList.add("hidden");
+
+      document.getElementById("post-title").value = data.title;
+      document.getElementById("post-category").value = data.category || "吊飾/掛件";
+      document.getElementById("post-quantity").value = data.quantity || "100";
+      document.getElementById("post-requirement").value = data.requirement || "";
+      document.getElementById("post-notice").value = data.notice || "";
+      document.getElementById("post-description").value = data.description || "";
+      document.getElementById("post-approx-location").value = data.approxLocation || "";
+      document.getElementById("post-original-link").value = data.originalLink || "";
+      document.getElementById("post-live-update-link").value = data.liveUpdateLink || "";
+
+      // 載入原有照片預覽
+      if (data.image && data.image.startsWith("data:image/")) {
+        currentUploadedImageBase64 = data.image;
+        const previewContainer = document.getElementById("image-upload-preview-container");
+        const previewImg = document.getElementById("image-upload-preview");
+        previewImg.src = data.image;
+        previewContainer.classList.remove("hidden");
+        document.getElementById("image-upload-hint").innerText = "已載入原始照片";
+      } else {
+        clearUploadedImage();
+      }
+
+      const pType = type === "support" ? "free-support" : ((data.type === "PHOTO_CARD_EXCHANGE" || data.type === "GIVEAWAY") ? "photocard-exchange" : "support-exchange");
+      setPublishType(pType);
+
+      if (type === "support") {
+        buildPublishDateOptions(data.dates, "");
+      } else {
+        buildPublishDateOptions([], data.concertDate);
+      }
+
+      document.getElementById("modal-publish-post").classList.remove("hidden");
+    }
+
+    // ==================== STREAMING_CHUNK: 貼文刪除處理 ====================
+    function triggerDeletePost() {
+      if (!activeDetailItem) return;
+      const { type, data } = activeDetailItem;
+      deleteTarget = { type, id: data.id };
+
+      closePostDetailModal();
+      document.getElementById("modal-delete-confirm").classList.remove("hidden");
+    }
+
+    function closeDeleteConfirmModal() {
+      document.getElementById("modal-delete-confirm").classList.add("hidden");
+      deleteTarget = null;
+    }
+
+    async function executeDeletePost() {
+      if (!deleteTarget || !auth.currentUser) return;
+      const { type, id } = deleteTarget;
+
+      try {
+        const collectionName = type === "support" ? "supportEvents" : "exchangePosts";
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, id);
+        await deleteDoc(docRef);
+
+        bookmarkedPostIds = bookmarkedPostIds.filter(postId => postId !== id);
+
+        showToast("項目成功自即時看板下架！");
+        closeDeleteConfirmModal();
+      } catch (error) {
+        console.error("Delete error:", error);
+        showToast("下架失敗，請稍後再試");
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 提案建立新場次與公用工具 ====================
+    function handleCopyText(text, platform) {
+      const tempInput = document.createElement("input");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      showToast(`已複製聯絡人 ${platform} 帳號！`);
+    }
+
+    function openAddConcertModal() {
+      document.getElementById("add-concert-artist").value = "";
+      document.getElementById("add-concert-tour").value = "";
+      document.getElementById("add-concert-venue").value = "";
+      document.getElementById("add-concert-date-1").value = "";
+      document.getElementById("add-concert-date-2").value = "";
+      document.getElementById("add-concert-date-3").value = "";
+      document.getElementById("modal-add-concert").classList.remove("hidden");
+    }
+
+    function closeAddConcertModal() {
+      document.getElementById("modal-add-concert").classList.add("hidden");
+    }
+
+    async function handleAddConcertSubmit(e) {
+      e.preventDefault();
+
+      const artist = document.getElementById("add-concert-artist").value.trim();
+      const tourName = document.getElementById("add-concert-tour").value.trim();
+      const venue = document.getElementById("add-concert-venue").value.trim();
+      const date1 = document.getElementById("add-concert-date-1").value.trim();
+      const date2 = document.getElementById("add-concert-date-2").value.trim();
+      const date3 = document.getElementById("add-concert-date-3").value.trim();
+
+      const dates = [...new Set([date1, date2, date3].filter(Boolean))].sort();
+      const newId = `concert_${Date.now()}`;
+      const newConcert = {
+        id: newId,
+        artist, tourName, venue, dates,
+        image: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=600&q=80",
+        isPending: true,
+        verifiedCount: 1
+      };
+
+      try {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', newId), newConcert);
+        closeAddConcertModal();
+        showToast("提案建立成功！獲得 5 位現場粉絲確認後即正式上架");
+      } catch (error) {
+        console.error("Add concert error:", error);
+        showToast("傳輸失敗，請稍後再試");
+      }
+    }
+
+    function showToast(message) {
+      const container = document.getElementById("toast-container");
+      document.getElementById("toast-text").innerText = message;
+      container.classList.remove("hidden");
+
+      setTimeout(() => {
+        container.classList.add("hidden");
+      }, 2500);
+    }
+
+    // ==================== STREAMING_CHUNK: 綁定 window 全域互動方法（防 iFrame onclick 遺失） ====================
+    window.switchTab = switchTab;
+    window.navigateToConcert = navigateToConcert;
+    window.navigateBack = navigateBack;
+    window.handleSearch = handleSearch;
+    window.toggleBookmarkAction = toggleBookmarkAction;
+    window.setSubCategory = setSubCategory;
+    window.voteForConcert = voteForConcert;
+    window.saveUserProfile = saveUserProfile;
+    window.processProfileAvatarUpload = processProfileAvatarUpload;
+    window.openPostDetailModal = openPostDetailModal;
+    window.closePostDetailModal = closePostDetailModal;
+    window.toggleDetailBookmark = toggleDetailBookmark;
+    window.openPublishModal = openPublishModal;
+    window.closePublishModal = closePublishModal;
+    window.setPublishType = setPublishType;
+    window.togglePublishDateCheckbox = togglePublishDateCheckbox;
+    window.togglePublishDateRadio = togglePublishDateRadio;
+    window.handlePublishPostSubmit = handlePublishPostSubmit;
+    window.startEditPost = startEditPost;
+    window.triggerDeletePost = triggerDeletePost;
+    window.closeDeleteConfirmModal = closeDeleteConfirmModal;
+    window.executeDeletePost = executeDeletePost;
+    window.handleCopyText = handleCopyText;
+    window.openAddConcertModal = openAddConcertModal;
+    window.closeAddConcertModal = closeAddConcertModal;
+    window.handleAddConcertSubmit = handleAddConcertSubmit;
+    window.triggerFileInput = triggerFileInput;
+    window.processImageUpload = processImageUpload;
+    window.clearUploadedImage = clearUploadedImage;
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.handleSignOut = handleSignOut;
+  </script>
+</body>
+</html>
