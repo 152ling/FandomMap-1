@@ -6,6 +6,8 @@
   <title>應援地圖 | 演唱會應援與卡片交換平台 (Firebase RWD 整合版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <!-- 自訂 Tailwind 設定與動畫 -->
   <script>
     tailwind.config = {
@@ -81,7 +83,6 @@
         <div id="header-logo" class="flex items-center gap-2.5">
           <span class="w-8 h-8 rounded-xl bg-zinc-900 text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
           <span class="text-xl md:text-2xl font-extrabold text-zinc-900 tracking-tight">應援地圖</span>
-          <span class="text-[10px] bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full font-semibold border border-violet-100">FAN BOARD</span>
         </div>
       </div>
 
@@ -117,7 +118,7 @@
       <!-- SCREEN 1: 探索演唱會列表 -->
       <section id="screen-explore" class="space-y-6 animate-fade-in">
         <!-- 宣傳看板 (桌機版適配為優雅通欄) -->
-        <div class="bg-gradient-to-r from-violet-50 via-white to-fuchsia-50/50 border border-violet-100/80 p-5 rounded-2xl flex gap-4 items-start ui-card">
+        <div id="announcement-container" class="hidden bg-gradient-to-r from-violet-50 via-white to-fuchsia-50/50 border border-violet-100/80 p-5 rounded-2xl flex gap-4 items-start ui-card">
           <span class="w-10 h-10 shrink-0 rounded-xl bg-white border border-violet-100 text-violet-700 grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 3.75 12l4.5 7.5M15.75 4.5l4.5 7.5-4.5 7.5M12 3v18" /></svg></span>
           <div>
             <h3 class="text-sm font-bold text-zinc-800 md:text-base">即時應援看板與粉絲卡片交換</h3>
@@ -125,6 +126,25 @@
               探索各場演唱會周邊的熱門應援。每篇貼文皆可設定外部連結（如 IG 原文）與當日即時位置更新處（如 Threads 個人動態），支援即時相片上傳，讓現場排隊不迷路！
             </p>
           </div>
+        </div>
+        <!-- 本周演唱會輪播圖 -->
+        <div id="hero-carousel-container" class="hidden relative w-full overflow-hidden rounded-3xl bg-zinc-900 text-white shadow-xl group">
+          <div id="carousel-track" class="flex transition-transform duration-500 ease-out w-full">
+            </div>
+
+          <button onclick="prevCarouselSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button onclick="nextCarouselSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <div id="carousel-dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+            </div>
         </div>
 
         <!-- 搜尋與篩選列 (RWD: 在大螢幕下更顯大器) -->
@@ -256,6 +276,10 @@
           <button onclick="voteForConcert()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm">
             我有去這場
           </button>
+          <!-- 🛡️ 管理員一鍵審核通過按鈕 (預設隱藏) -->
+          <button id="admin-approve-btn" onclick="adminApproveConcert()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center space-x-1">
+            <span>直接通過</span>
+          </button>
         </div>
 
         <!-- 雙欄桌面視圖佈局：左側面板放置篩選、右側展示對應卡片 -->
@@ -333,23 +357,47 @@
 
         <form onsubmit="handleAddConcertSubmit(event)" class="space-y-3.5 text-xs">
           <div>
-            <label class="block text-zinc-500 font-bold mb-1">明星藝人名稱</label>
+            <label class="block text-zinc-500 font-bold mb-1">上傳演唱會圖片/海報<span class="text-red-500">*</span></label>
+            <input type="file" id="add-concert-image-file" accept="image/*" class="hidden" onchange="processConcertImageUpload(event)">
+            
+            <div id="add-concert-image-preview-box" class="hidden relative w-full h-36 rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 mb-2">
+              <img id="add-concert-image-preview" src="" alt="預覽圖片" class="w-full h-full object-cover">
+              <button type="button" onclick="clearConcertUploadedImage()" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-zinc-900/70 text-white flex items-center justify-center text-xs hover:bg-zinc-900 transition">
+                ✕
+              </button>
+            </div>
+
+            <button type="button" onclick="document.getElementById('add-concert-image-file').click()" class="w-full bg-zinc-50 hover:bg-zinc-100 border border-dashed border-zinc-300 rounded-xl py-3 text-zinc-600 font-bold flex items-center justify-center gap-1.5 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span id="add-concert-upload-btn-text">上傳圖片</span>
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-zinc-500 font-bold mb-1">明星藝人名稱<span class="text-red-500">*</span></label>
             <input type="text" id="add-concert-artist" placeholder="例如: SEVENTEEN, IU, AESPA" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required>
           </div>
           <div>
-            <label class="block text-zinc-500 font-bold mb-1">巡迴演唱會全稱</label>
+            <label class="block text-zinc-500 font-bold mb-1">巡迴演唱會全稱<span class="text-red-500">*</span></label>
             <input type="text" id="add-concert-tour" placeholder="例如: WORLD TOUR [RIGHT HERE] IN TAIPEI" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required>
           </div>
           <div>
-            <label class="block text-zinc-500 font-bold mb-1">演出場館</label>
+            <label class="block text-zinc-500 font-bold mb-1">演出場館<span class="text-red-500">*</span></label>
             <input type="text" id="add-concert-venue" placeholder="例如: 台北大巨蛋, 高雄巨蛋" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required>
           </div>
+
           <div>
-            <label class="block text-zinc-500 font-bold mb-1">演唱會場次日期</label>
-            <div class="space-y-1.5">
-              <input type="date" id="add-concert-date-1" aria-label="第一場日期" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required>
-              <input type="date" id="add-concert-date-2" aria-label="第二場日期（選填）" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800">
-              <input type="date" id="add-concert-date-3" aria-label="第三場日期（選填）" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-zinc-600 font-bold">演唱會場次日期<span class="text-red-500">*</span></label>
+              <button type="button" onclick="addConcertDateField()" class="text-[11px] text-zinc-900 bg-zinc-100 hover:bg-zinc-200 font-bold px-2.5 py-1 rounded-lg transition flex items-center space-x-1">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>增加天數</span>
+              </button>
+            </div>
+            <div id="add-concert-dates-container" class="space-y-2">
+              <!-- 由 JS resetConcertDateFields 自動載入 -->
             </div>
           </div>
           <button type="submit" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">確認建立演出</button>
@@ -398,7 +446,7 @@
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  選擇或拍攝照片
+                  上傳圖片
                 </button>
                 <input type="file" id="post-image-file" accept="image/*" multiple class="hidden" onchange="processImageUpload(event)">
                 <div id="image-upload-preview-container" class="flex items-center gap-3 overflow-x-auto pb-1"></div>
@@ -685,7 +733,51 @@
         if (unsubscribeExchange) unsubscribeExchange();
         if (unsubscribeBookmarks) unsubscribeBookmarks();
     }
+    async function isUserAdmin() {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return false;
+      // 強制刷新並取得最新的 ID Token 內容
+      const idTokenResult = await currentUser.getIdTokenResult(true);
+      // 檢查 Token 中是否有 admin 標記
+      return !!idTokenResult.claims.admin;
+    }
 
+    async function adminApproveConcert() {
+      if (!selectedConcert) return;
+
+      if (!isUserAdmin()) {
+        showToast("您沒有管理員權限^^");
+        return;
+      }
+
+      const approveBtn = document.getElementById('admin-approve-btn');
+      approveBtn.disabled = true;
+      approveBtn.innerText = "處理中...";
+
+      try {
+        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
+        // 將 isPending 設為 false，正式上架
+        await updateDoc(concertDocRef, {
+          isPending: false,
+          approvedBy: auth.currentUser.uid,
+          approvedAt: new Date().toISOString()
+        });
+
+        // 隱藏審核區塊
+        document.getElementById('detail-concert-pending-box').classList.add('hidden');
+        showToast("已成功以管理員權限將此場次審核通過並正式上架！");
+
+        // 重新載入或更新畫面
+        if (typeof fetchConcerts === 'function') fetchConcerts();
+      } catch (error) {
+        console.error("Admin approve error:", error);
+        showToast("審核失敗，請稍後再試");
+      } finally {
+        approveBtn.disabled = false;
+        approveBtn.innerText = "直接通過";
+      }
+    }
+    window.adminApproveConcert = adminApproveConcert;
 
     // ==================== APP RUNTIME STATE ====================
     let concerts = [];
@@ -706,9 +798,10 @@
     let isEditingMode = false;
     let editingItemId = null;
     let deleteTarget = null;
+    let currentAddConcertImageBase64 = "";
     let currentUploadedImageBase64 = ""; // 保留第一張，供既有卡片與詳情畫面使用
     let currentUploadedImagesBase64 = []; // 最多五張 Canvas 壓縮後的圖片
-
+  
     // 當前使用者狀態與自訂頭像設定
     let currentUser = {
       id: "user_me",
@@ -1124,6 +1217,7 @@
 
     // ==================== STREAMING_CHUNK: 路由切換控制 ====================
     function renderAll() {
+      renderHeroCarousel(concerts);
       renderConcerts();
       renderBookmarks();
       renderMyPosts();
@@ -1199,7 +1293,182 @@
       searchQuery = val;
       renderConcerts();
     }
+    // ==================== 輪播展演 (Carousel) 邏輯 ====================
+    let currentSlideIndex = 0;
+    let carouselTimer = null;
+    let upcomingConcertsCount = 0;
 
+    /**
+     * 檢查演唱會日期陣列，判斷是否有任何日期落於未來 7 天內 (今天 00:00 ~ 第 7 天 23:59:59)
+     */
+    function isConcertInNext7Days(datesArray) {
+      if (!Array.isArray(datesArray) || datesArray.length === 0) return false;
+
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      
+      // 未來 7 天的結束時間 (7 天後的 23:59:59)
+      const endOf7Days = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999).getTime();
+
+      return datesArray.some(dateStr => {
+        const targetDate = new Date(dateStr).getTime();
+        return !isNaN(targetDate) && targetDate >= startOfToday && targetDate <= endOf7Days;
+      });
+    }
+    /**
+     * 計算目標日期陣列中，距離今天最近的剩餘天數 (D-Day)
+     * @param {Array<string>} datesArray - 演唱會日期陣列，如 ["2026-08-05", "2026-08-06"]
+     * @returns {string} 回傳倒數狀態文字，例如 "D-3"、"D-Day"、"進行中" 或 "已結束"
+     */
+    function getDaysRemaining(datesArray) {
+      if (!Array.isArray(datesArray) || datesArray.length === 0) return '';
+
+      const now = new Date();
+      // 取得今天 00:00:00 的時間戳
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000; // 一天的毫秒數
+
+      // 過濾出未來或今天的日期，並轉成時間戳排序
+      const validTimestamps = datesArray
+        .map(d => {
+          const dateObj = new Date(d);
+          return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
+        })
+        .filter(t => !isNaN(t))
+        .sort((a, b) => a - b);
+
+      if (validTimestamps.length === 0) return '';
+
+      // 尋找第一個尚未發生的日期 ( >= 今天)
+      const upcomingTimestamp = validTimestamps.find(t => t >= todayStart);
+
+      // 如果找不到未來的日期，代表演唱會所有場次都已結束
+      if (!upcomingTimestamp) {
+        return '已結束';
+      }
+      // 計算相差天數
+      const diffDays = Math.round((upcomingTimestamp - todayStart) / oneDayMs);
+      if (diffDays === 0) {
+        return 'D-Day'; // 今天開唱！
+      } else {
+        return `倒數${diffDays}天`; // 倒數 X 天
+      }
+    }
+
+    /** 渲染本週熱門演唱會輪播圖*/
+    function renderHeroCarousel(concertsData) {
+      const container = document.getElementById('hero-carousel-container');
+      const announcement = document.getElementById('announcement-container');
+      const track = document.getElementById('carousel-track');
+      const dotsContainer = document.getElementById('carousel-dots');
+
+      if (!container || !track || !dotsContainer) return;
+
+      // 清空自動播放定時器
+      stopCarouselAutoPlay();
+
+      // 1. 防呆過濾：篩選出 dates 中有落在未來 7 天內的演唱會
+      const upcomingConcerts = concertsData.filter(c => isConcertInNext7Days(c.dates));
+      upcomingConcertsCount = upcomingConcerts.length;
+      // 防呆判斷：若未來七天內沒有演唱會，隱藏輪播卡片並退出
+      if (upcomingConcertsCount === 0) {
+        container.classList.add('hidden');
+        announcement.classList.remove('hidden');
+        return;
+      }else {
+        announcement.classList.add('hidden');
+      }
+
+      // 有資料時取消隱藏
+      container.classList.remove('hidden');
+      currentSlideIndex = 0;
+
+      // 2. 渲染 Slides 內容
+      track.innerHTML = upcomingConcerts.map((concert) => {
+        const datesText = Array.isArray(concert.dates) ? concert.dates.join(', ') : (concert.date || '');
+        const bannerImg = concert.coverUrl || concert.imageUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&q=80';
+        const countdownText = getDaysRemaining(concert.dates);
+        return `
+          <div class="w-full flex-shrink-0 relative h-56 sm:h-72 md:h-80 overflow-hidden cursor-pointer" onclick="openConcertDetail('${concert.id}')">
+            <img src="${bannerImg}" alt="${concert.tourName}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+
+            <div class="absolute bottom-0 left-0 right-0 p-5 md:p-8 flex flex-col items-start gap-2">
+              <h2 class="text-lg md:text-2xl font-black text-white tracking-tight line-clamp-1">
+                ${concert.tourName}
+              </h2>
+              <div class="flex items-center text-zinc-300 text-xs space-x-3 mt-1">
+                <span><i class="fa-solid fa-location-dot mr-1 text-zinc-400"></i>${concert.venue || '各大展演場館'}</span>
+                <span><i class="fa-regular fa-clock mr-1 text-zinc-400"></i>${countdownText}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 3. 渲染底部指示圓點 (Dots)
+      dotsContainer.innerHTML = upcomingConcerts.map((_, idx) => `
+        <button onclick="goToCarouselSlide(${idx})" class="w-2 h-2 rounded-full transition-all ${idx === 0 ? 'bg-white w-5' : 'bg-white/40 hover:bg-white/70'}"></button>
+      `).join('');
+
+      // 4. 更新軌道位置與開啟自動輪播
+      updateCarouselPosition();
+      startCarouselAutoPlay();
+
+      // 滑鼠懸停暫停、離開繼續播放
+      container.onmouseenter = stopCarouselAutoPlay;
+      container.onmouseleave = startCarouselAutoPlay;
+    }
+
+    function updateCarouselPosition() {
+      const track = document.getElementById('carousel-track');
+      const dotsContainer = document.getElementById('carousel-dots');
+      if (!track) return;
+
+      track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+
+      if (dotsContainer) {
+        const dots = dotsContainer.children;
+        Array.from(dots).forEach((dot, idx) => {
+          if (idx === currentSlideIndex) {
+            dot.className = 'w-5 h-2 rounded-full bg-white transition-all';
+          } else {
+            dot.className = 'w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all';
+          }
+        });
+      }
+    }
+
+    function nextCarouselSlide() {
+      if (upcomingConcertsCount === 0) return;
+      currentSlideIndex = (currentSlideIndex + 1) % upcomingConcertsCount;
+      updateCarouselPosition();
+    }
+
+
+    function prevCarouselSlide() {
+      if (upcomingConcertsCount === 0) return;
+      currentSlideIndex = (currentSlideIndex - 1 + upcomingConcertsCount) % upcomingConcertsCount;
+      updateCarouselPosition();
+    }
+
+    function goToCarouselSlide(index) {
+      currentSlideIndex = index;
+      updateCarouselPosition();
+    }
+
+    function startCarouselAutoPlay() {
+      if (upcomingConcertsCount <= 1) return; // 只有1張或0張時不啟動輪播
+      stopCarouselAutoPlay();
+      carouselTimer = setInterval(nextCarouselSlide, 4000); // 4秒自動輪播
+    }
+
+    function stopCarouselAutoPlay() {
+      if (carouselTimer) {
+        clearInterval(carouselTimer);
+        carouselTimer = null;
+      }
+    }
     // ==================== STREAMING_CHUNK: 演唱會列表卡片 RWD 渲染 ====================
     function renderConcerts() {
       const container = document.getElementById("concert-list-container");
@@ -1251,6 +1520,8 @@
               <span class="flex items-center gap-1">應援 ${supportCount}</span>
               <span class="text-zinc-200">|</span>
               <span class="flex items-center gap-1">交換 ${exchangeCount}</span>
+              <span class="text-zinc-200">|</span>
+              <span class="flex items-center gap-1">參加 ${c.verifiedCount}</span>
             </div>
           </div>
         `;
@@ -1333,9 +1604,15 @@
       document.getElementById("detail-concert-tour").innerText = selectedConcert.tourName;
 
       const pendingBox = document.getElementById("detail-concert-pending-box");
+      const adminBtn = document.getElementById('admin-approve-btn');
       if (selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
         document.getElementById("detail-concert-pending-stats").innerText = `已有 ${selectedConcert.verifiedCount} 人確認真實性（達 5 人即正式發布）`;
+        if (isUserAdmin()) {
+          adminBtn.classList.remove('hidden');
+        } else {
+          adminBtn.classList.add('hidden');
+        }
       } else {
         pendingBox.classList.add("hidden");
       }
@@ -1537,7 +1814,7 @@
         if (nextCount >= 5 && selectedConcert.isPending) {
           showToast("此演唱會確認票數足夠，正式完成上架！");
         } else {
-          showToast("感謝確認！防呆票數 +1");
+          showToast("感謝確認！票數 +1");
         }
       } catch (error) {
         console.error("Vote concert error:", error);
@@ -2333,37 +2610,200 @@
       document.getElementById("add-concert-artist").value = "";
       document.getElementById("add-concert-tour").value = "";
       document.getElementById("add-concert-venue").value = "";
-      document.getElementById("add-concert-date-1").value = "";
-      document.getElementById("add-concert-date-2").value = "";
-      document.getElementById("add-concert-date-3").value = "";
+      // document.getElementById("add-concert-date-1").value = "";
+      // document.getElementById("add-concert-date-2").value = "";
+      // document.getElementById("add-concert-date-3").value = "";
       document.getElementById("modal-add-concert").classList.remove("hidden");
+      resetConcertDateFields();
+      clearConcertUploadedImage();
+    }
+    function resetConcertDateFields() {
+      const container = document.getElementById('add-concert-dates-container');
+      if (!container) return;
+      container.innerHTML = '';
+      // 預設建立兩天日期欄位
+      addConcertDateField(true);  // 第一天 (必須填寫)
+      addConcertDateField(false); // 第二天 (選填)
+    }
+
+    function addConcertDateField(isRequired = false) {
+      const container = document.getElementById('add-concert-dates-container');
+      if (!container) return;
+
+      const rowCount = container.querySelectorAll('.concert-date-row').length + 1;
+      const row = document.createElement('div');
+      row.className = 'flex items-center space-x-2 concert-date-row';
+
+      row.innerHTML = `
+        <div class="relative flex-1">
+          <input id="add-concert-date-${rowCount}" type="date" aria-label="第 ${rowCount} 天場次日期" class="concert-date-input w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-zinc-800 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-900" ${isRequired ? 'required' : ''}>
+        </div>
+        <button type="button" onclick="removeConcertDateField(this)" class="remove-date-btn shrink-0 w-8 h-8 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center transition" title="移除此場次">
+          <i class="fa-solid fa-minus text-xs"></i>
+        </button>
+      `;
+
+      container.appendChild(row);
+      updateDateRowLabels();
+    }
+
+    function removeConcertDateField(btn) {
+      const container = document.getElementById('add-concert-dates-container');
+      const rows = container.querySelectorAll('.concert-date-row');
+
+      // 至少保留 1 個欄位
+      if (rows.length <= 1) {
+        showToast('演唱會至少需包含 1 個場次日期');
+        return;
+      }
+
+      const row = btn.closest('.concert-date-row');
+      if (row) {
+        row.remove();
+        updateDateRowLabels();
+      }
+    }
+
+    function updateDateRowLabels() {
+      const container = document.getElementById('add-concert-dates-container');
+      if (!container) return;
+
+      const rows = container.querySelectorAll('.concert-date-row');
+      rows.forEach((row, index) => {
+        const input = row.querySelector('.concert-date-input');
+        const removeBtn = row.querySelector('.remove-date-btn');
+        if (input) {
+          input.setAttribute('aria-label', `第 ${index + 1} 天場次日期`);
+          if (index === 0) {
+            input.setAttribute('required', 'true');
+          }
+        }
+        // 當只剩 1 個日期欄位時隱藏移除按鈕，多於 1 個時自動顯示
+        if (removeBtn) {
+          if (rows.length === 1) {
+            removeBtn.classList.add('hidden');
+          } else {
+            removeBtn.classList.remove('hidden');
+          }
+        }
+      });
+    }
+
+    // 圖片上傳與壓縮處理
+    function processConcertImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        showToast("請選擇有效的圖片格式！");
+        return;
+      }
+
+      showToast("圖片處理中...");
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          // 限制海報長寬，避免尺寸過大
+          const max_size = 800; 
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > max_size) {
+              height *= max_size / width;
+              width = max_size;
+            }
+          } else {
+            if (height > max_size) {
+              width *= max_size / height;
+              height = max_size;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Canvas 壓為輕量 JPEG 格式
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+          currentAddConcertImageBase64 = compressedBase64;
+
+          // 更新預覽畫面
+          document.getElementById("add-concert-image-preview").src = compressedBase64;
+          document.getElementById("add-concert-image-preview-box").classList.remove("hidden");
+          document.getElementById("add-concert-upload-btn-text").innerText = "更換圖片";
+          showToast("演唱會圖片選擇成功！");
+        };
+      };
+    }
+
+    // 清除已上傳的圖片
+    function clearConcertUploadedImage() {
+      currentAddConcertImageBase64 = "";
+      document.getElementById("add-concert-image-file").value = "";
+      document.getElementById("add-concert-image-preview-box").classList.add("hidden");
+      document.getElementById("add-concert-upload-btn-text").innerText = "上傳圖片";
     }
 
     function closeAddConcertModal() {
       document.getElementById("modal-add-concert").classList.add("hidden");
+      clearConcertUploadedImage();
     }
 
     async function handleAddConcertSubmit(e) {
       e.preventDefault();
-
+      let finalImageUrl = "";
       const artist = document.getElementById("add-concert-artist").value.trim();
       const tourName = document.getElementById("add-concert-tour").value.trim();
       const venue = document.getElementById("add-concert-venue").value.trim();
-      const date1 = document.getElementById("add-concert-date-1").value.trim();
-      const date2 = document.getElementById("add-concert-date-2").value.trim();
-      const date3 = document.getElementById("add-concert-date-3").value.trim();
-
-      const dates = [...new Set([date1, date2, date3].filter(Boolean))].sort();
+      if(artist === "" || tourName === "" || venue === ""){
+        showToast("請完整填寫演唱會資訊");
+        return;
+      }
+      const container = document.getElementById('add-concert-dates-container');
+      const dateCount = container.querySelectorAll('.concert-date-row').length;
+      const dates = [];
+      for (let i = 1; i <= dateCount; i++) {
+        const dateInput = document.getElementById(`add-concert-date-${i}`);
+        if (dateInput) {
+          const dateValue = dateInput.value.trim();
+          if (dateValue) {
+            dates.push(dateValue);
+          }
+        }
+      }
       const newId = `concert_${Date.now()}`;
-      const newConcert = {
-        id: newId,
-        artist, tourName, venue, dates,
-        image: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=600&q=80",
-        isPending: true,
-        verifiedCount: 1
-      };
+
 
       try {
+        // 若使用者有上傳照片，將圖片上傳至 Firebase Storage
+        if (currentAddConcertImageBase64) {
+          if (auth.currentUser) {
+            const blob = await (await fetch(currentAddConcertImageBase64)).blob();
+            const fileName = `${Date.now()}-cover.jpg`;
+            const imageRef = ref(storage, `concert-covers/${newId}/${fileName}`);
+            await uploadBytes(imageRef, blob, { contentType: "image/jpeg" });
+            finalImageUrl = await getDownloadURL(imageRef);
+          } else {
+            // 未登入情境下
+            return showToast("請先登入後再上傳演唱會圖片");
+          }
+        }else{
+          showToast("請上傳演唱會圖片");
+          return;
+        }
+        const newConcert = {
+          id: newId,
+          artist, tourName, venue, dates,
+          image: finalImageUrl,
+          isPending: true,
+          verifiedCount: 1
+        };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', newId), newConcert);
         closeAddConcertModal();
         showToast("提案建立成功！獲得 5 位現場粉絲確認後即正式上架");
@@ -2386,6 +2826,14 @@
     // ==================== STREAMING_CHUNK: 綁定 window 全域互動方法（防 iFrame onclick 遺失） ====================
     window.switchTab = switchTab;
     window.navigateToConcert = navigateToConcert;
+    window.nextCarouselSlide = nextCarouselSlide;
+    window.prevCarouselSlide = prevCarouselSlide;
+    window.goToCarouselSlide = goToCarouselSlide;
+    window.openConcertDetail = navigateToConcert;
+    window.processConcertImageUpload = processConcertImageUpload;
+    window.addConcertDateField = addConcertDateField;
+    window.removeConcertDateField = removeConcertDateField;
+    window.clearConcertUploadedImage = clearConcertUploadedImage;
     window.navigateBack = navigateBack;
     window.handleSearch = handleSearch;
     window.setSubCategory = setSubCategory;
