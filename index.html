@@ -255,15 +255,50 @@
       <!-- SCREEN 4: 演唱會看板詳細頁 -->
       <section id="screen-concert-detail" class="hidden space-y-6 animate-fade-in">
         <!-- 演唱會頭部 Banner -->
-        <div class="relative rounded-2xl overflow-hidden h-40 md:h-56 border border-zinc-100 shadow-sm">
-          <img id="detail-concert-image" src="" alt="" class="w-full h-full object-cover brightness-75">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
-          <div class="absolute bottom-4 left-6 right-6 text-white text-left">
-            <div class="flex gap-2 items-center mb-1.5">
-              <span id="detail-concert-artist" class="text-[10px] md:text-xs bg-white/20 backdrop-blur-sm text-white px-2.5 py-0.5 rounded font-extrabold"></span>
-              <span id="detail-concert-venue" class="text-[10px] md:text-xs text-white/90 flex items-center gap-0.5"></span>
+        <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden ui-card">
+          <!-- 1. 上方純海報視覺 Banner (無混亂文字重疊，維持高質感) -->
+          <div class="relative h-44 sm:h-52 w-full overflow-hidden bg-zinc-900">
+            <img id="detail-concert-image" src="" alt="Poster" class="w-full h-full object-cover">
+          </div>
+          <!-- 2. 下方獨立資訊與操作按鈕卡片區塊 (獨立白底，清晰高對比) -->
+          <div class="p-4 sm:p-5 space-y-1">
+            <!-- 地點與參戰 Badge -->
+            <div class="flex items-center justify-between text-xs flex-wrap">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-location-dot text-rose-500"></i>
+                <span id="detail-concert-venue" class="text-zinc-500 font-bold flex items-center gap-1 text-[11px]">
+                  場館資訊
+                </span>
+              </div>
+              <span id="detail-concert-countdown" class="text-zinc-400 font-bold text-[11px]">
+                倒數幾天
+              </span>
             </div>
-            <h2 id="detail-concert-tour" class="text-lg md:text-2xl font-black leading-snug drop-shadow-md"></h2>
+
+            <!-- 演唱會主標題 -->
+            <h2 id="detail-concert-tour" class="text-base sm:text-lg font-black text-zinc-900 leading-snug tracking-tight">
+              巡迴演唱會全稱
+            </h2>
+            <span id="detail-concert-artist" class="text-[11px] text-zinc-500 font-bold tracking-wide uppercase">
+                ARTIST
+            </span>
+
+            <!-- 參戰人數統計與獨立操作按鈕列 -->
+            <div class="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
+              <!-- 左側：參戰數據 -->
+              <div class="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>已加入：<strong id="detail-attend-count" class="text-zinc-900 font-black text-xs">0</strong> 人</span>
+              </div>
+
+              <!-- 右側：獨立操作按鈕組 -->
+              <div class="flex items-center gap-2">
+                <button id="btn-detail-attend" onclick="toggleConcertAttend()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+                  <i id="detail-attend-icon" class="fa-solid fa-ticket text-amber-400"></i>
+                  <span id="detail-attend-text">加入演唱會收藏</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -698,8 +733,9 @@
   <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    // import { doc, updateDoc,increment } from "firebase/firestore";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
     // 取得環境注入配置，若無則降級為預設模擬配置
@@ -784,6 +820,7 @@
     let supportEvents = [];
     let exchangePosts = [];
     let bookmarkedPostIds = [];
+    let userAttendedConcerts = [];
     let pendingRemoveBookmarkId = null; //暫存刪除收藏的id
 
     let activeTab = "explore"; 
@@ -934,14 +971,10 @@
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() });
         });
-        if (list.length === 0) {
-          // 寫入種子數據
-          SEED_CONCERTS.forEach(async (c) => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', c.id), c);
-          });
-          concerts = [...SEED_CONCERTS];
-        } else {
+        if (list.length > 0) {
           concerts = list;
+        } else {
+          showToast("目前尚無任何應援場次，請先新增一場演唱會或活動");
         }
         renderAll();
         document.getElementById("loading-overlay").classList.add("hidden");
@@ -986,6 +1019,18 @@
         renderAll();
       }, (err) => {
         console.error("Bookmark sync error:", err);
+      });
+
+      // 4. ConcertsAttended 監聽
+      const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
+      onSnapshot(attendedCol, (snap) => {
+        userAttendedConcerts = [];
+        snap.forEach(doc => {
+          userAttendedConcerts.push(doc.id);
+        });
+        renderAll();
+      }, (err) => {
+        console.error("Attended sync error:", err);
       });
 
     }
@@ -1386,7 +1431,7 @@
       // 2. 渲染 Slides 內容
       track.innerHTML = upcomingConcerts.map((concert) => {
         const datesText = Array.isArray(concert.dates) ? concert.dates.join(', ') : (concert.date || '');
-        const bannerImg = concert.coverUrl || concert.imageUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&q=80';
+        const bannerImg = concert.image;
         const countdownText = getDaysRemaining(concert.dates);
         return `
           <div class="w-full flex-shrink-0 relative h-56 sm:h-72 md:h-80 overflow-hidden cursor-pointer" onclick="openConcertDetail('${concert.id}')">
@@ -1521,7 +1566,7 @@
               <span class="text-zinc-200">|</span>
               <span class="flex items-center gap-1">交換 ${exchangeCount}</span>
               <span class="text-zinc-200">|</span>
-              <span class="flex items-center gap-1">參加 ${c.verifiedCount}</span>
+              <span class="flex items-center gap-1">參加 ${c.attendedCount || 0}</span>
             </div>
           </div>
         `;
@@ -1602,12 +1647,14 @@
       document.getElementById("detail-concert-artist").innerText = selectedConcert.artist;
       document.getElementById("detail-concert-venue").innerText = selectedConcert.venue;
       document.getElementById("detail-concert-tour").innerText = selectedConcert.tourName;
+      document.getElementById("detail-attend-count").innerText = selectedConcert.attendCount;
+      document.getElementById("detail-concert-countdown").innerText = getDaysRemaining(selectedConcert.dates);
 
       const pendingBox = document.getElementById("detail-concert-pending-box");
       const adminBtn = document.getElementById('admin-approve-btn');
       if (selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
-        document.getElementById("detail-concert-pending-stats").innerText = `已有 ${selectedConcert.verifiedCount} 人確認真實性（達 5 人即正式發布）`;
+        document.getElementById("detail-concert-pending-stats").innerText = `已有 ${selectedConcert.attendCount || 0} 人確認參加（達 5 人即正式發布）`;
         if (isUserAdmin()) {
           adminBtn.classList.remove('hidden');
         } else {
@@ -1697,6 +1744,7 @@
             "support-exchange"
           );
       }
+      updateConcertActionButtons();
     }
     // 渲染應援列表
     function renderSupportList(matched, emptyText, emptySubText, modalType){
@@ -1798,16 +1846,16 @@
       renderConcertDetail();
     }
 
-    // 演唱會安全確認 (防呆點讚統計)
+    // 演唱會確認票數 +1
     async function voteForConcert() {
       if (!selectedConcert || !auth.currentUser) return;
       try {
         const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
-        const nextCount = selectedConcert.verifiedCount + 1;
+        const nextCount = selectedConcert.attendedCount + 1;
         const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
 
         await updateDoc(concertDocRef, {
-          verifiedCount: nextCount,
+          attendedCount: nextCount,
           isPending: isVerified
         });
 
@@ -2090,6 +2138,64 @@
     function closeBookmarkConfirmModal() {
       document.getElementById("modal-bookmark-confirm").classList.add("hidden");
       pendingRemoveBookmarkId = null;
+    }
+
+    async function toggleConcertAttend() {
+      const concert = concerts.find(c => c.id === selectedConcert.id);
+      if (!concert) return;
+      const uid = auth.currentUser.uid;
+      const AttendedConcertsRef = doc(db,"artifacts",appId,"users",uid,"attendedConcerts",selectedConcert.id);
+      const isAttended = userAttendedConcerts.includes(selectedConcert.id);
+      const idx = userAttendedConcerts.indexOf(selectedConcert.id);
+      const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
+
+      if (idx > -1) {
+        const nextCount = selectedConcert.attendedCount - 1;
+        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
+        userAttendedConcerts = userAttendedConcerts.filter(id => id !== userAttendedConcerts);
+        await deleteDoc(AttendedConcertsRef);
+        await updateDoc(concertDocRef, {
+          attendedCount: increment(-1),
+          isPending: isVerified
+        });
+        showToast("已取消收藏", "fa-circle-info");
+      } else {
+        const nextCount = selectedConcert.attendedCount + 1;
+        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
+        userAttendedConcerts.push(selectedConcert.id);
+        await setDoc(AttendedConcertsRef, {
+            concertId: selectedConcert.id,
+        });
+        await updateDoc(concertDocRef, {
+          attendedCount: increment(1),
+          isPending: isVerified
+        });
+        showToast("已確認收藏！當天現場見 🎉", "fa-circle-check");
+      }
+      updateConcertActionButtons();
+      renderConcertDetail();
+    }
+    window.toggleConcertAttend = toggleConcertAttend;
+    // 更新確定參戰 / 關注場次按鈕樣式
+    function updateConcertActionButtons() {
+      const concert = concerts.find(c => c.id === selectedConcert.id);
+      if (!concert) return;
+      const isAttended = userAttendedConcerts.includes(selectedConcert.id);
+      // 收藏
+      const attendBtn = document.getElementById('btn-detail-attend');
+      const attendText = document.getElementById('detail-attend-text');
+      const attendIcon = document.getElementById('detail-attend-icon');
+      document.getElementById('detail-attend-count').innerText = concert.attendedCount || 0;
+
+      if (isAttended) {
+        attendText.innerText = "已收藏演唱會";
+        attendBtn.className = "bg-amber-400 text-zinc-950 text-[11px] px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md active:scale-95";
+        attendIcon.className = "fa-solid fa-ticket text-zinc-950";
+      } else {
+        attendText.innerText = "加入演唱會收藏";
+        attendBtn.className = "bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
+        attendIcon.className = "fa-solid fa-ticket text-amber-400";
+      }
     }
 
     async function toggleDetailBookmark() {
@@ -2610,9 +2716,6 @@
       document.getElementById("add-concert-artist").value = "";
       document.getElementById("add-concert-tour").value = "";
       document.getElementById("add-concert-venue").value = "";
-      // document.getElementById("add-concert-date-1").value = "";
-      // document.getElementById("add-concert-date-2").value = "";
-      // document.getElementById("add-concert-date-3").value = "";
       document.getElementById("modal-add-concert").classList.remove("hidden");
       resetConcertDateFields();
       clearConcertUploadedImage();
@@ -2802,7 +2905,7 @@
           artist, tourName, venue, dates,
           image: finalImageUrl,
           isPending: true,
-          verifiedCount: 1
+          attendedCount: 1
         };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', newId), newConcert);
         closeAddConcertModal();
