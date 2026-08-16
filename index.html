@@ -241,9 +241,6 @@
             <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5">
               我的發布與管理
             </h4>
-            <p class="text-xs text-zinc-500 leading-normal">
-              以下為您現場發佈的應援或卡片項目。您可以隨時點選進行「修改內容」或「標記結束/下架」。
-            </p>
             <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <!-- 動態渲染個人專屬貼文 -->
             </div>
@@ -283,8 +280,8 @@
                 ARTIST
             </span>
 
-            <!-- 參戰人數統計與獨立操作按鈕列 -->
-            <div class="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
+            <!-- 參加人數統計與獨立操作按鈕列 -->
+            <div id="detail-concert-attend-container" class="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
               <!-- 左側：參戰數據 -->
               <div class="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5 shrink-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -295,7 +292,7 @@
               <div class="flex items-center gap-2">
                 <button id="btn-detail-attend" onclick="toggleConcertAttend()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
                   <i id="detail-attend-icon" class="fa-solid fa-ticket text-amber-400"></i>
-                  <span id="detail-attend-text">加入演唱會收藏</span>
+                  <span id="detail-attend-text">加入我的演唱會</span>
                 </button>
               </div>
             </div>
@@ -306,14 +303,20 @@
         <div id="detail-concert-pending-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between text-xs text-amber-800">
           <div class="space-y-0.5">
             <p class="font-bold text-sm">本場次由粉絲自行提案</p>
+            <p>協助確認此場演唱會資訊正確<br>完成驗證後將正式開放</p>
             <p id="detail-concert-pending-stats" class="text-zinc-500 text-[11px]"></p>
           </div>
           <button onclick="voteForConcert()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm">
-            我有去這場
+            確認資訊正確
           </button>
-          <!-- 🛡️ 管理員一鍵審核通過按鈕 (預設隱藏) -->
-          <button id="admin-approve-btn" onclick="adminApproveConcert()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center space-x-1">
-            <span>直接通過</span>
+
+        </div>
+        <div id="admin-concert-actions" class="hidden flex flex-wrap gap-2">
+          <button id="admin-edit-concert-btn" onclick="openEditConcertModal()" class="text-sm bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-pen-to-square"></i><span>編輯演出資訊</span>
+          </button>
+          <button id="admin-approve-btn" onclick="adminApproveConcert()" class="hidden text-sm bg-emerald-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center space-x-1">
+              <span>直接通過</span>
           </button>
         </div>
 
@@ -369,7 +372,7 @@
     </nav>
 
     <!-- 懸浮發布按鈕 (只限於詳細頁顯示) -->
-    <button id="floating-publish-btn" onclick="openPublishModal()" class="hidden fixed bottom-24 right-6 md:absolute md:bottom-8 md:right-8 z-45 w-14 h-14 md:w-16 md:h-16 rounded-full bg-zinc-900 text-white shadow-xl flex items-center justify-center hover:bg-zinc-800 active:scale-95 transition-all border border-zinc-700/20">
+    <button id="floating-publish-btn" onclick="openPublishModal()" class="hidden fixed bottom-24 right-6 md:absolute md:bottom-8 md:right-8 z-45 w-14 h-14 md:w-16 md:h-16 rounded-full bg-zinc-900 text-white shadow-xl flex items-center justify-center active:scale-95 transition-all ">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
       </svg>
@@ -436,6 +439,32 @@
             </div>
           </div>
           <button type="submit" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">確認建立演出</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: 管理員編輯演出 ==================== -->
+    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <div><h3 class="text-sm md:text-base font-black text-zinc-850">編輯演出資訊</h3><p class="text-[10px] text-zinc-500 mt-0.5">僅限已驗證管理員</p></div>
+          <button type="button" onclick="closeEditConcertModal()" class="text-zinc-400 hover:text-zinc-800 bg-zinc-100 p-1.5 rounded-full" aria-label="關閉編輯視窗">✕</button>
+        </div>
+        <form onsubmit="handleEditConcertSubmit(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-zinc-500 font-bold mb-1">演唱會圖片／海報</label>
+            <input type="file" id="edit-concert-image-file" accept="image/*" class="hidden" onchange="processEditConcertImageUpload(event)">
+            <div class="relative w-full h-36 rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 mb-2"><img id="edit-concert-image-preview" src="" alt="演唱會圖片預覽" class="w-full h-full object-cover"></div>
+            <button type="button" onclick="document.getElementById('edit-concert-image-file').click()" class="w-full bg-zinc-50 hover:bg-zinc-100 border border-dashed border-zinc-300 rounded-xl py-3 text-zinc-600 font-bold">更換圖片</button>
+          </div>
+          <div><label class="block text-zinc-500 font-bold mb-1">明星藝人名稱<span class="text-red-500">*</span></label><input type="text" id="edit-concert-artist" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required></div>
+          <div><label class="block text-zinc-500 font-bold mb-1">巡迴演唱會全稱<span class="text-red-500">*</span></label><input type="text" id="edit-concert-tour" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required></div>
+          <div><label class="block text-zinc-500 font-bold mb-1">演出場館<span class="text-red-500">*</span></label><input type="text" id="edit-concert-venue" class="w-full bg-zinc-50 border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800" required></div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5"><label class="block text-zinc-600 font-bold">演唱會場次日期<span class="text-red-500">*</span></label><button type="button" onclick="addEditConcertDateField()" class="text-[11px] text-zinc-900 bg-zinc-100 hover:bg-zinc-200 font-bold px-2.5 py-1 rounded-lg">增加天數</button></div>
+            <div id="edit-concert-dates-container" class="space-y-2"></div>
+          </div>
+          <button id="edit-concert-submit-btn" type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">儲存變更</button>
         </form>
       </div>
     </div>
@@ -532,7 +561,7 @@
                 <label class="flex items-center justify-between space-x-2.5 mt-2 p-3 bg-zinc-50 border border-blue-200 rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
                   <div class="flex items-center space-x-2.5">
                       <input type="checkbox" id="ai-checkbox" value="true" class="rounded text-blue-600 border-2 border-blue-400 focus:ring-blue-500 w-4 h-4">
-                      <span class="text-xs font-medium text-blue-500">本應援物含有 AI 生成／輔助創作</span>
+                      <span class="text-xs font-medium text-blue-500">本應援物含有 AI 生成／輔助</span>
                   </div>
                   <span class="text-[10px] text-zinc-400 shrink-0">供領取者參考</span>
                 </label>
@@ -648,7 +677,7 @@
           </div>
           <!-- 位置說明 -->
 
-          <div class="p-4 bg-zinc-50 border border-zinc-200 rounded-xl space-y-1.5">
+          <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-1.5">
             <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-navigation-icon lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
               即時位置更新說明
@@ -659,10 +688,9 @@
           <!-- 獨立三大說明區塊 -->
           <div class="space-y-2">
             <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-2 shadow-2xs">
-              <div class="flex items-center justify-between">
-                <span class="px-2.5 py-0.5 text-xs font-bold bg-zinc-100 text-zinc-800 rounded-md border border-zinc-200">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
                   領取條件
-                </span>
               </div>
               <div class="text-base text-zinc-900 flex items-center gap-2 pl-1">
                 <p id="detail-item-requirement" class="text-xs text-zinc-700 leading-relaxed font-medium"></p>
@@ -695,8 +723,8 @@
           <p class="text-[11px] text-zinc-500 mt-1 leading-normal">刪除後，其他現場粉絲將無法在當天看板上看見，此動作無法復原。</p>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
-          <button onclick="closeDeleteConfirmModal()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2.5 rounded-lg font-bold transition-all">取消</button>
-          <button onclick="executeDeletePost()" class="bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-bold transition-all shadow-sm">確認刪除</button>
+          <button id="cancel-delete-btn" onclick="closeDeleteConfirmModal()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2.5 rounded-lg font-bold transition-all">取消</button>
+          <button id="confirm-delete-btn" onclick="executeDeletePost()" class="bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-bold transition-all shadow-sm">確認刪除</button>
         </div>
       </div>
     </div>
@@ -733,9 +761,8 @@
   <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    // import { doc, updateDoc,increment } from "firebase/firestore";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
     // 取得環境注入配置，若無則降級為預設模擬配置
@@ -762,6 +789,8 @@
     let unsubscribeSupport = null;
     let unsubscribeExchange = null;
     let unsubscribeBookmarks = null;
+    let hasAdminClaim = false;
+    let isAdminClaimResolved = false;
 
     function unsubscribeListeners() {
         if (unsubscribeConcerts) unsubscribeConcerts();
@@ -772,16 +801,17 @@
     async function isUserAdmin() {
       const currentUser = auth.currentUser;
       if (!currentUser) return false;
-      // 強制刷新並取得最新的 ID Token 內容
+      // 執行管理操作前強制刷新 Token，避免只信任畫面上的快取狀態。
       const idTokenResult = await currentUser.getIdTokenResult(true);
-      // 檢查 Token 中是否有 admin 標記
-      return !!idTokenResult.claims.admin;
+      hasAdminClaim = !!idTokenResult.claims.admin;
+      isAdminClaimResolved = true;
+      return hasAdminClaim;
     }
 
     async function adminApproveConcert() {
       if (!selectedConcert) return;
 
-      if (!isUserAdmin()) {
+      if (!(await isUserAdmin())) {
         showToast("您沒有管理員權限^^");
         return;
       }
@@ -831,11 +861,17 @@
 
     // 模態框與照片上傳狀態暫存
     let activeDetailItem = null; 
+    let isPublishPreview = false;
+    let isConfirmingPublish = false;
+    let publishSucceeded = false;
+    let isRestoringPublishDraft = false;
     let publishPostType = "free-support"; 
     let isEditingMode = false;
     let editingItemId = null;
     let deleteTarget = null;
+    let isDeletingPost = false;
     let currentAddConcertImageBase64 = "";
+    let currentEditConcertImageBase64 = "";
     let currentUploadedImageBase64 = ""; // 保留第一張，供既有卡片與詳情畫面使用
     let currentUploadedImagesBase64 = []; // 最多五張 Canvas 壓縮後的圖片
   
@@ -857,6 +893,9 @@
 
         if (user) {
           statusText.innerText = "驗證粉絲特許資料中...";
+          // 在渲染任何管理功能前先確認 Firebase Custom Claim。
+          await isUserAdmin();
+          if (selectedConcert) renderConcertDetail();
           currentUser.id = user.uid;
           currentUser.isAnonymous = user.isAnonymous;
           document.getElementById("profile-display-uid").innerText = `UID: ${user.uid}`;
@@ -917,6 +956,9 @@
         } else {
           // 未登入時，不做處理
             console.log("使用者未登入，功能限制為唯讀模式");
+            hasAdminClaim = false;
+            isAdminClaimResolved = true;
+            if (selectedConcert) renderConcertDetail();
             document.getElementById("profile-input-username").disabled = true;
             document.getElementById("profile-input-contact").disabled = true;
             document.getElementById("profile-avatar-file").disabled = true;
@@ -1326,7 +1368,13 @@
       document.getElementById("header-logo").classList.add("hidden");
       document.getElementById("add-concert-btn").classList.add("hidden");
       document.getElementById("floating-publish-btn").classList.remove("hidden");
-
+      if(selectedConcert.isPending) { //審核中
+        document.getElementById("floating-publish-btn").classList.add("bg-gray-200", "text-gray-400");
+        document.getElementById("floating-publish-btn").classList.remove("hidden","bg-zinc-900", "text-white");
+      }else{
+        document.getElementById("floating-publish-btn").classList.remove("bg-gray-200", "text-gray-400");
+        document.getElementById("floating-publish-btn").classList.add("bg-zinc-900", "text-white");
+      }
       renderConcertDetail();
     }
 
@@ -1543,12 +1591,12 @@
         const exchangeCount = exchangePosts.filter(p => p.concertId === c.id).length;
 
         const card = document.createElement("div");
-        card.className = "bg-white hover:bg-zinc-50 border border-zinc-150 rounded-2xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
+        card.className = "bg-white hover:bg-zinc-50 border border-zinc-150 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
         card.onclick = () => navigateToConcert(c.id);
 
         card.innerHTML = `
           <div class="w-28 md:w-32 shrink-0 overflow-hidden relative border-r border-zinc-100 bg-zinc-100">
-            <img src="${c.image}" alt="${c.artist}" class="w-full h-full object-cover">
+            <img src="${c.image}" alt="${c.artist}" class="w-full h-full rounded-xl object-cover">
             ${c.isPending ? `
               <span class="absolute top-2 left-2 bg-amber-500 text-white text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
                 審核中
@@ -1649,19 +1697,22 @@
       document.getElementById("detail-concert-tour").innerText = selectedConcert.tourName;
       document.getElementById("detail-attend-count").innerText = selectedConcert.attendCount;
       document.getElementById("detail-concert-countdown").innerText = getDaysRemaining(selectedConcert.dates);
+      const attendContainer = document.getElementById("detail-concert-attend-container");
 
       const pendingBox = document.getElementById("detail-concert-pending-box");
+      const adminActions = document.getElementById('admin-concert-actions');
       const adminBtn = document.getElementById('admin-approve-btn');
+      // 按鈕只會在 Custom Claim 識別完成、且確定為管理員後出現。
+      adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
       if (selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
-        document.getElementById("detail-concert-pending-stats").innerText = `已有 ${selectedConcert.attendCount || 0} 人確認參加（達 5 人即正式發布）`;
-        if (isUserAdmin()) {
-          adminBtn.classList.remove('hidden');
-        } else {
-          adminBtn.classList.add('hidden');
-        }
+        attendContainer.classList.add("hidden");
+        document.getElementById("detail-concert-pending-stats").innerText = ` ${selectedConcert.verifiedCount || 0}/20 位粉絲已確認`;
+        adminBtn.classList.toggle('hidden', !hasAdminClaim);
       } else {
         pendingBox.classList.add("hidden");
+        attendContainer.classList.remove("hidden");
+        adminBtn.classList.add('hidden');
       }
 
       // 日期 Tabs 繪製
@@ -1764,15 +1815,14 @@
       listContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
 
       matched.forEach(item => {
-        const isEnded = item.status === "ENDED";
 
         const card = document.createElement("div");
         card.className = `
           bg-white hover:bg-zinc-50 
-          border border-zinc-100 rounded-2xl p-4 
+          border border-zinc-200 rounded-2xl p-4 
           flex gap-3.5 cursor-pointer 
           transition-all hover:-translate-y-0.5 shadow-sm
-          ${isEnded ? "opacity-60" : ""}
+
         `;
 
         card.onclick = () => openPostDetailModal(modalType, item.id);
@@ -1819,9 +1869,6 @@
                   發放 ${specificDateQty} 份
                 </span>
 
-                <span class="font-bold ${isEnded ? "text-zinc-400" : "text-purple-600"}">
-                  ${isEnded ? "已發完" : "發放中"}
-                </span>
               </div>
             </div>
           </div>
@@ -1851,18 +1898,22 @@
       if (!selectedConcert || !auth.currentUser) return;
       try {
         const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
-        const nextCount = selectedConcert.attendedCount + 1;
-        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
-
+        const nextCount = selectedConcert.verifiedCount + 1;
+        const isVerified = nextCount >= 20 ? false : selectedConcert.isPending; // 達 20 人即結束審核中狀態
+        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'verifiedConcerts',selectedConcert.id);
         await updateDoc(concertDocRef, {
-          attendedCount: nextCount,
+          verifiedCount: increment(1),
           isPending: isVerified
         });
+        await setDoc(verifiedConcertsDocRef, {
+          concertId: selectedConcert.id,
+          verifiedAt: serverTimestamp()
+        });
 
-        if (nextCount >= 5 && selectedConcert.isPending) {
+        if (nextCount >= 20 && selectedConcert.isPending) {
           showToast("此演唱會確認票數足夠，正式完成上架！");
         } else {
-          showToast("感謝確認！票數 +1");
+          showToast("感謝確認！");
         }
       } catch (error) {
         console.error("Vote concert error:", error);
@@ -1913,11 +1964,11 @@
     }
 
     // ==================== STREAMING_CHUNK: 貼文詳情視窗控制與複製 ====================
-    function openPostDetailModal(type, itemId) {
+    function openPostDetailModal(type, itemId, previewItem = null) {
       const isFreeSupport = type === "free-support";
-      const item = isFreeSupport 
+      const item = previewItem || (isFreeSupport 
         ? supportEvents.find(s => s.id === itemId)
-        : exchangePosts.find(e => e.id === itemId);
+        : exchangePosts.find(e => e.id === itemId));
 
       if (!item) return;
       activeDetailItem = { type, data: item };
@@ -1937,6 +1988,7 @@
         : "");
 
       const heart = document.getElementById("detail-bookmark-heart");
+      document.getElementById("detail-bookmark-btn").classList.toggle("hidden", isPublishPreview);
       if (bookmarkedPostIds.includes(item.id)) {
         heart.classList.add("fill-pink-500", "text-pink-500");
         heart.classList.remove("text-zinc-400");
@@ -2079,7 +2131,36 @@
       const actionContainer = document.getElementById("detail-action-container");
       actionContainer.innerHTML = "";
 
-      if (item.userId === currentUser.id) {
+      if (isPublishPreview) {
+        actionContainer.innerHTML = `
+          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
+              <div class="text-left">
+                <p class="text-[9px] text-zinc-400">發布用戶</p>
+                <p class="text-xs font-bold text-zinc-700">${item.authorName || "現場粉絲"}</p>
+              </div>
+            </div>
+            <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-zinc-900 text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              <span>查看帳號</span>
+            </a>
+          </div>
+          <div class="rounded-xl border border-purple-100 bg-purple-50/50 p-3.5 space-y-3 mt-2">
+            <div>
+              <p class="text-xs font-black text-zinc-900">發布前預覽</p>
+              <p class="text-[10px] text-zinc-500 mt-1">確認內容無誤後再正式發布</p>
+              <p class="text-[10px] text-zinc-500 mt-1">頭貼將使用發布當下的頭貼；日後更新頭貼應援內不會同步更新</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="return-to-publish-editor-btn" type="button" onclick="returnToPublishEditor()" class="bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs py-2.5 rounded-xl font-bold transition-all">返回編輯</button>
+              <button id="confirm-publish-btn" type="button" onclick="confirmPublishFromPreview()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-xs py-2.5 rounded-xl font-bold transition-all shadow-sm">確認發布</button>
+            </div>
+          </div>
+        `;
+      } else if (item.userId === currentUser.id) {
         actionContainer.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -2134,6 +2215,11 @@
     function closePostDetailModal() {
       document.getElementById("modal-post-detail").classList.add("hidden");
       activeDetailItem = null;
+      document.getElementById("detail-bookmark-btn").classList.remove("hidden");
+      if (isPublishPreview && !isConfirmingPublish) {
+        isPublishPreview = false;
+        document.getElementById("modal-publish-post").classList.remove("hidden");
+      }
     }
     function closeBookmarkConfirmModal() {
       document.getElementById("modal-bookmark-confirm").classList.add("hidden");
@@ -2150,27 +2236,25 @@
       const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
 
       if (idx > -1) {
+        showToast("已取消參加", "fa-circle-info");
         const nextCount = selectedConcert.attendedCount - 1;
-        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
-        userAttendedConcerts = userAttendedConcerts.filter(id => id !== userAttendedConcerts);
+        userAttendedConcerts = userAttendedConcerts.filter(id => id !== selectedConcert.id);
         await deleteDoc(AttendedConcertsRef);
         await updateDoc(concertDocRef, {
           attendedCount: increment(-1),
-          isPending: isVerified
         });
-        showToast("已取消收藏", "fa-circle-info");
+
       } else {
+        showToast("已確認參加！當天現場見 🎉", "fa-circle-check");
         const nextCount = selectedConcert.attendedCount + 1;
-        const isVerified = nextCount >= 5 ? false : selectedConcert.isPending; // 達 5 人即結束審核中狀態
         userAttendedConcerts.push(selectedConcert.id);
         await setDoc(AttendedConcertsRef, {
             concertId: selectedConcert.id,
         });
         await updateDoc(concertDocRef, {
           attendedCount: increment(1),
-          isPending: isVerified
         });
-        showToast("已確認收藏！當天現場見 🎉", "fa-circle-check");
+
       }
       updateConcertActionButtons();
       renderConcertDetail();
@@ -2188,11 +2272,11 @@
       document.getElementById('detail-attend-count').innerText = concert.attendedCount || 0;
 
       if (isAttended) {
-        attendText.innerText = "已收藏演唱會";
+        attendText.innerText = "已參加";
         attendBtn.className = "bg-amber-400 text-zinc-950 text-[11px] px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md active:scale-95";
         attendIcon.className = "fa-solid fa-ticket text-zinc-950";
       } else {
-        attendText.innerText = "加入演唱會收藏";
+        attendText.innerText = "我會去";
         attendBtn.className = "bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
         attendIcon.className = "fa-solid fa-ticket text-amber-400";
       }
@@ -2266,8 +2350,75 @@
   }
 
     // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
+    function getPublishDraftStorageKey() {
+      return selectedConcert ? `fanmap-publish-draft:${selectedConcert.id}` : null;
+    }
+
+    function savePublishDraft() {
+      if (isEditingMode || isRestoringPublishDraft || !selectedConcert) return;
+
+      const datesQuantities = {};
+      document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
+        const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
+        datesQuantities[checkbox.value] = qtyInput ? qtyInput.value : "";
+      });
+
+      const draft = {
+        type: publishPostType,
+        title: document.getElementById("post-title").value,
+        category: getSelectedCategories(),
+        isAI: document.getElementById("ai-checkbox").checked,
+        requirement: document.getElementById("post-requirement").value,
+        notice: document.getElementById("post-notice").value,
+        approxLocation: document.getElementById("post-approx-location").value,
+        originalLink: document.getElementById("post-original-link").value,
+        liveUpdateLink: document.getElementById("post-live-update-link").value,
+        datesQuantities
+      };
+
+      try {
+        localStorage.setItem(getPublishDraftStorageKey(), JSON.stringify(draft));
+      } catch (error) {
+        console.warn("Unable to save publish draft:", error);
+      }
+    }
+
+    function loadPublishDraft() {
+      const key = getPublishDraftStorageKey();
+      if (!key) return null;
+      try {
+        return JSON.parse(localStorage.getItem(key) || "null");
+      } catch (error) {
+        console.warn("Unable to load publish draft:", error);
+        return null;
+      }
+    }
+
+    function clearPublishDraft() {
+      const key = getPublishDraftStorageKey();
+      if (key) localStorage.removeItem(key);
+    }
+
+    function restorePublishDraft(draft) {
+      document.getElementById("post-title").value = draft.title || "";
+      document.getElementById("post-requirement").value = draft.requirement || "";
+      document.getElementById("post-notice").value = draft.notice || "";
+      document.getElementById("post-approx-location").value = draft.approxLocation || "";
+      document.getElementById("post-original-link").value = draft.originalLink || "";
+      document.getElementById("post-live-update-link").value = draft.liveUpdateLink || "";
+      document.getElementById("ai-checkbox").checked = Boolean(draft.isAI);
+      document.querySelectorAll('#support-category-options input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = (draft.category || []).includes(checkbox.value);
+      });
+      setPublishType(draft.type === "support-exchange" ? "support-exchange" : "free-support");
+      buildPublishDateOptions(Object.keys(draft.datesQuantities || {}), draft.datesQuantities || {});
+    }
+
     function openPublishModal() {
       if (!selectedConcert) return;
+      if(selectedConcert.isPending === true){
+        showToast("場次尚未完成驗證，無法新增應援")
+        return;}
       if (!auth.currentUser){
         showToast("請先前往登入才能發布");
         return;
@@ -2279,6 +2430,8 @@
       }
       isEditingMode = false;
       editingItemId = null;
+      const draft = loadPublishDraft();
+      isRestoringPublishDraft = true;
       clearUploadedImage();
 
       document.getElementById("publish-modal-title").innerText = "發布新應援項目";
@@ -2291,9 +2444,17 @@
       document.getElementById("post-approx-location").value = "";
       document.getElementById("post-original-link").value = "";
       document.getElementById("post-live-update-link").value = "";
+      document.getElementById("ai-checkbox").checked = false;
+      document.querySelectorAll('#support-category-options input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
 
-      setPublishType("free-support");
-      buildPublishDateOptions();
+      if (draft) {
+        restorePublishDraft(draft);
+      } else {
+        setPublishType("free-support");
+      }
+      isRestoringPublishDraft = false;
 
       document.getElementById("modal-publish-post").classList.remove("hidden");
     }
@@ -2329,6 +2490,7 @@
       }
 
       buildPublishDateOptions();
+      savePublishDraft();
     }
 
     function buildPublishDateOptions(selectedDatesArray = [], quantitiesMap = {}) {
@@ -2387,6 +2549,7 @@
         const input = qtyBox.querySelector('input');
         if (input) input.value = '';
       }
+      savePublishDraft();
     }
 
     // ==================== STREAMING_CHUNK: 發布與編輯存檔（寫入 Cloud Firestore） ====================
@@ -2410,6 +2573,42 @@
       const selectedValues = Array.from(checkedBoxes).map(checkbox => checkbox.value);
       return selectedValues;
     }
+    function openPublishPreview(item) {
+      isPublishPreview = true;
+      document.getElementById("modal-publish-post").classList.add("hidden");
+      openPostDetailModal(item.type, item.id, item);
+    }
+
+    function returnToPublishEditor() {
+      closePostDetailModal();
+    }
+
+    async function confirmPublishFromPreview() {
+      isConfirmingPublish = true;
+      publishSucceeded = false;
+      const confirmButton = document.getElementById("confirm-publish-btn");
+      const returnButton = document.getElementById("return-to-publish-editor-btn");
+      confirmButton.disabled = true;
+      returnButton.disabled = true;
+      confirmButton.classList.add("opacity-70", "cursor-wait");
+      returnButton.classList.add("opacity-50", "cursor-not-allowed");
+      confirmButton.innerHTML = `
+        <svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle><path class="opacity-90" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path></svg>
+        <span>發布中…</span>`;
+      await handlePublishPostSubmit({ preventDefault() {} });
+      if (publishSucceeded) {
+        closePostDetailModal();
+        isPublishPreview = false;
+      } else {
+        confirmButton.disabled = false;
+        returnButton.disabled = false;
+        confirmButton.classList.remove("opacity-70", "cursor-wait");
+        returnButton.classList.remove("opacity-50", "cursor-not-allowed");
+        confirmButton.innerText = "確認發布";
+      }
+      isConfirmingPublish = false;
+    }
+
     async function handlePublishPostSubmit(event) {
       event.preventDefault();
 
@@ -2442,6 +2641,41 @@
         return;
       } else if (!approxLocation) {
         showToast("請填寫即時位置更新說明");
+        return;
+      }
+
+      // 新增貼文時，先以表單中的本機圖片與欄位資料預覽，不進行上傳或寫入。
+      if (!isEditingMode && !isConfirmingPublish) {
+        const datesQuantities = {};
+        document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
+          const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
+          datesQuantities[checkbox.value] = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
+        });
+        const selectedDates = Object.keys(datesQuantities);
+        const totalQuantity = Object.values(datesQuantities).reduce((sum, qty) => sum + qty, 0);
+
+        if (selectedDates.length === 0) {
+          showToast("請至少選取一個發放日期");
+          return;
+        }
+        if (totalQuantity <= 0) {
+          showToast("請至少輸入一個發放份數");
+          return;
+        }
+        if (currentUploadedImagesBase64.length === 0) {
+          showToast("請至少上傳一張應援物照片");
+          return;
+        }
+
+        openPublishPreview({
+          type: publishPostType,
+          id: `preview_${Date.now()}`,
+          concertId: selectedConcert.id,
+          title, category, totalquantity: totalQuantity, datesQuantities, dates: selectedDates,
+          requirement, notice, approxLocation, originalLink, liveUpdateLink,
+          image: currentUploadedImagesBase64[0], images: [...currentUploadedImagesBase64], isAI,
+          ...authorData
+        });
         return;
       }
 
@@ -2560,7 +2794,6 @@
               dates: selectedDates, // 存入有參與的日期陣列
               requirement, notice, approxLocation,
               originalLink, liveUpdateLink,
-              status: "ACTIVE",
               image: finalImage,
               images: finalImages,
               isAI, // 是否 AI 生成
@@ -2584,7 +2817,6 @@
               dates: selectedDates,  // 存入有參與的日期陣列：["2026-01-10", "2026-01-11"]
               requirement, notice, approxLocation,
               originalLink, liveUpdateLink,
-              status: "ACTIVE",
               image: finalImage,
               images: finalImages,
               isAI, // 是否 AI 生成true or false
@@ -2594,10 +2826,13 @@
             showToast("成功新增交換應援！");
           }
         }
+        if (!isEditingMode) clearPublishDraft();
+        publishSucceeded = true;
         closePublishModal();
       } catch (error) {
         console.error("Publish error:", error);
         showToast("儲存失敗，請確認 Firestore 安全規則設定");
+        publishSucceeded = false;
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = "發布看板項目";
@@ -2660,20 +2895,42 @@
       if (!activeDetailItem) return;
       const { type, data } = activeDetailItem;
       deleteTarget = { type, id: data.id };
+      isDeletingPost = false;
+      resetDeleteButtons();
 
       closePostDetailModal();
       document.getElementById("modal-delete-confirm").classList.remove("hidden");
     }
 
     function closeDeleteConfirmModal() {
+      if (isDeletingPost) return;
       document.getElementById("modal-delete-confirm").classList.add("hidden");
       deleteTarget = null;
     }
 
+    function resetDeleteButtons() {
+      const cancelButton = document.getElementById("cancel-delete-btn");
+      const confirmButton = document.getElementById("confirm-delete-btn");
+      cancelButton.disabled = false;
+      confirmButton.disabled = false;
+      cancelButton.classList.remove("opacity-50", "cursor-not-allowed");
+      confirmButton.classList.remove("opacity-70", "cursor-wait");
+      confirmButton.innerText = "確認刪除";
+    }
+
     async function executeDeletePost() {
-      if (!deleteTarget || !auth.currentUser) return;
+      if (!deleteTarget || !auth.currentUser || isDeletingPost) return;
       const { type, id } = deleteTarget;
       const uid = auth.currentUser.uid;
+      isDeletingPost = true;
+      const cancelButton = document.getElementById("cancel-delete-btn");
+      const confirmButton = document.getElementById("confirm-delete-btn");
+      cancelButton.disabled = true;
+      confirmButton.disabled = true;
+      cancelButton.classList.add("opacity-50", "cursor-not-allowed");
+      confirmButton.classList.add("opacity-70", "cursor-wait");
+      confirmButton.innerHTML = `
+        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle><path class="opacity-90" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path></svg>刪除中…</span>`;
 
       try {
         const folderRef = ref(storage, `post-images/${uid}/${id}`); //刪除storage該應援資料夾圖片
@@ -2694,10 +2951,13 @@
         bookmarkedPostIds = bookmarkedPostIds.filter(postId => postId !== id);
 
         showToast("項目成功自即時看板下架！");
+        isDeletingPost = false;
         closeDeleteConfirmModal();
       } catch (error) {
         console.error("Delete error:", error);
         showToast("下架失敗，請稍後再試");
+        isDeletingPost = false;
+        resetDeleteButtons();
       }
     }
 
@@ -2790,6 +3050,124 @@
           }
         }
       });
+    }
+
+    function addEditConcertDateField(value = "") {
+      const container = document.getElementById('edit-concert-dates-container');
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 edit-concert-date-row';
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.value = value;
+      input.required = true;
+      input.className = 'w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-zinc-800 text-xs';
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'shrink-0 w-8 h-8 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100';
+      removeButton.textContent = '✕';
+      removeButton.setAttribute('aria-label', '移除此場次日期');
+      removeButton.onclick = () => {
+        if (container.querySelectorAll('.edit-concert-date-row').length <= 1) {
+          showToast('演唱會至少需包含 1 個場次日期');
+          return;
+        }
+        row.remove();
+      };
+      row.append(input, removeButton);
+      container.appendChild(row);
+    }
+
+    async function openEditConcertModal() {
+      if (!selectedConcert || !(await isUserAdmin())) {
+        showToast('您沒有管理員權限');
+        renderConcertDetail();
+        return;
+      }
+      currentEditConcertImageBase64 = '';
+      document.getElementById('edit-concert-image-file').value = '';
+      document.getElementById('edit-concert-image-preview').src = selectedConcert.image || '';
+      document.getElementById('edit-concert-artist').value = selectedConcert.artist || '';
+      document.getElementById('edit-concert-tour').value = selectedConcert.tourName || '';
+      document.getElementById('edit-concert-venue').value = selectedConcert.venue || '';
+      const dateContainer = document.getElementById('edit-concert-dates-container');
+      dateContainer.innerHTML = '';
+      (selectedConcert.dates || []).forEach(date => addEditConcertDateField(date));
+      if (!dateContainer.children.length) addEditConcertDateField();
+      document.getElementById('modal-edit-concert').classList.remove('hidden');
+    }
+
+    function closeEditConcertModal() {
+      document.getElementById('modal-edit-concert').classList.add('hidden');
+      currentEditConcertImageBase64 = '';
+    }
+
+    function processEditConcertImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('請選擇有效的圖片格式！');
+        event.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, 800 / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          currentEditConcertImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          document.getElementById('edit-concert-image-preview').src = currentEditConcertImageBase64;
+          showToast('新圖片已準備好，儲存後才會更新');
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleEditConcertSubmit(event) {
+      event.preventDefault();
+      if (!selectedConcert || !(await isUserAdmin())) {
+        showToast('您沒有管理員權限');
+        closeEditConcertModal();
+        renderConcertDetail();
+        return;
+      }
+      const artist = document.getElementById('edit-concert-artist').value.trim();
+      const tourName = document.getElementById('edit-concert-tour').value.trim();
+      const venue = document.getElementById('edit-concert-venue').value.trim();
+      const dates = Array.from(document.querySelectorAll('#edit-concert-dates-container input[type="date"]')).map(input => input.value).filter(Boolean);
+      if (!artist || !tourName || !venue || !dates.length) {
+        showToast('請完整填寫演唱會資訊與至少一個日期');
+        return;
+      }
+      const submitButton = document.getElementById('edit-concert-submit-btn');
+      submitButton.disabled = true;
+      submitButton.textContent = '儲存中…';
+      try {
+        let image = selectedConcert.image;
+        if (currentEditConcertImageBase64) {
+          const blob = await (await fetch(currentEditConcertImageBase64)).blob();
+          const imageRef = ref(storage, `concert-covers/${selectedConcert.id}/${Date.now()}-cover.jpg`);
+          await uploadBytes(imageRef, blob, { contentType: 'image/jpeg' });
+          image = await getDownloadURL(imageRef);
+        }
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id), {
+          artist, tourName, venue, dates, image,
+          updatedAt: serverTimestamp(),
+          updatedBy: auth.currentUser.uid
+        });
+        closeEditConcertModal();
+        showToast('演出資訊已更新');
+      } catch (error) {
+        console.error('Edit concert error:', error);
+        showToast('更新失敗，請稍後再試');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = '儲存變更';
+      }
     }
 
     // 圖片上傳與壓縮處理
@@ -2905,11 +3283,13 @@
           artist, tourName, venue, dates,
           image: finalImageUrl,
           isPending: true,
-          attendedCount: 1
+          verifiedCount: 1,
+          attendedCount: 0,
+          createdAt: serverTimestamp(),
         };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', newId), newConcert);
         closeAddConcertModal();
-        showToast("提案建立成功！獲得 5 位現場粉絲確認後即正式上架");
+        showToast("提案建立成功！獲得 20 位現場粉絲確認後即正式上架");
       } catch (error) {
         console.error("Add concert error:", error);
         showToast("傳輸失敗，請稍後再試");
@@ -2954,6 +3334,8 @@
     window.setPublishType = setPublishType;
     window.togglePublishDateBox=togglePublishDateBox;
     window.handlePublishPostSubmit = handlePublishPostSubmit;
+    window.returnToPublishEditor = returnToPublishEditor;
+    window.confirmPublishFromPreview = confirmPublishFromPreview;
     window.startEditPost = startEditPost;
     window.triggerDeletePost = triggerDeletePost;
     window.closeDeleteConfirmModal = closeDeleteConfirmModal;
@@ -2962,12 +3344,21 @@
     window.openAddConcertModal = openAddConcertModal;
     window.closeAddConcertModal = closeAddConcertModal;
     window.handleAddConcertSubmit = handleAddConcertSubmit;
+    window.openEditConcertModal = openEditConcertModal;
+    window.closeEditConcertModal = closeEditConcertModal;
+    window.handleEditConcertSubmit = handleEditConcertSubmit;
+    window.processEditConcertImageUpload = processEditConcertImageUpload;
+    window.addEditConcertDateField = addEditConcertDateField;
     window.triggerFileInput = triggerFileInput;
     window.processImageUpload = processImageUpload;
     window.clearUploadedImage = clearUploadedImage;
     window.removeUploadedImage = removeUploadedImage;
     window.handleGoogleSignIn = handleGoogleSignIn;
     window.handleSignOut = handleSignOut;
+
+    const publishForm = document.querySelector("#modal-publish-post form");
+    publishForm.addEventListener("input", savePublishDraft);
+    publishForm.addEventListener("change", savePublishDraft);
   </script>
 </body>
 </html>
