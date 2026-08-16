@@ -182,44 +182,67 @@
           
           <div class="lg:col-span-1 space-y-4">
             <!-- Firebase 登入與個人頭像卡 -->
-            <div class="bg-gradient-to-br from-zinc-50 to-zinc-100/50 border border-zinc-150 p-5 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
-              <div class="relative group">
-                <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="個人頭像" class="w-20 h-20 rounded-full border-2 border-white bg-white shadow-md object-cover">
-                <label for="profile-avatar-file" class="absolute inset-0 rounded-full bg-zinc-900/60 text-white text-[10px] font-bold grid place-items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-pointer transition-opacity">更換頭像</label>
-                  <label for="profile-avatar-file" 
-                        class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center cursor-pointer shadow-md border-2 border-white hover:bg-violet-600 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-                  </label>
-                <input type="file" id="profile-avatar-file" accept="image/*" class="sr-only" onchange="processProfileAvatarUpload(event)">
-              </div>
-               <!-- 登入狀態標籤 -->
-              <div id="auth-status-badge" class="mt-1 text-[10px] px-2.5 py-0.5 rounded-full font-bold"></div>
-              <div class="w-full mt-4 text-left">
-                <label for="profile-input-username" class="block text-[12px] text-zinc-500 font-bold mb-1">顯示名稱</label>
-                <input type="text" id="profile-input-username" class="w-full bg-white disabled:bg-zinc-100 text-center border border-zinc-200 rounded-xl py-2 px-3 text-sm font-black text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-400" value="匿名用戶">
-              </div>
-              
+            <div class="bg-gradient-to-br from-zinc-50 to-zinc-100/50 border border-zinc-150 p-3 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
+              <div class="w-full flex items-start justify-between">
+                    <div class="flex items-center space-x-3.5">
+                        <!-- Avatar -->
+                        <div class="relative group">
+                            <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="Avatar" class="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md">
+                            <button onclick="openProfileModal()" id="btn-edit-avatar" class="absolute bottom-0 right-0 bg-violet-600 hover:bg-violet-700 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 id="profile-input-username" class="text-[12px] font-bold text-slate-900">匿名用戶</h1>
+                                <span id="auth-status-badge" class="bg-emerald-100 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center">
+                                    <i class="fa-brands fa-google mr-1 text-[9px]"></i> 已驗證
+                                </span>
+                            </div>
+                            
+                            <!-- Social Media Handle & Email -->
+                            <div class="flex items-center gap-2 mt-1">
+                                <a id="user-social-link" href="#" target="_blank" class="text-xs text-violet-600 font-medium hover:underline flex items-center bg-violet-50 px-2 py-0.5 rounded-md border border-violet-100/60">
+                                    <i class="fa-brands fa-threads mr-1"></i> <span id="user-social-handle">@--</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1 opacity-70"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-              
-              <!-- 個人資料 -->
-              <div class="flex flex-col gap-2 w-full mt-4 text-left">
-                <div>
-                  <label for="profile-input-contact" class="block text-[12px] text-zinc-500 font-bold mb-1">社群連結</label>
-                  <input type="text" id="profile-input-contact" placeholder="例:https://www.threads.com/@..." class="w-full bg-white disabled:bg-zinc-100 text-zinc-700 px-3 py-2 rounded-xl border border-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400">
-                  <span class="block text-[10px] text-zinc-400 ml-2 mt-1">填寫 Threads、Instagram 等社群個人檔案連結，方便交換應援物時找到你</span>
-                 </div>
-                <span id="profile-display-uid" class="text-[9px] bg-zinc-100 text-zinc-400 px-3 py-1.5 rounded-xl border border-zinc-200/40 block truncate text-center font-mono">UID: 驗證中</span>
-              </div>
+                    <!-- Quick Options Trigger -->
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-open-settings" onclick="openProfileModal()" title="編輯資料" class="p-2 text-slate-500 hover:text-violet-600 hover:bg-white rounded-xl border border-slate-200/60 shadow-sm transition text-xs font-medium flex items-center">
+                            <i class="fa-solid fa-sliders mr-1.5"></i>
+                            <span class="text-[10px] inline">設定</span>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Personal Stats Summary Grid (演唱會, 發布項目, 總收藏) -->
+                <div class="w-full grid grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-slate-200/40">
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">演唱會</div>
+                        <div id="stat-concert-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">發布項目</div>
+                        <div id="stat-item-count" class="text-base font-bold text-violet-600 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">總收藏</div>
+                        <div id="stat-bookmark-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                    </div>
+                </div>
 
-              <button onclick="saveUserProfile()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">儲存個人資料</button>
+              <!-- <button onclick="saveUserProfile()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">儲存個人資料</button> -->
 
               <!-- Firebase Authentication 互動控制區 -->
               <div class="w-full mt-4 pt-4 border-t border-zinc-200/60">
                 <!-- 匿名狀態提示與登入按鈕 -->
                 <div id="anonymous-warning-box" class="hidden text-left bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl mb-3 text-[10px] leading-relaxed">
-                  目前使用臨時匿名帳號。若更換設備或清除瀏覽器快取，發布的資料將會遺失。建議登入以綁定資料。
+                  登入後才可開始發布應援以及收藏應援
                 </div>
-                
                 <button id="google-login-btn" onclick="handleGoogleSignIn()" class="w-full bg-white hover:bg-zinc-50 text-zinc-700 font-bold py-2 px-3 rounded-xl text-xs border border-zinc-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
                   <!-- Google 彩色 G Logo SVG -->
                   <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
@@ -248,6 +271,81 @@
 
         </div>
       </section>
+      
+        <!-- MODAL 1: 編輯個人資料彈窗 -->
+        <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden">
+            <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-base text-slate-900 flex items-center">
+                        <i class="fa-solid fa-user-gear text-violet-600 mr-2"></i> 編輯個人資料
+                    </h3>
+                    <button onclick="closeProfileModal()" id="btn-close-profile-modal" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Avatar Preview & Change -->
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="relative group">
+                          <img id="input-avatar-preview" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="個人頭像" class="w-20 h-20 rounded-full border-2 border-white bg-white shadow-md object-cover">
+                          <label for="profile-avatar-file" class="absolute inset-0 rounded-full bg-zinc-900/60 text-white text-[10px] font-bold grid place-items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-pointer transition-opacity">更換頭像</label>
+                            <label for="profile-avatar-file" 
+                                  class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center cursor-pointer shadow-md border-2 border-white hover:bg-violet-600 transition">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                            </label>
+                          <input type="file" id="profile-avatar-file" accept="image/*" class="sr-only" onchange="processProfileAvatarUpload(event)">
+                        </div>
+                    </div>
+
+                    <!-- Display Name Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">顯示名稱</label>
+                        <input id="input-display-name" type="text" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
+                    </div>
+
+                    <!-- Social Link Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">社群個人檔案連結</label>
+                        <input id="input-social-link" type="text" placeholder="https://www.threads.net/@your_name" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
+                        <p class="text-[10px] text-slate-400 mt-1">填寫 Threads、Instagram 連結，方便交換應援物時聯絡</p>
+                    </div>
+
+                    <!-- Account Info -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">登入帳號</span>
+                            <span id="info-account-email" class="font-medium text-slate-700">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">UID</span>
+                            <div class="flex items-center space-x-1">
+                                <span id="info-account-uid" class="font-mono text-[11px] text-slate-600 truncate max-w-[150px]">--</span>
+                                <button id="btn-copy-uid" onclick="copyUID()" class="text-violet-600 hover:text-violet-700 p-0.5" title="複製 UID">
+                                    <i class="fa-regular fa-copy text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <button id="btn-logout" onclick="handleSignOut()" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center px-2 py-1">
+                        <i class="fa-solid fa-right-from-bracket mr-1.5"></i> 登出此帳號
+                    </button>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="closeProfileModal()" id="btn-cancel-profile-modal" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
+                            取消
+                        </button>
+                        <button onclick="saveUserProfile()" id="btn-save-profile" class="px-4 py-2 text-xs bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-sm transition">
+                            儲存變更
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
       <!-- SCREEN 4: 演唱會看板詳細頁 -->
       <section id="screen-concert-detail" class="hidden space-y-6 animate-fade-in">
@@ -760,6 +858,8 @@
 
   <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
   <script type="module">
+    import { state } from './state.js';
+    import './profile.js'
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -809,7 +909,7 @@
     }
 
     async function adminApproveConcert() {
-      if (!selectedConcert) return;
+      if (!state.selectedConcert) return;
 
       if (!(await isUserAdmin())) {
         showToast("您沒有管理員權限^^");
@@ -821,11 +921,11 @@
       approveBtn.innerText = "處理中...";
 
       try {
-        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
+        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
         // 將 isPending 設為 false，正式上架
         await updateDoc(concertDocRef, {
           isPending: false,
-          approvedBy: auth.currentUser.uid,
+          approvedBy: state.currentUser.uid,
           approvedAt: new Date().toISOString()
         });
 
@@ -846,68 +946,38 @@
     window.adminApproveConcert = adminApproveConcert;
 
     // ==================== APP RUNTIME STATE ====================
-    let concerts = [];
-    let supportEvents = [];
-    let exchangePosts = [];
-    let bookmarkedPostIds = [];
-    let userAttendedConcerts = [];
-    let pendingRemoveBookmarkId = null; //暫存刪除收藏的id
-
-    let activeTab = "explore"; 
-    let selectedConcert = null; 
-    let selectedDate = "";      
-    let selectedSubCategory = "support"; 
-    let searchQuery = "";
-
-    // 模態框與照片上傳狀態暫存
-    let activeDetailItem = null; 
-    let isPublishPreview = false;
-    let isConfirmingPublish = false;
-    let publishSucceeded = false;
-    let isRestoringPublishDraft = false;
-    let publishPostType = "free-support"; 
-    let isEditingMode = false;
-    let editingItemId = null;
-    let deleteTarget = null;
-    let isDeletingPost = false;
-    let currentAddConcertImageBase64 = "";
-    let currentEditConcertImageBase64 = "";
-    let currentUploadedImageBase64 = ""; // 保留第一張，供既有卡片與詳情畫面使用
-    let currentUploadedImagesBase64 = []; // 最多五張 Canvas 壓縮後的圖片
-  
     // 當前使用者狀態與自訂頭像設定
-    let currentUser = {
-      id: "user_me",
-      username: "匿名用戶",
-      avatar: "https://api.dicebear.com/10.x/glyphs/svg",
-      contact: "",
-      isAnonymous: true
-    };
+    // let currentUser = {
+    //   id: "user_me",
+    //   username: "匿名用戶",
+    //   avatar: "https://api.dicebear.com/10.x/glyphs/svg",
+    //   contact: "",
+    //   isAnonymous: true
+    // };
 
     // ==================== STREAMING_CHUNK: 監聽 Firebase 身分狀態變更並初始化 Profile ====================
     onAuthStateChanged(auth, async (user) => {
         
       try {
-        startRealtimeListeners();
+        startRealtimeListeners(user);
         const statusText = document.getElementById("loading-status-text");
 
         if (user) {
           statusText.innerText = "驗證粉絲特許資料中...";
           // 在渲染任何管理功能前先確認 Firebase Custom Claim。
           await isUserAdmin();
-          if (selectedConcert) renderConcertDetail();
-          currentUser.id = user.uid;
-          currentUser.isAnonymous = user.isAnonymous;
-          document.getElementById("profile-display-uid").innerText = `UID: ${user.uid}`;
+          if (state.selectedConcert) renderConcertDetail();
+          state.currentUser.id = user.uid;
+          state.currentUser.isAnonymous = user.isAnonymous;;
           // 連接至私有安全路徑 /users/{userId}/profile/data 讀取或註冊 Profile
           const profileDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
           const profileSnap = await getDoc(profileDocRef);
 
           if (profileSnap.exists()) {
             const profileData = profileSnap.data();
-            currentUser.username = profileData.username || user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`;
-            currentUser.avatar = profileData.avatar || user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`;
-            currentUser.contact = profileData.contact || "";
+            state.currentUser.username = profileData.username || user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`;
+            state.currentUser.avatar = profileData.avatar || user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`;
+            state.currentUser.contact = profileData.contact || "";
           } else {
             // 自動初始化並將 Google 資訊或匿名預設值存入
             const initialProfile = {
@@ -916,16 +986,18 @@
               contact: "",
             };
             await setDoc(profileDocRef, initialProfile);
-            currentUser.username = initialProfile.username;
-            currentUser.avatar = initialProfile.avatar;
-            currentUser.contact = initialProfile.contact;
+            state.currentUser.username = initialProfile.username;
+            state.currentUser.avatar = initialProfile.avatar;
+            state.currentUser.contact = initialProfile.contact;
+            state.currentUser.isAnonymous = false;
           }
 
           // 同步個人中心編輯欄位
-          document.getElementById("profile-input-username").value = currentUser.username;
-          document.getElementById("profile-input-contact").value = currentUser.contact;
-          document.getElementById("profile-display-avatar").src = currentUser.avatar;
-          document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
+          document.getElementById("profile-input-username").textContent = state.currentUser.username;
+          document.getElementById("user-social-handle").textContent = getSocialHandle(state.currentUser.contact);
+          document.getElementById('user-social-link').href = state.currentUser.contact;
+          document.getElementById("profile-display-avatar").src = state.currentUser.avatar;
+          document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
 
           // 更新 Firebase 登入 UI 顯示樣式
           const badge = document.getElementById("auth-status-badge");
@@ -934,20 +1006,17 @@
           const logoutBtn = document.getElementById("logout-btn");
 
           if (user.isAnonymous) {
-            badge.className = "mt-2 text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200/50";
-            badge.innerText = "臨時匿名帳號";
             warningBox.classList.remove("hidden");
             gLoginBtn.classList.remove("hidden");
             logoutBtn.classList.add("hidden");
+            badge.classList.add("hidden");
           } else {
-            badge.className = "mt-2 text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/50";
-            badge.innerText = `Google 登入 (${user.email})`;
             warningBox.classList.add("hidden");
+            badge.classList.remove("hidden");
             gLoginBtn.classList.add("hidden");
             logoutBtn.classList.remove("hidden");
             document.getElementById("profile-input-username").disabled = false;
-            document.getElementById("profile-input-contact").disabled = false;
-            document.getElementById("profile-avatar-file").disabled = false;
+            document.getElementById("user-social-handle").disabled = false;
           }
 
           statusText.innerText = "同步現場即時看板中...";
@@ -958,11 +1027,19 @@
             console.log("使用者未登入，功能限制為唯讀模式");
             hasAdminClaim = false;
             isAdminClaimResolved = true;
-            if (selectedConcert) renderConcertDetail();
+            if (state.selectedConcert) renderConcertDetail();
             document.getElementById("profile-input-username").disabled = true;
-            document.getElementById("profile-input-contact").disabled = true;
+            document.getElementById("user-social-handle").disabled = true;
             document.getElementById("profile-avatar-file").disabled = true;
+            document.getElementById("btn-open-settings").disabled = true;
+            document.getElementById("btn-edit-avatar").disabled = true;
             document.getElementById("loading-overlay").classList.add("hidden");
+
+            document.getElementById("anonymous-warning-box").classList.remove("hidden");
+            document.getElementById("google-login-btn").classList.remove("hidden");
+            document.getElementById("logout-btn").classList.add("hidden");
+            document.getElementById("auth-status-badge").classList.add("hidden");
+
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -994,7 +1071,7 @@
       
       try {
         unsubscribeListeners(); // 先關閉監聽
-        bookmarkedPostIds = []; // 清空書籤狀態
+        state.bookmarkedPostIds = []; // 清空書籤狀態
         await signOut(auth);
         showToast("已成功登出");
         window.location.reload(); // 強制重整以確保所有狀態歸零
@@ -1004,7 +1081,7 @@
     }
 
     // ==================== STREAMING_CHUNK: 開啟 Firestore 三大即時監聽即時更新 ====================
-    function startRealtimeListeners() {
+    function startRealtimeListeners(user) {
       unsubscribeListeners(); // 確保重新開啟前先清理
       // 1. Concerts 監聽
       const concertsCol = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
@@ -1014,7 +1091,7 @@
           list.push({ id: doc.id, ...doc.data() });
         });
         if (list.length > 0) {
-          concerts = list;
+          state.concerts = list;
         } else {
           showToast("目前尚無任何應援場次，請先新增一場演唱會或活動");
         }
@@ -1031,7 +1108,7 @@
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() });
         });
-        supportEvents = list;
+        state.supportEvents = list;
         renderAll();
       }, (err) => {
         console.error("Support sync error:", err);
@@ -1044,42 +1121,42 @@
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() });
         });
-        exchangePosts = list;
+        state.exchangePosts = list;
         renderAll();
       }, (err) => {
         console.error("Exchange sync error:", err);
       });
-
-       // 4. BooksMark 監聽
-      const uid = auth.currentUser.uid;
-      const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
-      onSnapshot(bookmarksCol, (snap) => {
-        bookmarkedPostIds = [];
-        snap.forEach(doc => {
-          bookmarkedPostIds.push(doc.id);
+      if(!state.currentUser.isAnonymous){
+        // 4. BooksMark 監聽
+        const uid = state.currentUser.uid;
+        const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
+        onSnapshot(bookmarksCol, (snap) => {
+          state.bookmarkedPostIds = [];
+          snap.forEach(doc => {
+            state.bookmarkedPostIds.push(doc.id);
+          });
+          renderAll();
+        }, (err) => {
+          console.error("Bookmark sync error:", err);
         });
-        renderAll();
-      }, (err) => {
-        console.error("Bookmark sync error:", err);
-      });
-
-      // 4. ConcertsAttended 監聽
-      const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
-      onSnapshot(attendedCol, (snap) => {
-        userAttendedConcerts = [];
-        snap.forEach(doc => {
-          userAttendedConcerts.push(doc.id);
+      
+        // 4. ConcertsAttended 監聽
+        const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
+        onSnapshot(attendedCol, (snap) => {
+          state.userAttendedConcerts = [];
+          snap.forEach(doc => {
+            state.userAttendedConcerts.push(doc.id);
+          });
+          renderAll();
+        }, (err) => {
+          console.error("Attended sync error:", err);
         });
-        renderAll();
-      }, (err) => {
-        console.error("Attended sync error:", err);
-      });
-
+      }
     }
 
     // ==================== STREAMING_CHUNK: 圖片即時 Canvas 壓縮上傳與防溢位機制 ====================
     function triggerFileInput() {
-      if (currentUploadedImagesBase64.length >= 5) {
+      if (state.currentUploadedImagesBase64.length >= 5) {
         showToast("最多只能上傳 5 張照片。");
         return;
       }
@@ -1127,7 +1204,7 @@
 
           // 進行中度壓縮（0.68 品質，產出輕量小尺寸 JPEG 格式，完美相容無伺服器架構）
           const compressedBase64 = canvas.toDataURL("image/jpeg", 0.68);
-          currentUploadedImageBase64 = compressedBase64;
+          state.currentUploadedImageBase64 = compressedBase64;
 
           // 展示即時上傳預覽
           const previewContainer = document.getElementById("image-upload-preview-container");
@@ -1141,7 +1218,7 @@
     }
 
     function clearUploadedImageLegacy() {
-      currentUploadedImageBase64 = "";
+      state.currentUploadedImageBase64 = "";
       document.getElementById("post-image-file").value = "";
       document.getElementById("image-upload-preview-container").classList.add("hidden");
       document.getElementById("image-upload-hint").innerText = "若未上傳，系統將套用預設動態背景";
@@ -1169,29 +1246,34 @@
         reader.readAsDataURL(file);
       });
     }
-
+    function getSocialHandle(link) {
+        if (!link || !link.includes('@')) return '未提供';
+          const cleanLink = link.split('?')[0];
+          const handle = '@' + cleanLink.split('@')[1];
+          return handle.replace(/\/$/, '');
+    }
     function renderImageUploadPreviewsLegacy() {
       const container = document.getElementById("image-upload-preview-container");
       container.innerHTML = "";
-      currentUploadedImagesBase64.forEach((image, index) => {
+      state.currentUploadedImagesBase64.forEach((image, index) => {
         const item = document.createElement("div");
         item.className = "w-12 h-12 rounded-lg border overflow-hidden bg-zinc-100 relative";
         item.innerHTML = `<img src="${image}" alt="預覽照片 ${index + 1}" class="w-full h-full object-cover"><button type="button" onclick="removeUploadedImage(${index})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center font-bold text-[9px] opacity-0 hover:opacity-100 transition-opacity">移除</button>`;
         container.appendChild(item);
       });
-      container.classList.toggle("hidden", currentUploadedImagesBase64.length === 0);
-      currentUploadedImageBase64 = currentUploadedImagesBase64[0] || "";
-      document.getElementById("image-upload-hint").innerText = currentUploadedImagesBase64.length
-        ? `已壓縮 ${currentUploadedImagesBase64.length}/5 張照片`
+      container.classList.toggle("hidden", state.currentUploadedImagesBase64.length === 0);
+      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
+      document.getElementById("image-upload-hint").innerText = state.currentUploadedImagesBase64.length
+        ? `已壓縮 ${state.currentUploadedImagesBase64.length}/5 張照片`
         : "可選擇最多 5 張照片，系統會自動壓縮。";
     }
 
     function renderImageUploadPreviews() {
       const container = document.getElementById("image-upload-preview-container");
-      const count = currentUploadedImagesBase64.length;
+      const count = state.currentUploadedImagesBase64.length;
       container.innerHTML = "";
 
-      currentUploadedImagesBase64.forEach((image, index) => {
+      state.currentUploadedImagesBase64.forEach((image, index) => {
         const item = document.createElement("div");
         item.className = "relative w-20 h-20 shrink-0 overflow-visible rounded-2xl border border-zinc-200 bg-zinc-100";
         item.innerHTML = `
@@ -1212,7 +1294,7 @@
         container.appendChild(addButton);
       }
 
-      currentUploadedImageBase64 = currentUploadedImagesBase64[0] || "";
+      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
       document.getElementById("image-upload-hint").innerText = count
         ? `已選擇 ${count}/5 張照片`
         : "可選擇最多 5 張照片，系統會自動壓縮。";
@@ -1220,7 +1302,7 @@
 
     async function processImageUpload(event) {
       const files = Array.from(event.target.files || []);
-      const remaining = 5 - currentUploadedImagesBase64.length;
+      const remaining = 5 - state.currentUploadedImagesBase64.length;
       event.target.value = "";
       if (!files.length) return;
       if (remaining <= 0) return showToast("最多只能上傳 5 張照片。");
@@ -1231,7 +1313,7 @@
       if (!selected.length) return;
       showToast("正在壓縮照片…");
       try {
-        currentUploadedImagesBase64.push(...await Promise.all(selected.map(compressImage)));
+        state.currentUploadedImagesBase64.push(...await Promise.all(selected.map(compressImage)));
         renderImageUploadPreviews();
         showToast("照片已壓縮並加入預覽。");
       } catch (error) {
@@ -1241,13 +1323,13 @@
     }
 
     function removeUploadedImage(index) {
-      currentUploadedImagesBase64.splice(index, 1);
+      state.currentUploadedImagesBase64.splice(index, 1);
       renderImageUploadPreviews();
     }
 
     function clearUploadedImage() {
-      currentUploadedImageBase64 = "";
-      currentUploadedImagesBase64 = [];
+      state.currentUploadedImageBase64 = "";
+      state.currentUploadedImagesBase64 = [];
       document.getElementById("post-image-file").value = "";
       renderImageUploadPreviews();
     }
@@ -1269,42 +1351,19 @@
           canvas.width = Math.round(image.width * scale);
           canvas.height = Math.round(image.height * scale);
           canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-          currentUser.avatar = canvas.toDataURL("image/jpeg", 0.82);
-          document.getElementById("profile-display-avatar").src = currentUser.avatar;
-          document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
-          showToast("頭像已更新，請儲存個人資料");
+          state.currentUser.avatar = canvas.toDataURL("image/jpeg", 0.82);
+          document.getElementById("input-avatar-preview").src = state.currentUser.avatar;
+          // document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+          showToast("頭像上傳成功");
         };
         image.src = loadEvent.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    async function saveUserProfile() {
-      if (!auth.currentUser) return;
-      const username = document.getElementById("profile-input-username").value.trim() || currentUser.username;
-      const contact = document.getElementById("profile-input-contact").value.trim();
-
-      showToast("保存中...");
-      try {
-        const profileDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data');
-        const updateData = { username, contact, avatar: currentUser.avatar };
-        await updateDoc(profileDocRef, updateData);
-
-        currentUser.username = username;
-        currentUser.contact = contact;
-
-        document.getElementById("user-avatar-snapshot").src = currentUser.avatar;
-        showToast("個人資料已儲存！");
-        renderAll();
-      } catch (error) {
-        console.error("Save profile error:", error);
-        showToast("保存失敗，請稍後再試");
-      }
-    }
-
     // ==================== STREAMING_CHUNK: 路由切換控制 ====================
     function renderAll() {
-      renderHeroCarousel(concerts);
+      renderHeroCarousel(state.concerts);
       renderConcerts();
       renderBookmarks();
       renderMyPosts();
@@ -1312,8 +1371,8 @@
     }
 
     function switchTab(tabId) {
-      activeTab = tabId;
-      selectedConcert = null; 
+      state.activeTab = tabId;
+      state.selectedConcert = null; 
 
       document.getElementById("screen-explore").classList.add("hidden");
       document.getElementById("screen-bookmarks").classList.add("hidden");
@@ -1353,11 +1412,11 @@
     }
 
     function navigateToConcert(concertId) {
-      selectedConcert = concerts.find(c => c.id === concertId);
-      if (!selectedConcert) return;
+      state.selectedConcert = state.concerts.find(c => c.id === concertId);
+      if (!state.selectedConcert) return;
 
-      selectedDate = selectedConcert.dates[0];
-      selectedSubCategory = "support";
+      state.selectedDate = state.selectedConcert.dates[0];
+      state.selectedSubCategory = "support";
 
       document.getElementById("screen-explore").classList.add("hidden");
       document.getElementById("screen-bookmarks").classList.add("hidden");
@@ -1368,7 +1427,7 @@
       document.getElementById("header-logo").classList.add("hidden");
       document.getElementById("add-concert-btn").classList.add("hidden");
       document.getElementById("floating-publish-btn").classList.remove("hidden");
-      if(selectedConcert.isPending) { //審核中
+      if(state.selectedConcert.isPending) { //審核中
         document.getElementById("floating-publish-btn").classList.add("bg-gray-200", "text-gray-400");
         document.getElementById("floating-publish-btn").classList.remove("hidden","bg-zinc-900", "text-white");
       }else{
@@ -1383,7 +1442,7 @@
     }
 
     function handleSearch(val) {
-      searchQuery = val;
+      state.searchQuery = val;
       renderConcerts();
     }
     // ==================== 輪播展演 (Carousel) 邏輯 ====================
@@ -1567,8 +1626,8 @@
       const container = document.getElementById("concert-list-container");
       container.innerHTML = "";
 
-      const queryStr = searchQuery.trim().toLowerCase();
-      const filtered = concerts.filter(c => {
+      const queryStr = state.searchQuery.trim().toLowerCase();
+      const filtered = state.concerts.filter(c => {
         return c.artist.toLowerCase().includes(queryStr) ||
                c.tourName.toLowerCase().includes(queryStr) ||
                c.venue.toLowerCase().includes(queryStr);
@@ -1587,8 +1646,8 @@
       container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
 
       filtered.forEach(c => {
-        const supportCount = supportEvents.filter(e => e.concertId === c.id).length;
-        const exchangeCount = exchangePosts.filter(p => p.concertId === c.id).length;
+        const supportCount = state.supportEvents.filter(e => e.concertId === c.id).length;
+        const exchangeCount = state.exchangePosts.filter(p => p.concertId === c.id).length;
 
         const card = document.createElement("div");
         card.className = "bg-white hover:bg-zinc-50 border border-zinc-150 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
@@ -1627,12 +1686,12 @@
       const container = document.getElementById("bookmarks-list-container");
       container.innerHTML = "";
 
-      const matchedSupports = supportEvents
-        .filter(item => bookmarkedPostIds.includes(item.id))
+      const matchedSupports = state.supportEvents
+        .filter(item => state.bookmarkedPostIds.includes(item.id))
         .map(item => ({ ...item, bookmarkType: "free-support" }));
 
-      const matchedExchanges = exchangePosts
-        .filter(item => bookmarkedPostIds.includes(item.id))
+      const matchedExchanges = state.exchangePosts
+        .filter(item => state.bookmarkedPostIds.includes(item.id))
         .map(item => ({ ...item, bookmarkType: "support-exchange" }));
 
       const allBookmarked = [...matchedSupports, ...matchedExchanges];
@@ -1689,14 +1748,14 @@
 
     // ==================== STREAMING_CHUNK: 演唱會詳細看板 RWD 渲染 ====================
     function renderConcertDetail() {
-      if (!selectedConcert) return;
+      if (!state.selectedConcert) return;
 
-      document.getElementById("detail-concert-image").src = selectedConcert.image;
-      document.getElementById("detail-concert-artist").innerText = selectedConcert.artist;
-      document.getElementById("detail-concert-venue").innerText = selectedConcert.venue;
-      document.getElementById("detail-concert-tour").innerText = selectedConcert.tourName;
-      document.getElementById("detail-attend-count").innerText = selectedConcert.attendCount;
-      document.getElementById("detail-concert-countdown").innerText = getDaysRemaining(selectedConcert.dates);
+      document.getElementById("detail-concert-image").src = state.selectedConcert.image;
+      document.getElementById("detail-concert-artist").innerText = state.selectedConcert.artist;
+      document.getElementById("detail-concert-venue").innerText = state.selectedConcert.venue;
+      document.getElementById("detail-concert-tour").innerText = state.selectedConcert.tourName;
+      document.getElementById("detail-attend-count").innerText = state.selectedConcert.attendCount;
+      document.getElementById("detail-concert-countdown").innerText = getDaysRemaining(state.selectedConcert.dates);
       const attendContainer = document.getElementById("detail-concert-attend-container");
 
       const pendingBox = document.getElementById("detail-concert-pending-box");
@@ -1704,10 +1763,10 @@
       const adminBtn = document.getElementById('admin-approve-btn');
       // 按鈕只會在 Custom Claim 識別完成、且確定為管理員後出現。
       adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
-      if (selectedConcert.isPending) {
+      if (state.selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
         attendContainer.classList.add("hidden");
-        document.getElementById("detail-concert-pending-stats").innerText = ` ${selectedConcert.verifiedCount || 0}/20 位粉絲已確認`;
+        document.getElementById("detail-concert-pending-stats").innerText = ` ${state.selectedConcert.verifiedCount || 0}/20 位粉絲已確認`;
         adminBtn.classList.toggle('hidden', !hasAdminClaim);
       } else {
         pendingBox.classList.add("hidden");
@@ -1718,9 +1777,9 @@
       // 日期 Tabs 繪製
       const dateTabsContainer = document.getElementById("detail-date-tabs-container");
       dateTabsContainer.innerHTML = "";
-      selectedConcert.dates.forEach((dateStr, idx) => {
+      state.selectedConcert.dates.forEach((dateStr, idx) => {
         const formattedDate = dateStr.substring(5).replace("-", "/");
-        const isSelected = selectedDate === dateStr;
+        const isSelected = state.selectedDate === dateStr;
 
         const btn = document.createElement("button");
         btn.className = `flex-1 lg:flex-none min-w-[85px] lg:w-full py-2.5 px-3 rounded-xl flex flex-row lg:justify-between items-center justify-center border transition-all active:scale-95 ${
@@ -1729,7 +1788,7 @@
             : "bg-zinc-50 border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
         }`;
         btn.onclick = () => {
-          selectedDate = dateStr;
+          state.selectedDate = dateStr;
           renderConcertDetail();
         };
         btn.innerHTML = `
@@ -1740,15 +1799,15 @@
       });
 
       // 分類統計
-      const currentSupportCount = supportEvents.filter(e => e.concertId === selectedConcert.id && e.dates.includes(selectedDate)).length;
-      const currentExchangeCount = exchangePosts.filter(p => p.concertId === selectedConcert.id && p.dates.includes(selectedDate)).length;
+      const currentSupportCount = state.supportEvents.filter(e => e.concertId === state.selectedConcert.id && e.dates.includes(state.selectedDate)).length;
+      const currentExchangeCount = state.exchangePosts.filter(p => p.concertId === state.selectedConcert.id && p.dates.includes(state.selectedDate)).length;
       const supportBtn = document.getElementById("label-toggle-support");
       const exchangeBtn = document.getElementById("label-toggle-exchange");
 
       const listContainer = document.getElementById("detail-event-list-container");
       listContainer.innerHTML = "";
 
-      if (selectedSubCategory === "support") {
+      if (state.selectedSubCategory === "support") {
           supportBtn.innerHTML = `
           <span>免費應援</span>
           <span class="ml-0.5 px-1.5 py-0.5 bg-zinc-900 text-white rounded-full text-[10px]">
@@ -1762,8 +1821,8 @@
           `;
           
 
-          const matched = supportEvents.filter(
-            e => e.concertId === selectedConcert.id && e.dates.includes(selectedDate)
+          const matched = state.supportEvents.filter(
+            e => e.concertId === state.selectedConcert.id && e.dates.includes(state.selectedDate)
           );
 
           renderSupportList(
@@ -1784,8 +1843,8 @@
               ${currentExchangeCount}
             </span>
           `;
-          const matched = exchangePosts.filter(
-            p => p.concertId === selectedConcert.id && p.dates.includes(selectedDate)
+          const matched = state.exchangePosts.filter(
+            p => p.concertId === state.selectedConcert.id && p.dates.includes(state.selectedDate)
           );
 
           renderSupportList(
@@ -1828,8 +1887,8 @@
         card.onclick = () => openPostDetailModal(modalType, item.id);
 
         const specificDateQty =
-          (item.datesQuantities && item.datesQuantities[selectedDate]) !== undefined
-            ? item.datesQuantities[selectedDate]
+          (item.datesQuantities && item.datesQuantities[state.selectedDate]) !== undefined
+            ? item.datesQuantities[state.selectedDate]
             : item.quantity;
 
 
@@ -1878,7 +1937,7 @@
       });
     }
     function setSubCategory(cat) {
-      selectedSubCategory = cat;
+      state.selectedSubCategory = cat;
       const btnSupport = document.getElementById("btn-toggle-support");
       const btnExchange = document.getElementById("btn-toggle-exchange");
 
@@ -1895,22 +1954,32 @@
 
     // 演唱會確認票數 +1
     async function voteForConcert() {
-      if (!selectedConcert || !auth.currentUser) return;
+      if (!state.selectedConcert) return;
+      if (!state.currentUser){
+        showToast("請先前往登入才能執行這項操作");
+        return;
+      }
       try {
-        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
-        const nextCount = selectedConcert.verifiedCount + 1;
-        const isVerified = nextCount >= 20 ? false : selectedConcert.isPending; // 達 20 人即結束審核中狀態
-        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'verifiedConcerts',selectedConcert.id);
+        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
+        const nextCount = state.selectedConcert.verifiedCount + 1;
+        const isVerified = nextCount >= 20 ? false : state.selectedConcert.isPending; // 達 20 人即結束審核中狀態
+        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.uid, 'verifiedConcerts',state.selectedConcert.id);
+        
+        const verifiedConcertSnap = await getDoc(verifiedConcertsDocRef);
+        if (verifiedConcertSnap.exists()) {
+          showToast("你已經確認過這場演唱會了！");
+          return;
+        }
         await updateDoc(concertDocRef, {
           verifiedCount: increment(1),
           isPending: isVerified
         });
         await setDoc(verifiedConcertsDocRef, {
-          concertId: selectedConcert.id,
+          concertId: state.selectedConcert.id,
           verifiedAt: serverTimestamp()
         });
 
-        if (nextCount >= 20 && selectedConcert.isPending) {
+        if (nextCount >= 20 && state.selectedConcert.isPending) {
           showToast("此演唱會確認票數足夠，正式完成上架！");
         } else {
           showToast("感謝確認！");
@@ -1925,8 +1994,8 @@
       const container = document.getElementById("my-posts-list-container");
       container.innerHTML = "";
 
-      const mySupports = supportEvents.filter(s => s.userId === currentUser.id);
-      const myExchanges = exchangePosts.filter(e => e.userId === currentUser.id);
+      const mySupports = state.supportEvents.filter(s => s.userId === state.currentUser.id);
+      const myExchanges = state.exchangePosts.filter(e => e.userId === state.currentUser.id);
       const allMyPosts = [
         ...mySupports.map(s => ({ ...s, myType: "free-support" })),
         ...myExchanges.map(e => ({ ...e, myType: "support-exchange" }))
@@ -1967,11 +2036,11 @@
     function openPostDetailModal(type, itemId, previewItem = null) {
       const isFreeSupport = type === "free-support";
       const item = previewItem || (isFreeSupport 
-        ? supportEvents.find(s => s.id === itemId)
-        : exchangePosts.find(e => e.id === itemId));
+        ? state.supportEvents.find(s => s.id === itemId)
+        : state.exchangePosts.find(e => e.id === itemId));
 
       if (!item) return;
-      activeDetailItem = { type, data: item };
+      state.activeDetailItem = { type, data: item };
 
       const tag = document.getElementById("detail-item-tag");
       tag.innerHTML =item.category.map(category => `
@@ -1988,8 +2057,8 @@
         : "");
 
       const heart = document.getElementById("detail-bookmark-heart");
-      document.getElementById("detail-bookmark-btn").classList.toggle("hidden", isPublishPreview);
-      if (bookmarkedPostIds.includes(item.id)) {
+      document.getElementById("detail-bookmark-btn").classList.toggle("hidden", state.isPublishPreview);
+      if (state.bookmarkedPostIds.includes(item.id)) {
         heart.classList.add("fill-pink-500", "text-pink-500");
         heart.classList.remove("text-zinc-400");
       } else {
@@ -2131,7 +2200,7 @@
       const actionContainer = document.getElementById("detail-action-container");
       actionContainer.innerHTML = "";
 
-      if (isPublishPreview) {
+      if (state.isPublishPreview) {
         actionContainer.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -2160,7 +2229,7 @@
             </div>
           </div>
         `;
-      } else if (item.userId === currentUser.id) {
+      } else if (item.userId === state.currentUser.id) {
         actionContainer.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -2214,31 +2283,35 @@
 
     function closePostDetailModal() {
       document.getElementById("modal-post-detail").classList.add("hidden");
-      activeDetailItem = null;
+      state.activeDetailItem = null;
       document.getElementById("detail-bookmark-btn").classList.remove("hidden");
-      if (isPublishPreview && !isConfirmingPublish) {
-        isPublishPreview = false;
+      if (state.isPublishPreview && !state.isConfirmingPublish) {
+        state.isPublishPreview = false;
         document.getElementById("modal-publish-post").classList.remove("hidden");
       }
     }
     function closeBookmarkConfirmModal() {
       document.getElementById("modal-bookmark-confirm").classList.add("hidden");
-      pendingRemoveBookmarkId = null;
+      state.pendingRemoveBookmarkId = null;
     }
 
     async function toggleConcertAttend() {
-      const concert = concerts.find(c => c.id === selectedConcert.id);
+      const concert = state.concerts.find(c => c.id === state.selectedConcert.id);
       if (!concert) return;
-      const uid = auth.currentUser.uid;
-      const AttendedConcertsRef = doc(db,"artifacts",appId,"users",uid,"attendedConcerts",selectedConcert.id);
-      const isAttended = userAttendedConcerts.includes(selectedConcert.id);
-      const idx = userAttendedConcerts.indexOf(selectedConcert.id);
-      const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id);
+      if (state.currentUser.isAnonymous){
+        showToast("請先前往登入才能執行這項操作");
+        return;
+      }
+      const uid = state.currentUser.uid;
+      const AttendedConcertsRef = doc(db,"artifacts",appId,"users",uid,"attendedConcerts",state.selectedConcert.id);
+      const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
+      const idx = state.userAttendedConcerts.indexOf(state.selectedConcert.id);
+      const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
 
       if (idx > -1) {
         showToast("已取消參加", "fa-circle-info");
-        const nextCount = selectedConcert.attendedCount - 1;
-        userAttendedConcerts = userAttendedConcerts.filter(id => id !== selectedConcert.id);
+        const nextCount = state.selectedConcert.attendedCount - 1;
+        state.userAttendedConcerts = state.userAttendedConcerts.filter(id => id !== state.selectedConcert.id);
         await deleteDoc(AttendedConcertsRef);
         await updateDoc(concertDocRef, {
           attendedCount: increment(-1),
@@ -2246,10 +2319,10 @@
 
       } else {
         showToast("已確認參加！當天現場見 🎉", "fa-circle-check");
-        const nextCount = selectedConcert.attendedCount + 1;
-        userAttendedConcerts.push(selectedConcert.id);
+        const nextCount = state.selectedConcert.attendedCount + 1;
+        state.userAttendedConcerts.push(state.selectedConcert.id);
         await setDoc(AttendedConcertsRef, {
-            concertId: selectedConcert.id,
+            concertId: state.selectedConcert.id,
         });
         await updateDoc(concertDocRef, {
           attendedCount: increment(1),
@@ -2262,9 +2335,9 @@
     window.toggleConcertAttend = toggleConcertAttend;
     // 更新確定參戰 / 關注場次按鈕樣式
     function updateConcertActionButtons() {
-      const concert = concerts.find(c => c.id === selectedConcert.id);
+      const concert = state.concerts.find(c => c.id === state.selectedConcert.id);
       if (!concert) return;
-      const isAttended = userAttendedConcerts.includes(selectedConcert.id);
+      const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
       // 收藏
       const attendBtn = document.getElementById('btn-detail-attend');
       const attendText = document.getElementById('detail-attend-text');
@@ -2283,34 +2356,34 @@
     }
 
     async function toggleDetailBookmark() {
-      if (!activeDetailItem) return;
-      if (!auth.currentUser){
-        alert("請先前往登入才能收藏應援");
+      if (!state.activeDetailItem) return;
+      if (state.currentUser.isAnonymous){
+        showToast("請先前往登入才能收藏應援");
         return;
       }
-      const uid = auth.currentUser.uid;
-      const postId = activeDetailItem.data.id;
+      const uid = state.currentUser.uid;
+      const postId = state.activeDetailItem.data.id;
 
       const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
 
-      const isBookmarked = bookmarkedPostIds.includes(postId);
+      const isBookmarked = state.bookmarkedPostIds.includes(postId);
 
       if (isBookmarked) {
-          bookmarkedPostIds = bookmarkedPostIds.filter(postId => postId !== postId);
+          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== postId);
           await deleteDoc(bookmarkRef);
           showToast("已將該項目移出我的收藏");
       } else {
           showToast("已成功收藏該項目");
-          bookmarkedPostIds.push(postId);
+          state.bookmarkedPostIds.push(postId);
           await setDoc(bookmarkRef, {
               postId,
-              type: activeDetailItem.type,
+              type: state.activeDetailItem.type,
           });
           
       }
       
       const heart = document.getElementById("detail-bookmark-heart");
-      if (bookmarkedPostIds.includes(activeDetailItem.data.id)) {
+      if (state.bookmarkedPostIds.includes(state.activeDetailItem.data.id)) {
         heart.classList.add("fill-pink-500", "text-pink-500");
         heart.classList.remove("text-zinc-400");
       } else {
@@ -2321,29 +2394,29 @@
     //收藏頁面的取消收藏
     async function toggleBookmark(event,postId) {
         event.stopPropagation();
-        const uid = auth.currentUser.uid;
+        const uid = state.currentUser.uid;
         const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-        const isBookmarked = bookmarkedPostIds.includes(postId);
+        const isBookmarked = state.bookmarkedPostIds.includes(postId);
         if (isBookmarked) {  
-            pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
+            state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
             // 開啟確認視窗
             document.getElementById("modal-bookmark-confirm").classList.remove("hidden");
         } else {
             showToast("已成功收藏該項目");
-            bookmarkedPostIds.push(postId);
+            state.bookmarkedPostIds.push(postId);
             await setDoc(bookmarkRef, {
                 postId,
-                type: activeDetailItem.type,
+                type: state.activeDetailItem.type,
             });
             
         }
     }
     async function executeRemoveBookmark() {
-      if (!pendingRemoveBookmarkId) return;
-      const uid = auth.currentUser.uid;
-      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",pendingRemoveBookmarkId);
+      if (!state.pendingRemoveBookmarkId) return;
+      const uid = state.currentUser.uid;
+      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",state.pendingRemoveBookmarkId);
 
-      bookmarkedPostIds = bookmarkedPostIds.filter(id => id !== pendingRemoveBookmarkId);
+      state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== state.pendingRemoveBookmarkId);
       await deleteDoc(bookmarkRef);
       closeBookmarkConfirmModal();
       showToast("已將該項目移出我的收藏");
@@ -2351,11 +2424,11 @@
 
     // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
     function getPublishDraftStorageKey() {
-      return selectedConcert ? `fanmap-publish-draft:${selectedConcert.id}` : null;
+      return state.selectedConcert ? `fanmap-publish-draft:${state.selectedConcert.id}` : null;
     }
 
     function savePublishDraft() {
-      if (isEditingMode || isRestoringPublishDraft || !selectedConcert) return;
+      if (state.isEditingMode || state.isRestoringPublishDraft || !state.selectedConcert) return;
 
       const datesQuantities = {};
       document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
@@ -2364,7 +2437,7 @@
       });
 
       const draft = {
-        type: publishPostType,
+        type: state.publishPostType,
         title: document.getElementById("post-title").value,
         category: getSelectedCategories(),
         isAI: document.getElementById("ai-checkbox").checked,
@@ -2415,23 +2488,23 @@
     }
 
     function openPublishModal() {
-      if (!selectedConcert) return;
-      if(selectedConcert.isPending === true){
+      if (!state.selectedConcert) return;
+      if(state.selectedConcert.isPending === true){
         showToast("場次尚未完成驗證，無法新增應援")
         return;}
-      if (!auth.currentUser){
+      if (state.currentUser.isAnonymous){
         showToast("請先前往登入才能發布");
         return;
       }
-      const contactHandle = currentUser.contact.trim();
+      const contactHandle = state.currentUser.contact.trim();
       if (!contactHandle){
-        showToast("請先前往個人中心填寫社群連結");
+        showToast("請先前往個人中心填寫社群連結後才能發布");
         return;
       }
-      isEditingMode = false;
-      editingItemId = null;
+      state.isEditingMode = false;
+      state.editingItemId = null;
       const draft = loadPublishDraft();
-      isRestoringPublishDraft = true;
+      state.isRestoringPublishDraft = true;
       clearUploadedImage();
 
       document.getElementById("publish-modal-title").innerText = "發布新應援項目";
@@ -2454,19 +2527,19 @@
       } else {
         setPublishType("free-support");
       }
-      isRestoringPublishDraft = false;
+      state.isRestoringPublishDraft = false;
 
       document.getElementById("modal-publish-post").classList.remove("hidden");
     }
 
     function closePublishModal() {
       document.getElementById("modal-publish-post").classList.add("hidden");
-      isEditingMode = false;
-      editingItemId = null;
+      state.isEditingMode = false;
+      state.editingItemId = null;
     }
 
     function setPublishType(type) {
-      publishPostType = type;
+      state.publishPostType = type;
       const btnSupport = document.getElementById("publish-type-btn-free-support");
       const btnExchange = document.getElementById("publish-type-btn-support-exchange");
 
@@ -2496,12 +2569,12 @@
     function buildPublishDateOptions(selectedDatesArray = [], quantitiesMap = {}) {
       const container = document.getElementById("post-date-options");
       container.innerHTML = "";
-      if (!selectedConcert || !selectedConcert.dates) return;
+      if (!state.selectedConcert || !state.selectedConcert.dates) return;
 
       // 改用垂直排列的容器，方便每一行展開數量輸入框
       container.className = "space-y-3";
 
-      selectedConcert.dates.forEach(dateStr => {
+      state.selectedConcert.dates.forEach(dateStr => {
         const dateSub = dateStr.substring(5);
         const isChecked = selectedDatesArray.includes(dateStr);
         // 取得該日期對應的數量（如果有的話）
@@ -2510,7 +2583,7 @@
         // 建立外層區塊包住「勾選按鈕」與「展開的數量輸入框」
         const wrapper = document.createElement("div");
         wrapper.className = "flex justify-between p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl ";
-        if (publishPostType === "free-support" || publishPostType === "support-exchange") {
+        if (state.publishPostType === "free-support" || state.publishPostType === "support-exchange") {
           wrapper.innerHTML = `
             <label class="flex items-center space-x-3 cursor-pointer">
               <input type="checkbox" name="pub-dates" value="${dateStr}" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" ${isChecked ? "checked" : ""} onchange="togglePublishDateBox(this, '${dateStr}')">
@@ -2523,7 +2596,7 @@
           `;
         } else {
           // 如果是其他類型（例如交換應援，若也需要單選或對應數量可在此調整）
-          const isSelected = singleDateStr === dateStr || (singleDateStr === "" && selectedDate === dateStr);
+          const isSelected = singleDateStr === dateStr || (singleDateStr === "" && state.selectedDate === dateStr);
           wrapper.innerHTML = `
             <label class="flex items-center space-x-3 cursor-pointer">
               <input type="radio" name="pub-date" value="${dateStr}" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4" ${isSelected ? "checked" : ""}>
@@ -2554,8 +2627,8 @@
 
     // ==================== STREAMING_CHUNK: 發布與編輯存檔（寫入 Cloud Firestore） ====================
     async function uploadPostImages(postId) {
-      const uid = auth.currentUser.uid;
-      return Promise.all(currentUploadedImagesBase64.map(async (image, index) => {
+      const uid = state.currentUser.uid;
+      return Promise.all(state.currentUploadedImagesBase64.map(async (image, index) => {
         // 編輯既有貼文時，已存在的 Storage URL 不需重複上傳。
         if (!image.startsWith("data:image/")) return image;
 
@@ -2574,7 +2647,7 @@
       return selectedValues;
     }
     function openPublishPreview(item) {
-      isPublishPreview = true;
+      state.isPublishPreview = true;
       document.getElementById("modal-publish-post").classList.add("hidden");
       openPostDetailModal(item.type, item.id, item);
     }
@@ -2584,8 +2657,8 @@
     }
 
     async function confirmPublishFromPreview() {
-      isConfirmingPublish = true;
-      publishSucceeded = false;
+      state.isConfirmingPublish = true;
+      state.state.publishSucceeded = false;
       const confirmButton = document.getElementById("confirm-publish-btn");
       const returnButton = document.getElementById("return-to-publish-editor-btn");
       confirmButton.disabled = true;
@@ -2596,9 +2669,9 @@
         <svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle><path class="opacity-90" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path></svg>
         <span>發布中…</span>`;
       await handlePublishPostSubmit({ preventDefault() {} });
-      if (publishSucceeded) {
+      if (state.publishSucceeded) {
         closePostDetailModal();
-        isPublishPreview = false;
+        state.isPublishPreview = false;
       } else {
         confirmButton.disabled = false;
         returnButton.disabled = false;
@@ -2606,16 +2679,22 @@
         returnButton.classList.remove("opacity-50", "cursor-not-allowed");
         confirmButton.innerText = "確認發布";
       }
-      isConfirmingPublish = false;
+      state.isConfirmingPublish = false;
     }
 
     async function handlePublishPostSubmit(event) {
       event.preventDefault();
 
-      if (!auth.currentUser) {
-        showToast("請先完成身分驗證");
+      if (state.currentUser.isAnonymous) {
+        showToast("請先登入");
+        return;
+      }  
+
+      if (!contactHandle){
+        showToast("請先前往個人中心填寫社群連結後才能發布");
         return;
       }
+      
 
       const title = document.getElementById("post-title").value.trim();
       const category = getSelectedCategories();
@@ -2625,11 +2704,11 @@
       const requirement = document.getElementById("post-requirement").value.trim();//領取條件／交換對象限制
       const notice = document.getElementById("post-notice").value.trim();//注意事項
       const isAI =document.getElementById("ai-checkbox").checked; //是否 AI 生成
-      const contactHandle = currentUser.contact.trim();
+      const contactHandle = state.currentUser.contact.trim();
       const authorData = {
-        userId: currentUser.id,
-        authorName: currentUser.username,
-        userAvatar: currentUser.avatar,
+        userId: state.currentUser.id,
+        authorName: state.currentUser.username,
+        userAvatar: state.currentUser.avatar,
         contactInfo: contactHandle 
       };
 
@@ -2645,7 +2724,7 @@
       }
 
       // 新增貼文時，先以表單中的本機圖片與欄位資料預覽，不進行上傳或寫入。
-      if (!isEditingMode && !isConfirmingPublish) {
+      if (!state.isEditingMode && !state.isConfirmingPublish) {
         const datesQuantities = {};
         document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
           const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
@@ -2662,27 +2741,27 @@
           showToast("請至少輸入一個發放份數");
           return;
         }
-        if (currentUploadedImagesBase64.length === 0) {
+        if (state.currentUploadedImagesBase64.length === 0) {
           showToast("請至少上傳一張應援物照片");
           return;
         }
 
         openPublishPreview({
-          type: publishPostType,
+          type: state.publishPostType,
           id: `preview_${Date.now()}`,
-          concertId: selectedConcert.id,
+          concertId: state.selectedConcert.id,
           title, category, totalquantity: totalQuantity, datesQuantities, dates: selectedDates,
           requirement, notice, approxLocation, originalLink, liveUpdateLink,
-          image: currentUploadedImagesBase64[0], images: [...currentUploadedImagesBase64], isAI,
+          image: state.currentUploadedImagesBase64[0], images: [...state.currentUploadedImagesBase64], isAI,
           ...authorData
         });
         return;
       }
 
       // 如果有上傳 Canvas 壓縮照片就使用它，否則套用 Unsplash 的動態配圖
-      const postId = isEditingMode && editingItemId
-        ? editingItemId
-        : (publishPostType === "free-support" ? `sup_${Date.now()}` : `exch_${Date.now()}`);
+      const postId = state.isEditingMode && state.editingItemId
+        ? state.editingItemId
+        : (state.publishPostType === "free-support" ? `sup_${Date.now()}` : `exch_${Date.now()}`);
       let finalImage = "";
       let finalImages = [];
 
@@ -2709,7 +2788,7 @@
 
         finalImages = await uploadPostImages(postId);
         finalImage = finalImages[0] || finalImage;
-        if (isEditingMode && editingItemId) {
+        if (state.isEditingMode && state.editingItemId) {
           if (selectedDates.length === 0) {
               showToast("請至少選取一個發放日期");
               submitBtn.disabled = false;
@@ -2728,10 +2807,10 @@
               return;
             }
           // A. 編輯存檔
-          if (publishPostType === "free-support") {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', editingItemId);
+          if (state.publishPostType === "free-support") {
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', state.editingItemId);
             await updateDoc(docRef, {
-              type: publishPostType,
+              type: state.publishPostType,
               title, category, 
               totalquantity: totalQuantity, // 總數量
               datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
@@ -2744,9 +2823,9 @@
               ...authorData
             });
           } else { //交換應援
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', editingItemId);
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', state.editingItemId);
             await updateDoc(docRef, {
-              type: publishPostType,
+              type: state.publishPostType,
               title, category, 
               totalquantity: totalQuantity, // 總數量
               datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
@@ -2779,15 +2858,15 @@
               submitBtn.innerText = "發布看板項目";
               return;
           }
-          if (publishPostType === "free-support") {
+          if (state.publishPostType === "free-support") {
             const checkboxes = document.getElementsByName("pub-dates");
             const selectedDates = [];
             checkboxes.forEach(c => { if (c.checked) selectedDates.push(c.value); });
             const newSupportId = postId;
             const newSupport = {
-              type: publishPostType,
+              type: state.publishPostType,
               id: newSupportId,
-              concertId: selectedConcert.id,
+              concertId:state.selectedConcert.id,
               title, category, 
               totalquantity: totalQuantity, // 總數量
               datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
@@ -2808,9 +2887,9 @@
 
             const newExchangeId = postId;
             const newExchange = {
-              type: publishPostType,
+              type: state.publishPostType,
               id: newExchangeId,
-              concertId: selectedConcert.id,
+              concertId: state.selectedConcert.id,
               title, category, 
               totalquantity: totalQuantity, // 總數量
               datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
@@ -2826,13 +2905,13 @@
             showToast("成功新增交換應援！");
           }
         }
-        if (!isEditingMode) clearPublishDraft();
-        publishSucceeded = true;
+        if (!state.isEditingMode) clearPublishDraft();
+        state.publishSucceeded = true;
         closePublishModal();
       } catch (error) {
         console.error("Publish error:", error);
         showToast("儲存失敗，請確認 Firestore 安全規則設定");
-        publishSucceeded = false;
+        state.publishSucceeded = false;
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = "發布看板項目";
@@ -2841,11 +2920,11 @@
 
     // 啟動編輯
     function startEditPost() {
-      if (!activeDetailItem) return;
-      const { type, data } = activeDetailItem;
+      if (!state.activeDetailItem) return;
+      const { type, data } = state.activeDetailItem;
 
-      isEditingMode = true;
-      editingItemId = data.id;
+      state.isEditingMode = true;
+      state.editingItemId = data.id;
       closePostDetailModal();
 
       document.getElementById("publish-modal-title").innerText = "編輯應援項目";
@@ -2869,8 +2948,8 @@
 
       // 載入原有照片預覽
       if (data.image) {
-        currentUploadedImageBase64 = data.image;
-        currentUploadedImagesBase64 = Array.isArray(data.images) ? data.images : [data.image];
+        state.currentUploadedImageBase64 = data.image;
+        state.currentUploadedImagesBase64 = Array.isArray(data.images) ? data.images : [data.image];
         const previewContainer = document.getElementById("image-upload-preview-container");
         const previewImg = document.getElementById("image-upload-preview");
         if (previewImg) previewImg.src = data.image;
@@ -2892,10 +2971,10 @@
 
     // ==================== STREAMING_CHUNK: 貼文刪除處理 ====================
     function triggerDeletePost() {
-      if (!activeDetailItem) return;
-      const { type, data } = activeDetailItem;
-      deleteTarget = { type, id: data.id };
-      isDeletingPost = false;
+      if (!state.activeDetailItem) return;
+      const { type, data } = state.activeDetailItem;
+      state.deleteTarget = { type, id: data.id };
+      state.state.isDeletingPost = false;
       resetDeleteButtons();
 
       closePostDetailModal();
@@ -2903,9 +2982,9 @@
     }
 
     function closeDeleteConfirmModal() {
-      if (isDeletingPost) return;
+      if (state.isDeletingPost) return;
       document.getElementById("modal-delete-confirm").classList.add("hidden");
-      deleteTarget = null;
+      state.deleteTarget = null;
     }
 
     function resetDeleteButtons() {
@@ -2919,10 +2998,10 @@
     }
 
     async function executeDeletePost() {
-      if (!deleteTarget || !auth.currentUser || isDeletingPost) return;
-      const { type, id } = deleteTarget;
-      const uid = auth.currentUser.uid;
-      isDeletingPost = true;
+      if (!state.deleteTarget || !state.currentUser || state.isDeletingPost) return;
+      const { type, id } = state.deleteTarget;
+      const uid = state.currentUser.uid;
+      state.isDeletingPost = true;
       const cancelButton = document.getElementById("cancel-delete-btn");
       const confirmButton = document.getElementById("confirm-delete-btn");
       cancelButton.disabled = true;
@@ -2948,15 +3027,15 @@
         const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, id);
         await deleteDoc(docRef);
 
-        bookmarkedPostIds = bookmarkedPostIds.filter(postId => postId !== id);
+        state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== id);
 
         showToast("項目成功自即時看板下架！");
-        isDeletingPost = false;
+        state.isDeletingPost = false;
         closeDeleteConfirmModal();
       } catch (error) {
         console.error("Delete error:", error);
         showToast("下架失敗，請稍後再試");
-        isDeletingPost = false;
+        state.isDeletingPost = false;
         resetDeleteButtons();
       }
     }
@@ -2973,6 +3052,16 @@
     }
 
     function openAddConcertModal() {
+      if (state.currentUser.isAnonymous){
+        showToast("請先前往登入才能提案");
+        return;
+      }
+      const contactHandle = state.currentUser.contact.trim();
+      if (!contactHandle){
+        showToast("請先前往個人中心填寫社群連結後才能提案");
+        return;
+      }
+
       document.getElementById("add-concert-artist").value = "";
       document.getElementById("add-concert-tour").value = "";
       document.getElementById("add-concert-venue").value = "";
@@ -3078,27 +3167,27 @@
     }
 
     async function openEditConcertModal() {
-      if (!selectedConcert || !(await isUserAdmin())) {
+      if (!state.selectedConcert || !(await isUserAdmin())) {
         showToast('您沒有管理員權限');
         renderConcertDetail();
         return;
       }
-      currentEditConcertImageBase64 = '';
+      state.currentEditConcertImageBase64 = '';
       document.getElementById('edit-concert-image-file').value = '';
-      document.getElementById('edit-concert-image-preview').src = selectedConcert.image || '';
-      document.getElementById('edit-concert-artist').value = selectedConcert.artist || '';
-      document.getElementById('edit-concert-tour').value = selectedConcert.tourName || '';
-      document.getElementById('edit-concert-venue').value = selectedConcert.venue || '';
+      document.getElementById('edit-concert-image-preview').src = state.selectedConcert.image || '';
+      document.getElementById('edit-concert-artist').value = state.selectedConcert.artist || '';
+      document.getElementById('edit-concert-tour').value = state.selectedConcert.tourName || '';
+      document.getElementById('edit-concert-venue').value = state.selectedConcert.venue || '';
       const dateContainer = document.getElementById('edit-concert-dates-container');
       dateContainer.innerHTML = '';
-      (selectedConcert.dates || []).forEach(date => addEditConcertDateField(date));
+      (state.selectedConcert.dates || []).forEach(date => addEditConcertDateField(date));
       if (!dateContainer.children.length) addEditConcertDateField();
       document.getElementById('modal-edit-concert').classList.remove('hidden');
     }
 
     function closeEditConcertModal() {
       document.getElementById('modal-edit-concert').classList.add('hidden');
-      currentEditConcertImageBase64 = '';
+      state.currentEditConcertImageBase64 = '';
     }
 
     function processEditConcertImageUpload(event) {
@@ -3118,8 +3207,8 @@
           canvas.width = Math.round(img.width * scale);
           canvas.height = Math.round(img.height * scale);
           canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          currentEditConcertImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
-          document.getElementById('edit-concert-image-preview').src = currentEditConcertImageBase64;
+          state.currentEditConcertImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          document.getElementById('edit-concert-image-preview').src = state.currentEditConcertImageBase64;
           showToast('新圖片已準備好，儲存後才會更新');
         };
         img.src = reader.result;
@@ -3129,7 +3218,7 @@
 
     async function handleEditConcertSubmit(event) {
       event.preventDefault();
-      if (!selectedConcert || !(await isUserAdmin())) {
+      if (!state.selectedConcert || !(await isUserAdmin())) {
         showToast('您沒有管理員權限');
         closeEditConcertModal();
         renderConcertDetail();
@@ -3147,17 +3236,17 @@
       submitButton.disabled = true;
       submitButton.textContent = '儲存中…';
       try {
-        let image = selectedConcert.image;
-        if (currentEditConcertImageBase64) {
-          const blob = await (await fetch(currentEditConcertImageBase64)).blob();
-          const imageRef = ref(storage, `concert-covers/${selectedConcert.id}/${Date.now()}-cover.jpg`);
+        let image = state.selectedConcert.image;
+        if (state.currentEditConcertImageBase64) {
+          const blob = await (await fetch(state.currentEditConcertImageBase64)).blob();
+          const imageRef = ref(storage, `concert-covers/${state.selectedConcert.id}/${Date.now()}-cover.jpg`);
           await uploadBytes(imageRef, blob, { contentType: 'image/jpeg' });
           image = await getDownloadURL(imageRef);
         }
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', selectedConcert.id), {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id), {
           artist, tourName, venue, dates, image,
           updatedAt: serverTimestamp(),
-          updatedBy: auth.currentUser.uid
+          updatedBy: state.currentUser.uid
         });
         closeEditConcertModal();
         showToast('演出資訊已更新');
@@ -3212,7 +3301,7 @@
 
           // Canvas 壓為輕量 JPEG 格式
           const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
-          currentAddConcertImageBase64 = compressedBase64;
+          state.currentAddConcertImageBase64 = compressedBase64;
 
           // 更新預覽畫面
           document.getElementById("add-concert-image-preview").src = compressedBase64;
@@ -3225,7 +3314,7 @@
 
     // 清除已上傳的圖片
     function clearConcertUploadedImage() {
-      currentAddConcertImageBase64 = "";
+      state.currentAddConcertImageBase64 = "";
       document.getElementById("add-concert-image-file").value = "";
       document.getElementById("add-concert-image-preview-box").classList.add("hidden");
       document.getElementById("add-concert-upload-btn-text").innerText = "上傳圖片";
@@ -3263,9 +3352,9 @@
 
       try {
         // 若使用者有上傳照片，將圖片上傳至 Firebase Storage
-        if (currentAddConcertImageBase64) {
-          if (auth.currentUser) {
-            const blob = await (await fetch(currentAddConcertImageBase64)).blob();
+        if (state.currentAddConcertImageBase64) {
+          if (state.currentUser) {
+            const blob = await (await fetch(state.currentAddConcertImageBase64)).blob();
             const fileName = `${Date.now()}-cover.jpg`;
             const imageRef = ref(storage, `concert-covers/${newId}/${fileName}`);
             await uploadBytes(imageRef, blob, { contentType: "image/jpeg" });
@@ -3321,7 +3410,7 @@
     window.handleSearch = handleSearch;
     window.setSubCategory = setSubCategory;
     window.voteForConcert = voteForConcert;
-    window.saveUserProfile = saveUserProfile;
+
     window.processProfileAvatarUpload = processProfileAvatarUpload;
     window.openPostDetailModal = openPostDetailModal;
     window.closePostDetailModal = closePostDetailModal;
