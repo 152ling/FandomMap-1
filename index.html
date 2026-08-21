@@ -42,6 +42,13 @@
     *::-webkit-scrollbar {
       display: none !important; /* Chrome, Safari, Opera */
     }
+    :root {
+      --brand-color: #18181b; 
+      --app-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+    }
     .pb-safe {
       padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
     }
@@ -50,7 +57,14 @@
       -webkit-tap-highlight-color: transparent;
       background: radial-gradient(circle at 8% 0%, rgba(124, 58, 237, .10), transparent 28rem), radial-gradient(circle at 92% 100%, rgba(236, 72, 153, .08), transparent 30rem), #f8fafc;
     }
+    .bg-brand { background: var(--brand-color) !important; }
+    .border-brand { border-color: var(--brand-color) !important; }
+    .text-brand { color: var(--brand-color) !important; }
     .app-icon { width: 1.05rem; height: 1.05rem; stroke-width: 1.9; flex: 0 0 auto; }
+    .tab-active { color: var(--brand-color) !important; font-weight: 900; }
+
+    .color-preset { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 2px solid #e2e8f0; transition: all 0.2s; }
+    .color-preset.active { border-color: #fff !important; outline: 3px solid var(--brand-color); }
     .section-kicker { letter-spacing: .12em; }
     .ui-card { box-shadow: 0 1px 2px rgba(15, 23, 42, .03), 0 12px 32px rgba(15, 23, 42, .035); }
     button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(124, 58, 237, .28); outline-offset: 2px; }
@@ -59,7 +73,7 @@
 <body class="bg-zinc-50 text-zinc-800 flex justify-center font-sans antialiased min-h-screen">
 
   <!-- 連線/初始化 Loading 遮罩 -->
-  <div id="loading-overlay" class="fixed inset-0 bg-zinc-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white space-y-4">
+  <div id="loading-overlay" class="fixed inset-0 bg-brand/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white space-y-4">
     <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
     <p class="text-sm font-bold tracking-wide" id="loading-status-text">安全防護連線中...</p>
     <p class="text-[10px] text-zinc-400">正在初始化即時資料庫與身分驗證</p>
@@ -81,14 +95,14 @@
           </button>
         </div>
         <div id="header-logo" class="flex items-center gap-2.5">
-          <span class="w-8 h-8 rounded-xl bg-zinc-900 text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
+          <span class="w-8 h-8 rounded-xl bg-brand text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
           <span class="text-xl md:text-2xl font-extrabold text-zinc-900 tracking-tight">應援地圖</span>
         </div>
       </div>
 
       <!-- 桌機版選單列 (RWD: md 以上顯示) -->
       <div class="hidden md:flex items-center gap-8 border-l border-zinc-200 pl-8 mr-auto">
-        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all">
+        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="tab-active text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all">
           探索場次
         </button>
         <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
@@ -101,7 +115,7 @@
 
       <div class="flex items-center gap-3">
         <!-- 提案新增演唱會按鈕 -->
-        <button id="add-concert-btn" onclick="openAddConcertModal()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-xs md:text-sm px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1 active:scale-95 transition-all">
+        <button id="add-concert-btn" onclick="openAddConcertModal()" class="bg-brand text-white text-xs md:text-sm px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1 active:scale-95 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
@@ -113,7 +127,7 @@
     </header>
 
     <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-    <main class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
+    <main id="main-content" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
       
       <!-- SCREEN 1: 探索演唱會列表 -->
       <section id="screen-explore" class="space-y-6 animate-fade-in">
@@ -128,7 +142,7 @@
           </div>
         </div>
         <!-- 本周演唱會輪播圖 -->
-        <div id="hero-carousel-container" class="hidden relative w-full overflow-hidden rounded-3xl bg-zinc-900 text-white shadow-xl group">
+        <div id="hero-carousel-container" class="hidden relative w-full overflow-hidden rounded-3xl bg-brand text-white shadow-xl group">
           <div id="carousel-track" class="flex transition-transform duration-500 ease-out w-full">
             </div>
 
@@ -188,7 +202,7 @@
                         <!-- Avatar -->
                         <div class="relative group">
                             <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="Avatar" class="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md">
-                            <button onclick="openProfileModal()" id="btn-edit-avatar" class="absolute bottom-0 right-0 bg-violet-600 hover:bg-violet-700 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm transition">
+                            <button onclick="openProfileModal()" id="btn-edit-avatar" class="absolute bottom-0 right-0 bg-zinc-500 hover:bg-zinc-700 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm transition">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
                         </div>
@@ -223,19 +237,19 @@
                 <div class="w-full grid grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-slate-200/40">
                     <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
                         <div class="text-xs text-slate-400 font-medium">演唱會</div>
-                        <div id="stat-concert-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                        <div id="user-concert-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
                     </div>
                     <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
                         <div class="text-xs text-slate-400 font-medium">發布項目</div>
-                        <div id="stat-item-count" class="text-base font-bold text-violet-600 mt-0.5">0</div>
+                        <div id="user-support-count" class="text-base font-bold text-violet-600 mt-0.5">0</div>
                     </div>
                     <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
                         <div class="text-xs text-slate-400 font-medium">總收藏</div>
-                        <div id="stat-bookmark-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                        <div id="user-bookmarked-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
                     </div>
                 </div>
 
-              <!-- <button onclick="saveUserProfile()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">儲存個人資料</button> -->
+              <button onclick="switchTab('color')" class="w-full mt-4 bg-brand  text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">外觀設定</button>
 
               <!-- Firebase Authentication 互動控制區 -->
               <div class="w-full mt-4 pt-4 border-t border-zinc-200/60">
@@ -352,7 +366,7 @@
         <!-- 演唱會頭部 Banner -->
         <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden ui-card">
           <!-- 1. 上方純海報視覺 Banner (無混亂文字重疊，維持高質感) -->
-          <div class="relative h-44 sm:h-52 w-full overflow-hidden bg-zinc-900">
+          <div class="relative h-44 sm:h-52 w-full overflow-hidden bg-brand">
             <img id="detail-concert-image" src="" alt="Poster" class="w-full h-full object-cover">
           </div>
           <!-- 2. 下方獨立資訊與操作按鈕卡片區塊 (獨立白底，清晰高對比) -->
@@ -388,7 +402,7 @@
 
               <!-- 右側：獨立操作按鈕組 -->
               <div class="flex items-center gap-2">
-                <button id="btn-detail-attend" onclick="toggleConcertAttend()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
+                <button id="btn-detail-attend" onclick="toggleConcertAttend()" class="bg-brand text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
                   <i id="detail-attend-icon" class="fa-solid fa-ticket text-amber-400"></i>
                   <span id="detail-attend-text">加入我的演唱會</span>
                 </button>
@@ -450,12 +464,17 @@
 
         </div>
       </section>
+      <section id="screen-color">
+        <div id="color-container" class="flex-grow overflow-y-auto no-scrollbar pb-36 sm:pb-40">
+          <!-- 動態渲染 RWD 外觀設定 -->
+        </div>
+      </section>
 
     </main>
 
     <!-- ==================== 底部行動導覽列 (僅在手機 md 以下顯示) ==================== -->
     <nav id="bottom-nav-bar" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-zinc-200/70 z-30 flex py-2 px-6 justify-between items-center shadow-[0_-6px_24px_rgba(15,23,42,0.06)] pb-safe">
-      <button onclick="switchTab('explore')" id="nav-btn-explore" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-900">
+      <button onclick="switchTab('explore')" id="nav-btn-explore" class="tab-active flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-900">
         <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" /></svg>
         <span class="text-[10px] font-bold">探索場次</span>
       </button>
@@ -470,19 +489,19 @@
     </nav>
 
     <!-- 懸浮發布按鈕 (只限於詳細頁顯示) -->
-    <button id="floating-publish-btn" onclick="openPublishModal()" class="hidden fixed bottom-24 right-6 md:absolute md:bottom-8 md:right-8 z-45 w-14 h-14 md:w-16 md:h-16 rounded-full bg-zinc-900 text-white shadow-xl flex items-center justify-center active:scale-95 transition-all ">
+    <button id="floating-publish-btn" onclick="openPublishModal()" class="hidden fixed bottom-24 right-6 md:absolute md:bottom-8 md:right-8 z-45 w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand text-white shadow-xl flex items-center justify-center active:scale-95 transition-all ">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
       </svg>
     </button>
 
     <!-- ==================== TOAST 通知 ==================== -->
-    <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-zinc-900/95 backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
+    <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-brand backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
       <span id="toast-text"></span>
     </div>
 
     <!-- ==================== MODAL 1: 提案新增場次 ==================== -->
-    <div id="modal-add-concert" onclick="closeAddConcertModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-add-concert" onclick="closeAddConcertModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
           <h3 class="text-sm md:text-base font-black text-zinc-850">提案新增演出</h3>
@@ -498,7 +517,7 @@
             
             <div id="add-concert-image-preview-box" class="hidden relative w-full h-36 rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 mb-2">
               <img id="add-concert-image-preview" src="" alt="預覽圖片" class="w-full h-full object-cover">
-              <button type="button" onclick="clearConcertUploadedImage()" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-zinc-900/70 text-white flex items-center justify-center text-xs hover:bg-zinc-900 transition">
+              <button type="button" onclick="clearConcertUploadedImage()" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand/70 text-white flex items-center justify-center text-xs hover:bg-brand transition">
                 ✕
               </button>
             </div>
@@ -536,13 +555,13 @@
               <!-- 由 JS resetConcertDateFields 自動載入 -->
             </div>
           </div>
-          <button type="submit" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">確認建立演出</button>
+          <button type="submit" class="w-full bg-brand hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">確認建立演出</button>
         </form>
       </div>
     </div>
 
     <!-- ==================== MODAL: 管理員編輯演出 ==================== -->
-    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
           <div><h3 class="text-sm md:text-base font-black text-zinc-850">編輯演出資訊</h3><p class="text-[10px] text-zinc-500 mt-0.5">僅限已驗證管理員</p></div>
@@ -568,7 +587,7 @@
     </div>
 
     <!-- ==================== MODAL 2: 發布與編輯應援/交換貼文 ==================== -->
-    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <!-- 頂部導覽列 -->
         <div class="sticky top-0 z-20 flex items-center justify-between px-6 py-3.5 bg-white/90 backdrop-blur-md border-b border-zinc-100">
@@ -710,14 +729,14 @@
 
 
 
-            <button id="publish-submit-btn" type="submit" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">發布應援</button>
+            <button id="publish-submit-btn" type="submit" class="w-full bg-brand hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">發布應援</button>
           </form>
         </div>
       </div>
     </div>
 
     <!-- ==================== MODAL 3: 看板詳細情報彈窗 ==================== -->
-    <div id="modal-post-detail" onclick="closePostDetailModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-post-detail" onclick="closePostDetailModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-2xl text-left border-t border-zinc-100 overflow-hidden">
          <!-- 頂部導覽列 -->
         <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-3.5 bg-white/90 backdrop-blur-md border-b border-zinc-100">
@@ -767,8 +786,8 @@
 
           <!-- 連結按鈕 (響應式雙欄排版) -->
           <div class="space-y-2">
-            <p class="text-[10px] text-zinc-400 font-bold uppercase section-kicker">外部宣傳與位置更新連結</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <p class="text-[10px] text-zinc-400 font-bold uppercase section-kicker">原始貼文與位置更新連結</p>
+            <div class="grid grid-cols-2 gap-2">
               <div id="detail-link-original-container"></div>
               <div id="detail-link-live-container"></div>
             </div>
@@ -813,7 +832,7 @@
     </div>
 
     <!-- ==================== MODAL 4: 自訂防呆刪除確認彈窗 ==================== -->
-    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
         <span class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 mx-auto grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
         <div>
@@ -826,7 +845,7 @@
         </div>
       </div>
     </div>
-    <div id="modal-bookmark-confirm" onclick="closeBookmarkConfirmModal()" class="hidden fixed inset-0 bg-zinc-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div id="modal-bookmark-confirm" onclick="closeBookmarkConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" 
       class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
         <span class="w-11 h-11 rounded-2xl bg-pink-50 text-pink-600 mx-auto grid place-items-center">
@@ -858,13 +877,17 @@
 
   <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
   <script type="module">
-    import { state } from './state.js';
-    import './profile.js'
+    import { state } from './js/state.js';
+    import './js/color.js';
+    import './js/profile.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
+    window.onload = () => {
+      applyTheme(state.themeColor);
+    }
     // 取得環境注入配置，若無則降級為預設模擬配置
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'concert-support-map';
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
@@ -925,7 +948,7 @@
         // 將 isPending 設為 false，正式上架
         await updateDoc(concertDocRef, {
           isPending: false,
-          approvedBy: state.currentUser.uid,
+          approvedBy: state.currentUser.id,
           approvedAt: new Date().toISOString()
         });
 
@@ -962,13 +985,14 @@
         startRealtimeListeners(user);
         const statusText = document.getElementById("loading-status-text");
 
-        if (user) {
+        if (user) {  //登入狀態
           statusText.innerText = "驗證粉絲特許資料中...";
           // 在渲染任何管理功能前先確認 Firebase Custom Claim。
           await isUserAdmin();
           if (state.selectedConcert) renderConcertDetail();
           state.currentUser.id = user.uid;
-          state.currentUser.isAnonymous = user.isAnonymous;;
+          state.currentUser.email = user.email;
+          state.currentUser.isAnonymous = false;
           // 連接至私有安全路徑 /users/{userId}/profile/data 讀取或註冊 Profile
           const profileDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
           const profileSnap = await getDoc(profileDocRef);
@@ -989,7 +1013,6 @@
             state.currentUser.username = initialProfile.username;
             state.currentUser.avatar = initialProfile.avatar;
             state.currentUser.contact = initialProfile.contact;
-            state.currentUser.isAnonymous = false;
           }
 
           // 同步個人中心編輯欄位
@@ -1005,23 +1028,15 @@
           const gLoginBtn = document.getElementById("google-login-btn");
           const logoutBtn = document.getElementById("logout-btn");
 
-          if (user.isAnonymous) {
-            warningBox.classList.remove("hidden");
-            gLoginBtn.classList.remove("hidden");
-            logoutBtn.classList.add("hidden");
-            badge.classList.add("hidden");
-          } else {
-            warningBox.classList.add("hidden");
-            badge.classList.remove("hidden");
-            gLoginBtn.classList.add("hidden");
-            logoutBtn.classList.remove("hidden");
-            document.getElementById("profile-input-username").disabled = false;
-            document.getElementById("user-social-handle").disabled = false;
-          }
-
+          warningBox.classList.add("hidden");
+          badge.classList.remove("hidden");
+          gLoginBtn.classList.add("hidden");
+          logoutBtn.classList.remove("hidden");
+          document.getElementById("profile-input-username").disabled = false;
+          document.getElementById("user-social-handle").disabled = false;
+        
           statusText.innerText = "同步現場即時看板中...";
-          
-
+        
         } else {
           // 未登入時，不做處理
             console.log("使用者未登入，功能限制為唯讀模式");
@@ -1126,14 +1141,14 @@
       }, (err) => {
         console.error("Exchange sync error:", err);
       });
-      if(!state.currentUser.isAnonymous){
+      if(user){
         // 4. BooksMark 監聽
-        const uid = state.currentUser.uid;
+        const uid = user.uid;
         const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
         onSnapshot(bookmarksCol, (snap) => {
           state.bookmarkedPostIds = [];
-          snap.forEach(doc => {
-            state.bookmarkedPostIds.push(doc.id);
+          snap.forEach(docSnap => {
+            state.bookmarkedPostIds.push(docSnap.id);
           });
           renderAll();
         }, (err) => {
@@ -1278,7 +1293,7 @@
         item.className = "relative w-20 h-20 shrink-0 overflow-visible rounded-2xl border border-zinc-200 bg-zinc-100";
         item.innerHTML = `
           <img src="${image}" alt="照片 ${index + 1}" class="w-full h-full rounded-2xl object-cover">
-          <button type="button" onclick="removeUploadedImage(${index})" aria-label="刪除照片 ${index + 1}" class="absolute top-1 right-1 z-10 w-4 h-4 rounded-full bg-zinc-400 hover:bg-zinc-900 text-white flex items-center justify-center shadow-md transition-colors">
+          <button type="button" onclick="removeUploadedImage(${index})" aria-label="刪除照片 ${index + 1}" class="absolute top-1 right-1 z-10 w-4 h-4 rounded-full bg-zinc-400 hover:bg-brand text-white flex items-center justify-center shadow-md transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>`;
         container.appendChild(item);
@@ -1362,11 +1377,11 @@
     }
 
     // ==================== STREAMING_CHUNK: 路由切換控制 ====================
-    function renderAll() {
+    export function renderAll() {
       renderHeroCarousel(state.concerts);
       renderConcerts();
       renderBookmarks();
-      renderMyPosts();
+      renderProfile();
       renderConcertDetail();
     }
 
@@ -1378,22 +1393,25 @@
       document.getElementById("screen-bookmarks").classList.add("hidden");
       document.getElementById("screen-profile").classList.add("hidden");
       document.getElementById("screen-concert-detail").classList.add("hidden");
+      document.getElementById("screen-color").classList.add("hidden");
 
       document.getElementById(`screen-${tabId}`).classList.remove("hidden");
       document.getElementById("header-back-btn").classList.add("hidden");
       document.getElementById("header-logo").classList.remove("hidden");
       document.getElementById("add-concert-btn").classList.remove("hidden");
       document.getElementById("floating-publish-btn").classList.add("hidden");
-
+      if(tabId == "color"){renderAppearanceView();return;}
       const tabs = ["explore", "bookmarks", "profile"];
       tabs.forEach(t => {
         const btn = document.getElementById(`nav-btn-${t}`);
         if (btn) {
           if (t === tabId) {
-            btn.classList.add("text-zinc-900");
+            btn.classList.add("tab-active");
+            // btn.classList.add("text-zinc-900");
             btn.classList.remove("text-zinc-400", "hover:text-zinc-600");
           } else {
             btn.classList.remove("text-zinc-900");
+            btn.classList.remove("tab-active");
             btn.classList.add("text-zinc-400", "hover:text-zinc-600");
           }
         }
@@ -1407,8 +1425,10 @@
           }
         }
       });
-
-      renderAll();
+      if(tabId == "explore") {renderHeroCarousel(state.concerts);renderConcerts();renderConcertDetail();}
+      else if(tabId =="bookmarks"){renderBookmarks();}
+      else if(tabId =="profile"){renderProfile();}
+      // renderAll();
     }
 
     function navigateToConcert(concertId) {
@@ -1429,10 +1449,10 @@
       document.getElementById("floating-publish-btn").classList.remove("hidden");
       if(state.selectedConcert.isPending) { //審核中
         document.getElementById("floating-publish-btn").classList.add("bg-gray-200", "text-gray-400");
-        document.getElementById("floating-publish-btn").classList.remove("hidden","bg-zinc-900", "text-white");
+        document.getElementById("floating-publish-btn").classList.remove("hidden","bg-brand", "text-white");
       }else{
         document.getElementById("floating-publish-btn").classList.remove("bg-gray-200", "text-gray-400");
-        document.getElementById("floating-publish-btn").classList.add("bg-zinc-900", "text-white");
+        document.getElementById("floating-publish-btn").classList.add("bg-brand", "text-white");
       }
       renderConcertDetail();
     }
@@ -1784,7 +1804,7 @@
         const btn = document.createElement("button");
         btn.className = `flex-1 lg:flex-none min-w-[85px] lg:w-full py-2.5 px-3 rounded-xl flex flex-row lg:justify-between items-center justify-center border transition-all active:scale-95 ${
           isSelected 
-            ? "bg-zinc-900 border-zinc-900 text-white shadow-sm" 
+            ? "bg-brand border-brand text-white shadow-sm" 
             : "bg-zinc-50 border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
         }`;
         btn.onclick = () => {
@@ -1810,7 +1830,7 @@
       if (state.selectedSubCategory === "support") {
           supportBtn.innerHTML = `
           <span>免費應援</span>
-          <span class="ml-0.5 px-1.5 py-0.5 bg-zinc-900 text-white rounded-full text-[10px]">
+          <span class="ml-0.5 px-1.5 py-0.5 bg-brand text-white rounded-full text-[10px]">
           ${currentSupportCount}</span>`;
     
           exchangeBtn.innerHTML = `
@@ -1839,7 +1859,7 @@
     
           exchangeBtn.innerHTML = `
             <span>交換應援</span>
-            <span class="ml-0.5 px-1.5 py-0.5 bg-zinc-900 text-white rounded-full text-[10px]">
+            <span class="ml-0.5 px-1.5 py-0.5 bg-brand text-white rounded-full text-[10px]">
               ${currentExchangeCount}
             </span>
           `;
@@ -1963,7 +1983,7 @@
         const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
         const nextCount = state.selectedConcert.verifiedCount + 1;
         const isVerified = nextCount >= 20 ? false : state.selectedConcert.isPending; // 達 20 人即結束審核中狀態
-        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.uid, 'verifiedConcerts',state.selectedConcert.id);
+        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.id, 'verifiedConcerts',state.selectedConcert.id);
         
         const verifiedConcertSnap = await getDoc(verifiedConcertsDocRef);
         if (verifiedConcertSnap.exists()) {
@@ -1990,46 +2010,196 @@
     }
 
     // ==================== STREAMING_CHUNK: 個人發布管理網格渲染 ====================
-    function renderMyPosts() {
+    async function renderProfile() {
       const container = document.getElementById("my-posts-list-container");
       container.innerHTML = "";
 
-      const mySupports = state.supportEvents.filter(s => s.userId === state.currentUser.id);
-      const myExchanges = state.exchangePosts.filter(e => e.userId === state.currentUser.id);
+      const uid = auth.currentUser.uid;
+
+      const concertcount = document.getElementById("user-concert-count");
+      const supportcount = document.getElementById("user-support-count");
+      const collectcount = document.getElementById("user-bookmarked-count");
+      // 1. 查詢我參加的演唱會數量
+      const attendedRef = collection(db,"artifacts",appId,"users",uid,"attendedConcerts");
+      // 2. 查詢我發布的免費應援
+      const supportRef = collection(db,"artifacts",appId,"public","data","supportEvents");
+      const supportQuery = query(
+        supportRef,
+        where("userId", "==", uid)
+      );
+
+      // 3. 查詢我發布的交換應援
+      const exchangeRef = collection(db,"artifacts",appId,"public","data","exchangePosts");
+      const exchangeQuery = query(
+        exchangeRef,
+        where("userId", "==", uid)
+      );
+
+      const [
+        attendSnapshot,
+        supportSnapshot,
+        exchangeSnapshot
+      ] = await Promise.all([
+        getCountFromServer(attendedRef),
+        getDocs(supportQuery),
+        getDocs(exchangeQuery)
+      ]);
+
+      // 4. 參加演唱會數量
+      const attendedConcertCount =attendSnapshot.data().count;
+      concertcount.innerText = attendedConcertCount;
+
+      // 5. 把「我的應援」資料整理出來
+      const mySupports = supportSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        myType: "free-support"
+      }));
+
+      const myExchanges = exchangeSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        myType: "support-exchange"
+      }));
+
+      // 6. 發布數量
+      const SupportCount = mySupports.length;
+      const ExchangeCount = myExchanges.length;
+      supportcount.innerText = SupportCount + ExchangeCount;
+
+      // 7. 我的應援被收藏數
+      const BookmarkCount = [
+        ...mySupports,
+        ...myExchanges
+      ].reduce(
+        (total, item) =>
+          total + Number(item.bookmarkCount || 0),
+        0
+      );
+      collectcount.innerText = BookmarkCount;
+
+      // 8. 合併管理列表
       const allMyPosts = [
-        ...mySupports.map(s => ({ ...s, myType: "free-support" })),
-        ...myExchanges.map(e => ({ ...e, myType: "support-exchange" }))
+        ...mySupports,
+        ...myExchanges
       ];
 
+      // 9. 沒有發布任何文章
       if (allMyPosts.length === 0) {
         container.className = "block";
-        container.innerHTML = `<p class="text-xs text-zinc-400 py-6 text-center">您目前在任何看版中尚未發文</p>`;
+        container.innerHTML = `
+          <p class="text-xs text-zinc-400 py-6 text-center">
+            您目前在任何看板中尚未發文
+          </p>
+        `;
         return;
       }
+      // 10. 渲染我的發布與管理區塊 (含融入的 Tab 列)
+      const myPostsContainer = document.getElementById("my-posts-list-container");
+      if (!myPostsContainer) return;
+      if (!state.profileActiveTab) {state.profileActiveTab = 'all';}
+      const filterTabs = [
+        { id: 'all', label: 'All' },
+        { id: 'free-support', label: '免費應援' },
+        { id: 'exchange-support', label: '交換應援' }
+      ];
+      const getTabCount = (tabId) => {
+        switch (tabId) {
+          case 'all':
+            return SupportCount + ExchangeCount;
+          case 'free-support':
+            return SupportCount;
+          case 'exchange-support':
+            return ExchangeCount;
+          default:
+            return 0;
+        }
+      };
+      // 組合 Tab 按鈕 HTML (融入您提供的 UI 邏輯與樣式)
+      const tabsHtml = `
+        <div id="profile-tabs-wrapper" class="flex items-center space-x-1 bg-zinc-100 rounded-xl overflow-x-scroll p-1 text-xs no-scrollbar mb-4">
+          ${filterTabs.map(tab => {
+            const isActive = state.profileActiveTab === tab.id;
+            const count = getTabCount(tab.id);
+            return `
+              <button 
+                data-tab-id="${tab.id}"
+                class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex-1 items-center space-x-1.5 ${
+                  isActive 
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }"
+              >
+                <span>${tab.label}(${count})</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+      // 根據 Tab 篩選出要顯示的發布列表
+      let displayPosts = [];
+      if (state.profileActiveTab === 'all') {
+        displayPosts = allMyPosts;
+      } else if (state.profileActiveTab === 'free-support') {
+        displayPosts = mySupports;
+      } else if (state.profileActiveTab === 'exchange-support') {
+        displayPosts = myExchanges;
+      }
 
-      container.className = "grid grid-cols-1 md:grid-cols-2 gap-3";
+      // 根據當前 Tab 選擇渲染對應內容
+      let contentHtml = '';
+      if (displayPosts.length === 0) {
+        contentHtml = `<div class="col-span-full text-center py-8 text-zinc-400 text-xs">尚無發布項目</div>`;
+      } else {
+        contentHtml = displayPosts.map(post => {
+          const isFreeSupport =post.type === "free-support";
+          return `
+            <div class="bg-white border border-zinc-200 rounded-xl p-3 flex gap-3 items-center justify-between">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <img src="${post.images ? post.images[0] : (post.image || '')}" class="w-12 h-12 rounded-lg object-cover bg-zinc-100 shrink-0">
+                <div class="truncate">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${
+                    isFreeSupport ? 'bg-emerald-50 text-emerald-600 border border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'
+                  }">
+                    ${isFreeSupport ? "應援" : "交換"}
+                  </span>
+                  <h5 class="text-xs font-bold text-zinc-800 truncate">${post.title}</h5>
+                  <span class="text-[10px] flex items-center text-slate-400"><i class="fa-regular fa-bookmark mr-1 text-[11px]"></i> ${post.bookmarkCount} 收藏</span>
+                </div>
+              </div>
 
-      allMyPosts.forEach(item => {
-        const isFreeSupport = item.myType === "free-support";
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between bg-zinc-50 hover:bg-zinc-100 p-3 rounded-xl border border-zinc-150 cursor-pointer text-xs";
-        row.onclick = () => openPostDetailModal(item.Type, item.id);
+                <button onclick="openPostDetailModal('${post.type || 'support'}', '${post.id}')" class="text-purple-600 font-bold shrink-0 text-[10px] ml-2 font-semibold">
+                  管理
+                </button>
+            </div>
+          `;
+        }).join('');
+      }
+      // 更新畫面 DOM
+      myPostsContainer.parentElement.innerHTML = `
+        <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5 mb-3">
+          我的發布管理
+        </h4>
+        ${tabsHtml}
+        <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${contentHtml}
+        </div>
+      `;
 
-        row.innerHTML = `
-          <div class="flex items-center gap-2 truncate">
-            <span class="text-[9px] px-1.5 py-0.5 rounded font-black border shrink-0 ${
-              isFreeSupport 
-                ? "bg-purple-100 text-purple-700 border-purple-200" 
-                : "bg-pink-100 text-pink-700 border-pink-200"
-            }">
-              ${isFreeSupport ? "應援" : "交換"}
-            </span>
-            <span class="font-bold text-zinc-800 truncate">${item.title}</span>
-          </div>
-          <span class="text-purple-600 font-bold shrink-0 text-[10px] ml-2 font-semibold">管理</span>
-        `;
-        container.appendChild(row);
-      });
+      // 綁定 Tab 切換點擊事件 (Event Delegation)
+      const tabsWrapper = document.getElementById('profile-tabs-wrapper');
+      if (tabsWrapper) {
+        tabsWrapper.addEventListener('click', (e) => {
+          const button = e.target.closest('button[data-tab-id]');
+          if (!button) return;
+          
+          const tabId = button.getAttribute('data-tab-id');
+          if (tabId && state.profileActiveTab !== tabId) {
+            state.profileActiveTab = tabId;
+            renderProfile(); // 重新渲染更新面板內容
+          }
+        });
+      }
     }
 
     // ==================== STREAMING_CHUNK: 貼文詳情視窗控制與複製 ====================
@@ -2091,7 +2261,7 @@
         const length = Object.keys(item.datesQuantities).length;
         const flexDirection = length > 2 ? 'flex-col' : 'flex';
         const dotColors = [
-            "bg-zinc-900",
+            "bg-brand",
             "bg-zinc-500",
             "bg-zinc-300",
         ];
@@ -2153,17 +2323,16 @@
 
       if (item.originalLink) {
         origContainer.innerHTML = `
-          <a href="${item.originalLink}" target="_blank" rel="noopener noreferrer" class="rounded-xl p-2.5 flex items-center gap-1.5 text-xs font-bold transition-all w-full justify-between bg-zinc-900 text-white rounded-xl border border-zinc-800 shadow-sm hover:bg-black ">
-            <div class="flex items-center gap-3">
-              <div class="p-2 bg-zinc-800 rounded-lg">
+          <a href="${item.originalLink}" target="_blank" rel="noopener noreferrer" class="rounded-xl p-2.5 flex items-center gap-1.5 text-xs font-bold transition-all w-full justify-between bg-white text-zinc-900 border border-zinc-200 rounded-xl  shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-brand rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg"class="w-4 h-4 text-zinc-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
               </div>
               <div class="text-left leading-tight truncate">
-                  <p class="text-[9px] text-zinc-400 font-medium">原始應援宣傳</p>
-                  <p class="truncate max-w-[130px] md:max-w-[180px]">點擊開啟原貼文</p>
+                  <p class="truncate max-w-[130px] md:max-w-[180px]">原始貼文</p>
               </div>
            </div>
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+           <div class="items-end"><i class="fa-solid fa-arrow-up-right-from-square"></i></div> 
           </a>
         `;
       } else {
@@ -2176,7 +2345,7 @@
 
       if (item.liveUpdateLink) {
         liveContainer.innerHTML = `
-          <a href="${item.liveUpdateLink}" target="_blank" rel="noopener noreferrer" class="group flex items-center justify-between p-3.5 bg-white text-xs text-zinc-900 rounded-xl border border-zinc-200 shadow-2xs hover:bg-zinc-50 transition-all active:scale-[0.99]">
+          <a href="${item.liveUpdateLink}" target="_blank" rel="noopener noreferrer" class="group flex items-center justify-between p-2.5 bg-white text-xs text-zinc-900 rounded-xl border border-zinc-200 shadow-2xs hover:bg-zinc-50 transition-all active:scale-[0.99]">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-zinc-100 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
@@ -2186,8 +2355,7 @@
                 <p class="truncate max-w-[130px] md:max-w-[180px] font-bold text-zinc-900">點擊看即時動態</p>
               </div>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-          </a>
+           </a>
         `;
       } else {
         liveContainer.innerHTML = `
@@ -2213,7 +2381,7 @@
             <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-zinc-900 text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              class="bg-brand text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
               <span>查看帳號</span>
             </a>
           </div>
@@ -2225,7 +2393,7 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
               <button id="return-to-publish-editor-btn" type="button" onclick="returnToPublishEditor()" class="bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 text-xs py-2.5 rounded-xl font-bold transition-all">返回編輯</button>
-              <button id="confirm-publish-btn" type="button" onclick="confirmPublishFromPreview()" class="bg-zinc-900 hover:bg-zinc-800 text-white text-xs py-2.5 rounded-xl font-bold transition-all shadow-sm">確認發布</button>
+              <button id="confirm-publish-btn" type="button" onclick="confirmPublishFromPreview()" class="bg-brand hover:bg-zinc-800 text-white text-xs py-2.5 rounded-xl font-bold transition-all shadow-sm">確認發布</button>
             </div>
           </div>
         `;
@@ -2242,7 +2410,7 @@
             <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-zinc-900 text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              class="bg-brand text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
               <span>查看社群</span>
             </a>
           </div>
@@ -2271,7 +2439,7 @@
             <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
               target="_blank"
               rel="noopener noreferrer"
-              class="bg-zinc-900 text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              class="bg-brand text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
               <span>查看帳號</span>
             </a>
           </div>
@@ -2302,7 +2470,7 @@
         showToast("請先前往登入才能執行這項操作");
         return;
       }
-      const uid = state.currentUser.uid;
+      const uid = state.currentUser.id;
       const AttendedConcertsRef = doc(db,"artifacts",appId,"users",uid,"attendedConcerts",state.selectedConcert.id);
       const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
       const idx = state.userAttendedConcerts.indexOf(state.selectedConcert.id);
@@ -2350,7 +2518,7 @@
         attendIcon.className = "fa-solid fa-ticket text-zinc-950";
       } else {
         attendText.innerText = "我會去";
-        attendBtn.className = "bg-zinc-900 hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
+        attendBtn.className = "bg-brand hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
         attendIcon.className = "fa-solid fa-ticket text-amber-400";
       }
     }
@@ -2361,46 +2529,21 @@
         showToast("請先前往登入才能收藏應援");
         return;
       }
-      const uid = state.currentUser.uid;
+      const uid = state.currentUser.id;
       const postId = state.activeDetailItem.data.id;
+      const postType = state.activeDetailItem.type;
+      const collectionName = postType === "free-support"? "supportEvents" :"exchangePosts";
 
       const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-
+      const postRef = doc( db, "artifacts", appId, "public", "data",collectionName,postId);
       const isBookmarked = state.bookmarkedPostIds.includes(postId);
 
-      if (isBookmarked) {
-          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== postId);
-          await deleteDoc(bookmarkRef);
+      try{
+        if (isBookmarked) {
           showToast("已將該項目移出我的收藏");
-      } else {
-          showToast("已成功收藏該項目");
-          state.bookmarkedPostIds.push(postId);
-          await setDoc(bookmarkRef, {
-              postId,
-              type: state.activeDetailItem.type,
-          });
-          
-      }
-      
-      const heart = document.getElementById("detail-bookmark-heart");
-      if (state.bookmarkedPostIds.includes(state.activeDetailItem.data.id)) {
-        heart.classList.add("fill-pink-500", "text-pink-500");
-        heart.classList.remove("text-zinc-400");
-      } else {
-        heart.classList.remove("fill-pink-500", "text-pink-500");
-        heart.classList.add("text-zinc-400");
-      }
-    }
-    //收藏頁面的取消收藏
-    async function toggleBookmark(event,postId) {
-        event.stopPropagation();
-        const uid = state.currentUser.uid;
-        const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-        const isBookmarked = state.bookmarkedPostIds.includes(postId);
-        if (isBookmarked) {  
-            state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
-            // 開啟確認視窗
-            document.getElementById("modal-bookmark-confirm").classList.remove("hidden");
+          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+          await deleteDoc(bookmarkRef);
+          await updateDoc(postRef, { bookmarkCount: increment(-1) });
         } else {
             showToast("已成功收藏該項目");
             state.bookmarkedPostIds.push(postId);
@@ -2408,19 +2551,125 @@
                 postId,
                 type: state.activeDetailItem.type,
             });
+            await updateDoc(postRef, {bookmarkCount: increment(1)});
+        }
+        
+        const heart = document.getElementById("detail-bookmark-heart");
+        if (state.bookmarkedPostIds.includes(postId)) {
+          heart.classList.add("fill-pink-500", "text-pink-500");
+          heart.classList.remove("text-zinc-400");
+        } else {
+          heart.classList.remove("fill-pink-500", "text-pink-500");
+          heart.classList.add("text-zinc-400");
+        }
+      } catch (error) {
+        console.error("Bookmark toggle error:", error);
+
+        // Firestore 操作失敗時，重新同步目前收藏狀態
+        if (isBookmarked) {
+          state.bookmarkedPostIds.push(postId);
+        } else {
+          state.bookmarkedPostIds =
+            state.bookmarkedPostIds.filter(id => id !== postId);
+        }
+
+        showToast("收藏操作失敗，請稍後再試");
+      }
+    }
+    //收藏頁面的取消收藏
+    async function toggleBookmark(event,postId) {
+        event.stopPropagation();
+        if (state.currentUser.isAnonymous) {
+          showToast("請先前往登入才能收藏應援");
+          return;
+        }
+        const uid = state.currentUser.id;
+        
+        const supportItem = state.supportEvents.find(item => item.id === postId);
+        const exchangeItem = state.exchangePosts.find(item => item.id === postId);
+
+        let collectionName = "";
+        let postType = "";
+
+        if (supportItem) {
+          collectionName = "supportEvents";
+          postType = "free-support";
+        } else if (exchangeItem) {
+          collectionName = "exchangePosts";
+          postType = "support-exchange";
+        } else {
+          showToast("找不到該應援資料");
+          return;
+        }
+        const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
+        const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
+        const isBookmarked = state.bookmarkedPostIds.includes(postId);
+        if (isBookmarked) {  
+            state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
+            // 開啟確認視窗
+            document.getElementById("modal-bookmark-confirm").classList.remove("hidden");
+        } else {
+          try {
+            state.bookmarkedPostIds.push(postId);
+            await setDoc(bookmarkRef, {
+              postId,
+              type: postType
+            });
+
+            await updateDoc(postRef, {
+              bookmarkCount: increment(1)
+            });
+
+            showToast("已成功收藏該項目");
+
+          } catch (error) {
+            console.error("Add bookmark error:", error);
+
+            state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+
+            showToast("收藏失敗，請稍後再試");
+          }
             
         }
     }
-    async function executeRemoveBookmark() {
+      async function executeRemoveBookmark() {
       if (!state.pendingRemoveBookmarkId) return;
-      const uid = state.currentUser.uid;
-      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",state.pendingRemoveBookmarkId);
 
-      state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== state.pendingRemoveBookmarkId);
-      await deleteDoc(bookmarkRef);
-      closeBookmarkConfirmModal();
-      showToast("已將該項目移出我的收藏");
-  }
+      const postId = state.pendingRemoveBookmarkId;
+      const uid = state.currentUser.id;
+
+      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
+
+      try {
+        // 先取得 bookmark 裡面的 type
+        const bookmarkSnap = await getDoc(bookmarkRef);
+
+        if (!bookmarkSnap.exists()) {
+          showToast("找不到收藏資料");
+          return;
+        }
+        const bookmarkData = bookmarkSnap.data();
+
+        const collectionName =bookmarkData.type === "free-support"? "supportEvents": "exchangePosts";
+
+        const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
+
+        await deleteDoc(bookmarkRef);
+
+        await updateDoc(postRef, {
+          bookmarkCount: increment(-1)
+        });
+
+        // 更新本地狀態
+        state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+        closeBookmarkConfirmModal();
+        showToast("已將該項目移出我的收藏");
+
+      } catch (error) {
+        console.error("Remove bookmark error:", error);
+        showToast("取消收藏失敗，請稍後再試");
+      }
+    }
 
     // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
     function getPublishDraftStorageKey() {
@@ -2627,7 +2876,7 @@
 
     // ==================== STREAMING_CHUNK: 發布與編輯存檔（寫入 Cloud Firestore） ====================
     async function uploadPostImages(postId) {
-      const uid = state.currentUser.uid;
+      const uid = state.currentUser.id;
       return Promise.all(state.currentUploadedImagesBase64.map(async (image, index) => {
         // 編輯既有貼文時，已存在的 Storage URL 不需重複上傳。
         if (!image.startsWith("data:image/")) return image;
@@ -2658,7 +2907,7 @@
 
     async function confirmPublishFromPreview() {
       state.isConfirmingPublish = true;
-      state.state.publishSucceeded = false;
+      state.publishSucceeded = false;
       const confirmButton = document.getElementById("confirm-publish-btn");
       const returnButton = document.getElementById("return-to-publish-editor-btn");
       confirmButton.disabled = true;
@@ -2666,7 +2915,6 @@
       confirmButton.classList.add("opacity-70", "cursor-wait");
       returnButton.classList.add("opacity-50", "cursor-not-allowed");
       confirmButton.innerHTML = `
-        <svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle><path class="opacity-90" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path></svg>
         <span>發布中…</span>`;
       await handlePublishPostSubmit({ preventDefault() {} });
       if (state.publishSucceeded) {
@@ -2689,7 +2937,7 @@
         showToast("請先登入");
         return;
       }  
-
+      const contactHandle = state.currentUser.contact.trim();
       if (!contactHandle){
         showToast("請先前往個人中心填寫社群連結後才能發布");
         return;
@@ -2704,7 +2952,7 @@
       const requirement = document.getElementById("post-requirement").value.trim();//領取條件／交換對象限制
       const notice = document.getElementById("post-notice").value.trim();//注意事項
       const isAI =document.getElementById("ai-checkbox").checked; //是否 AI 生成
-      const contactHandle = state.currentUser.contact.trim();
+      
       const authorData = {
         userId: state.currentUser.id,
         authorName: state.currentUser.username,
@@ -2877,6 +3125,7 @@
               images: finalImages,
               isAI, // 是否 AI 生成
               ...authorData,
+              bookmarkCount: 0,
             };
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', newSupportId), newSupport);
             showToast("成功新增免費應援！");
@@ -2900,6 +3149,7 @@
               images: finalImages,
               isAI, // 是否 AI 生成true or false
               ...authorData,
+              bookmarkCount: 0,
             };
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', newExchangeId), newExchange);
             showToast("成功新增交換應援！");
@@ -2974,7 +3224,7 @@
       if (!state.activeDetailItem) return;
       const { type, data } = state.activeDetailItem;
       state.deleteTarget = { type, id: data.id };
-      state.state.isDeletingPost = false;
+      state.isDeletingPost = false;
       resetDeleteButtons();
 
       closePostDetailModal();
@@ -3000,7 +3250,7 @@
     async function executeDeletePost() {
       if (!state.deleteTarget || !state.currentUser || state.isDeletingPost) return;
       const { type, id } = state.deleteTarget;
-      const uid = state.currentUser.uid;
+      const uid = state.currentUser.id;
       state.isDeletingPost = true;
       const cancelButton = document.getElementById("cancel-delete-btn");
       const confirmButton = document.getElementById("confirm-delete-btn");
@@ -3246,7 +3496,7 @@
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id), {
           artist, tourName, venue, dates, image,
           updatedAt: serverTimestamp(),
-          updatedBy: state.currentUser.uid
+          updatedBy: state.currentUser.id
         });
         closeEditConcertModal();
         showToast('演出資訊已更新');
@@ -3385,7 +3635,7 @@
       }
     }
 
-    function showToast(message) {
+    export function showToast(message) {
       const container = document.getElementById("toast-container");
       document.getElementById("toast-text").innerText = message;
       container.classList.remove("hidden");
@@ -3396,7 +3646,9 @@
     }
 
     // ==================== STREAMING_CHUNK: 綁定 window 全域互動方法（防 iFrame onclick 遺失） ====================
+    window.showToast=showToast;
     window.switchTab = switchTab;
+    window.renderAll=renderAll;
     window.navigateToConcert = navigateToConcert;
     window.nextCarouselSlide = nextCarouselSlide;
     window.prevCarouselSlide = prevCarouselSlide;

@@ -13,6 +13,8 @@ export const state = {
   selectedDate: "",
   selectedSubCategory: "support",
   searchQuery: "",
+  profileActiveTab : "all",
+  themeColor: localStorage.getItem('fe_v11_theme') || 'theme_black',
 
   // 模態框與照片上傳狀態
   activeDetailItem: null,
@@ -44,7 +46,8 @@ export const state = {
     username: "匿名用戶",
     avatar: "https://api.dicebear.com/10.x/glyphs/svg",
     contact: "",
-    isAnonymous: true
+    isAnonymous: true,
+    email:""
   }
 };
 window.state=state;

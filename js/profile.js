@@ -5,7 +5,7 @@
       document.getElementById('input-display-name').value = state.currentUser.username;
       document.getElementById('input-social-link').value = state.currentUser.contact;
       document.getElementById('info-account-email').textContent = state.currentUser.email;
-      document.getElementById('info-account-uid').textContent = state.currentUser.uid;
+      document.getElementById('info-account-uid').textContent = state.currentUser.id;
       document.getElementById('profile-modal').classList.remove('hidden');
   }
 
@@ -14,7 +14,7 @@
     }
     export function copyUID() {
       const tempInput = document.createElement('input');
-      tempInput.value = state.currentUser.uid;
+      tempInput.value = state.currentUser.id;
       document.body.appendChild(tempInput);
       tempInput.select();
       document.execCommand('copy');
@@ -29,7 +29,7 @@
 
       showToast("保存中...");
       try {
-        const profileDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.uid, 'profile', 'data');
+        const profileDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.id, 'profile', 'data');
         const updateData = { username, contact, avatar: state.currentUser.avatar };
         await updateDoc(profileDocRef, updateData);
 
