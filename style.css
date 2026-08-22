@@ -1,0 +1,10 @@
+:root {
+      --brand-color: #18181b; 
+      --app-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+}
+.bg-brand { background: var(--brand-color) !important; }
+.border-brand { border-color: var(--brand-color) !important; }
+.text-brand { color: var(--brand-color) !important; }

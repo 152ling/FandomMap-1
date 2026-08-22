@@ -14,7 +14,7 @@ export const state = {
   selectedSubCategory: "support",
   searchQuery: "",
   profileActiveTab : "all",
-  themeColor: localStorage.getItem('fe_v11_theme') || 'theme_black',
+  themeColor: localStorage.getItem('fe_v11_theme') || '#18181b',
 
   // 模態框與照片上傳狀態
   activeDetailItem: null,
@@ -41,7 +41,7 @@ export const state = {
   currentUploadedImagesBase64: [],
 
   // 當前使用者狀態與自訂頭像設定
-  currentUser: {
+  currentUser:JSON.parse(localStorage.getItem("fe_v1_user")) || {
     id: "user_me",
     username: "匿名用戶",
     avatar: "https://api.dicebear.com/10.x/glyphs/svg",

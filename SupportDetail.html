@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="modal-post-detail"  class="bg-white flex items-end md:items-center justify-center">
+      <div class="bg-white md:rounded-3xl w-full max-w-lg shadow-2xl text-left border-t border-zinc-100 ">
+        <!-- 頂部導覽列：使用 fixed 浮在最上方，並設定預設為透明、無邊框 -->
+        <header id="main-header" class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 bg-transparent text-white">
+            <div class="flex items-center">
+                <button id="back-btn" onclick="history.go(-1)" class="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white transition-all">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <!-- 標題（預設隱藏或透明，滾動後才顯示） -->
+                <h1 id="header-title" class="opacity-0 font-bold text-xs truncate max-w-[200px] transition-opacity duration-300 text-gray-900">
+            </div>
+            </h1>
+            <!-- 右側按鈕 -->
+            <div class="flex items-center space-x-2">
+                <button  id="detail-bookmark-btn" onclick="toggleDetailBookmark()" class="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white transition-all">
+                    <svg id="detail-bookmark-heart" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+                <button onclick="copyURL()" id="share-btn" class="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white transition-all">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+        <!-- 頂部滿版圖片區塊 -->
+        <div class="relative w-full">
+            <div class="h-60 md:h-70 w-full overflow-hidden border border-zinc-100 bg-zinc-50">
+                <img id="detail-item-image" src="" alt="Detail" class="w-full h-full object-cover">
+            </div>
+            <div id="detail-item-image-gallery" class="hidden flex gap-2 mx-2 mt-2 overflow-x-auto "></div>
+        </div>
+        <!-- 可滾動內容區塊 -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar pt-4 px-4 space-y-2 pb-6">
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 id="detail-item-title" class="text-sm md:text-base font-extrabold text-zinc-900 leading-snug"></h3>
+            </div>
+            <!-- 應援種類 Tags-->
+              <div class="flex flex-wrap gap-1.5 max-w-[85%]">
+                <div class="flex items-center pb-3">
+                  <div id="detail-item-tag" class="flex items-center gap-2"></div>
+                </div>
+              </div>
+            <div id="detail-item-quantity-row" class="text-xs text-zinc-500 mt-1 font-bold"></div>
+          </div>
+          <div id="detail-item-support-summary" class="hidden rounded-2xl border border-purple-100 bg-purple-50/40 p-3 space-y-3"></div>
+
+          <!-- 連結按鈕 (響應式雙欄排版) -->
+          <div class="space-y-2">
+            <p class="text-[10px] text-zinc-400 font-bold uppercase section-kicker">原始貼文與位置更新連結</p>
+            <div class="grid grid-cols-2 gap-2">
+              <div id="detail-link-original-container"></div>
+              <div id="detail-link-live-container"></div>
+            </div>
+          </div>
+          <!-- 位置說明 -->
+
+          <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-1.5">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-navigation-icon lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              即時位置更新說明
+            </div>
+            <p id="detail-item-approx" class="text-xs text-zinc-800 font-medium leading-relaxed"></p>
+          </div>
+
+          <!-- 獨立三大說明區塊 -->
+          <div class="space-y-2">
+            <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-2 shadow-2xs">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+                  領取條件
+              </div>
+              <div class="text-base text-zinc-900 flex items-center gap-2 pl-1">
+                <p id="detail-item-requirement" class="text-xs text-zinc-700 leading-relaxed font-medium"></p>
+              </div>
+            </div>
+
+            <div class="p-4 bg-zinc-100/80 border border-zinc-200/80 rounded-xl space-y-2">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-800 uppercase tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                注意事項
+              </div>
+              <p id="detail-item-notice" class="text-xs text-zinc-600 mt-1.5 leading-relaxed font-medium"></p>
+            </div>
+          </div>
+
+          <!-- 操作按鈕 -->
+          <div id="detail-action-container" class="border-t border-zinc-100 pt-3">
+            <!-- 根據發布者是自己與否渲染 -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-brand backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
+      <span id="toast-text"></span>
+    </div>
+    <script type="module">
+    import { state } from './js/state.js';
+    import './js/common.js';
+    import './js/color.js';
+    import './js/profile.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import {query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+    window.onload = () => {
+        applyTheme(state.themeColor);
+        }
+        // 取得環境注入配置，若無則降級為預設模擬配置
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'concert-support-map';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+        ? JSON.parse(__firebase_config) 
+        : {
+            apiKey: "AIzaSyAhjvu_SHZJUkJYTyXEaBA5HZfGdvObfIY",
+            authDomain: "fan-map-68117.firebaseapp.com",
+            projectId: "fan-map-68117",
+            storageBucket: "fan-map-68117.firebasestorage.app",
+            messagingSenderId: "1066740158853",
+            appId: "1:1066740158853:web:1ea5f5283c20fed067f4ec",
+            measurementId: "G-NYL7N1MX39"
+        };
+
+        // 初始化 Firebase 與服務
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        const type=params.get("type");
+        if (type && id) {
+            openPostDetailModal(type,id);
+        }else {
+            //window.location.href = "index.html";
+            console.log("沒有帶參數");
+        }
+    export function copyURL() {
+      const tempInput = document.createElement('input');
+      tempInput.value = window.location.href;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showToast('已將連結複製到剪貼簿');
+   }
+   window.copyURL=copyURL;
+    async function openPostDetailModal(type, itemId) {
+      const isFreeSupport = type === "free-support";
+      const supportRef = doc(db,"artifacts",appId,"public","data","supportEvents",itemId);
+
+        const snapshot = await getDoc(supportRef);
+        if (!snapshot.exists()) {
+            console.error("找不到這筆應援");
+            window.location.href = "index.html";
+            return;
+        }
+        const item = {
+            id: snapshot.id,
+            ...snapshot.data()
+        };
+      if (!item) {window.location.href = "index.html";return; }
+      state.activeDetailItem = { type, data: item };
+
+      const tag = document.getElementById("detail-item-tag");
+      tag.innerHTML =item.category.map(category => `
+        <span class="px-1.5 py-1 text-[10px] font-semibold bg-zinc-100 text-zinc-800 rounded-full flex items-center gap-1 border border-zinc-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag-icon lucide-tag"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+          ${category}
+        </span>`).join("")
+        +(item.isAI
+          ? `
+            <span class="px-1.5 py-1 text-[10px] font-semibold text-blue-600 bg-white rounded-full flex items-center gap-1 border border-blue-200">
+              AI 生成
+            </span>
+          `
+        : "");
+
+      const heart = document.getElementById("detail-bookmark-heart");
+      document.getElementById("detail-bookmark-btn").classList.toggle("hidden", state.isPublishPreview);
+      if (state.bookmarkedPostIds.includes(item.id)) {
+        heart.classList.add("fill-pink-500", "text-pink-500");
+      } else {
+        heart.classList.remove("fill-pink-500", "text-pink-500");
+      }
+
+      const detailImage = document.getElementById("detail-item-image");
+      const detailGallery = document.getElementById("detail-item-image-gallery");
+      const postImages = Array.isArray(item.images) && item.images.length ? item.images : [item.image];
+      detailImage.src = postImages[0];
+      detailGallery.innerHTML = "";
+      postImages.forEach((image, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `w-12 h-12 shrink-0 overflow-hidden rounded-lg border ${index === 0 ? "border-purple-500" : "border-zinc-200"}`;
+        button.innerHTML = `<img src="${image}" alt="照片 ${index + 1}" class="w-full h-full object-cover">`;
+        button.onclick = () => {
+          detailImage.src = image;
+          detailGallery.querySelectorAll("button").forEach(el => el.classList.replace("border-purple-500", "border-zinc-200"));
+          button.classList.replace("border-zinc-200", "border-purple-500");
+        };
+        detailGallery.appendChild(button);
+      });
+      detailGallery.classList.toggle("hidden", postImages.length < 2);
+      document.getElementById("header-title").innerText = item.title;
+      document.getElementById("detail-item-title").innerText = item.title;
+      
+      const qtyRow = document.getElementById("detail-item-quantity-row");
+      if (item.datesQuantities && Object.keys(item.datesQuantities).length > 0) {
+        const length = Object.keys(item.datesQuantities).length;
+        const flexDirection = length > 2 ? 'flex-col' : 'flex';
+        const dotColors = [
+            "bg-brand",
+            "bg-zinc-500",
+            "bg-zinc-300",
+        ];
+        // 將物件轉為陣列並逐一產生顯示字串
+        const qtyHtml = Object.entries(item.datesQuantities)
+          .map(([dateStr, qty], index) => {
+            const dateSub = dateStr.substring(5).replace("-", "/");
+            const dotColor = dotColors[index % dotColors.length];
+            return `<div class="flex ${flexDirection} flex-1 items-center justify-between p-3 bg-white rounded-xl border border-zinc-200/60 shadow-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+              <span class="text-xs font-semibold text-zinc-600">${dateSub}</span>
+            </div>
+            <span class="text-sm font-bold text-zinc-900">${qty}<span class="text-xs font-normal text-zinc-400">份</span></span>
+          </div>`;
+          })
+          .join('');
+
+        // 將組合好的 HTML 放入容器中
+        qtyRow.innerHTML = `
+          <div class="bg-zinc-50 border border-zinc-200/80 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-icon lucide-calendar"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+                各場次發放數量
+              </h3>
+              <span class="text-xs font-semibold text-zinc-700 bg-zinc-200 px-2 py-0.5 rounded-full">
+                共${item.totalquantity}份
+              </span>
+            </div>
+              <div class="flex gap-2.5">
+              ${qtyHtml}
+              </div>
+          </div>
+        `;
+        } else {
+          // 相容舊資料（如果剛好有些舊資料只有總數量 item.quantity）
+          qtyRow.innerHTML = `發放數量:<strong>${item.quantity || 0} 份</strong>`;
+        }
+        qtyRow.classList.remove("hidden");
+
+        document.getElementById("detail-item-requirement").innerText = item.requirement || "無特殊限制";
+        if(item.notice) {
+            const noticeList = item.notice
+            .split("\n")
+            .filter(line => line.trim() !== "")
+            .map(line => `<li>${line}</li>`)
+            .join("");
+            document.getElementById("detail-item-notice").innerHTML = `<ul class="text-xs text-zinc-600 space-y-1.5 pl-5 list-disc leading-relaxed">${noticeList}</ul>`;
+        } else {
+            document.getElementById("detail-item-notice").innerText ="無特殊注意事項";
+        }
+        document.getElementById("detail-item-approx").innerText = item.approxLocation || "現場尋找";
+
+        const origContainer = document.getElementById("detail-link-original-container");
+        const liveContainer = document.getElementById("detail-link-live-container");
+        origContainer.innerHTML = "";
+        liveContainer.innerHTML = "";
+
+        if (item.originalLink) {
+            origContainer.innerHTML = `
+            <a href="${item.originalLink}" target="_blank" rel="noopener noreferrer" class="rounded-xl p-2.5 flex items-center gap-1.5 text-xs font-bold transition-all w-full justify-between bg-white text-zinc-900 border border-zinc-200 rounded-xl  shadow-sm">
+                <div class="flex items-center gap-2">
+                <div class="p-2 bg-brand rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg"class="w-4 h-4 text-zinc-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                </div>
+                <div class="text-left leading-tight truncate">
+                  <p class="text-[9px] text-zinc-400 font-medium">原始應援宣傳</p>
+                  <p class="truncate max-w-[130px] md:max-w-[180px]">點擊開啟原貼文</p>
+                </div>
+            </div>
+            </a>
+            `;
+        } else {
+            origContainer.innerHTML = `
+            <div class="bg-zinc-50 border border-zinc-100 rounded-xl p-2.5 flex items-center gap-1.5 text-zinc-400 text-xs w-full">
+                <span>宣傳</span><p class="text-[10px] leading-tight">未提供原始貼文連結</p>
+            </div>
+            `;
+        }
+
+        if (item.liveUpdateLink) {
+            liveContainer.innerHTML = `
+            <a href="${item.liveUpdateLink}" target="_blank" rel="noopener noreferrer" class="group flex items-center justify-between p-2.5 bg-white text-xs text-zinc-900 rounded-xl border border-zinc-200 shadow-2xs hover:bg-zinc-50 transition-all active:scale-[0.99]">
+                <div class="flex items-center gap-3">
+                <div class="p-2 bg-zinc-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div class="text-left leading-tight truncate">
+                    <p class="text-[9px] text-zinc-400 font-medium">當日即時位置</p>
+                    <p class="truncate max-w-[130px] md:max-w-[180px] font-bold text-zinc-900">點擊看即時動態</p>
+                </div>
+                </div>
+            </a>
+            `;
+        } else {
+            liveContainer.innerHTML = `
+            <div class="bg-zinc-50 border border-zinc-100 rounded-xl p-2.5 flex items-center gap-1.5 text-zinc-400 text-xs w-full">
+                <span>位置</span><p class="text-[10px] leading-tight font-medium">未提供即時連結</p>
+            </div>
+            `;
+        }
+
+        const actionContainer = document.getElementById("detail-action-container");
+        actionContainer.innerHTML = "";
+        if (item.userId === state.currentUser.id) {
+        actionContainer.innerHTML = `
+          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
+              <div class="text-left">
+                <p class="text-[9px] text-zinc-400">發布用戶</p>
+                <p class="text-xs font-bold text-zinc-700">${item.authorName || "現場粉絲"}</p>
+              </div>
+            </div>
+            <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-brand text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              <span>查看社群</span>
+            </a>
+          </div>
+          <div class="space-y-2 mt-2">
+            <p class="text-[10px] text-purple-600 font-bold">這是您發佈的看板項目：</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="startEditPost()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 shadow-xs transition-all">
+                編輯項目
+              </button>
+              <button onclick="triggerDeletePost()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 transition-all">
+                刪除項目
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        actionContainer.innerHTML = `
+          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
+              <div class="text-left">
+                <p class="text-[9px] text-zinc-400">發布用戶</p>
+                <p class="text-xs font-bold text-zinc-700">${item.authorName || "現場粉絲"}</p>
+              </div>
+            </div>
+            <a href="${item.contactInfo.startsWith('http') ? item.contactInfo : 'https://' + item.contactInfo}" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-brand text-white hover:bg-zinc-800 text-xs px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm">
+              <span>查看帳號</span>
+            </a>
+          </div>
+        `;
+      }
+
+    
+    }
+    async function toggleDetailBookmark() {
+      if (!state.activeDetailItem) return;
+      if (state.currentUser.isAnonymous){
+        showToast("請先前往登入才能收藏應援");
+        return;
+      }
+      const uid = state.currentUser.id;
+      const postId = state.activeDetailItem.data.id;
+      const postType = state.activeDetailItem.type;
+      const collectionName = postType === "free-support"? "supportEvents" :"exchangePosts";
+
+      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
+      const postRef = doc( db, "artifacts", appId, "public", "data",collectionName,postId);
+      const isBookmarked = state.bookmarkedPostIds.includes(postId);
+
+      try{
+        if (isBookmarked) {
+          showToast("已將該項目移出我的收藏");
+          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+          await deleteDoc(bookmarkRef);
+          await updateDoc(postRef, { bookmarkCount: increment(-1) });
+        } else {
+            showToast("已成功收藏該項目");
+            state.bookmarkedPostIds.push(postId);
+            await setDoc(bookmarkRef, {
+                postId,
+                type: state.activeDetailItem.type,
+            });
+            await updateDoc(postRef, {bookmarkCount: increment(1)});
+        }
+        
+        const heart = document.getElementById("detail-bookmark-heart");
+        if (state.bookmarkedPostIds.includes(postId)) {
+          heart.classList.add("fill-pink-500", "text-pink-500");
+          heart.classList.remove("text-zinc-400");
+        } else {
+          heart.classList.remove("fill-pink-500", "text-pink-500");
+          heart.classList.add("text-zinc-400");
+        }
+      } catch (error) {
+        console.error("Bookmark toggle error:", error);
+
+        // Firestore 操作失敗時，重新同步目前收藏狀態
+        if (isBookmarked) {
+          state.bookmarkedPostIds.push(postId);
+        } else {
+          state.bookmarkedPostIds =
+            state.bookmarkedPostIds.filter(id => id !== postId);
+        }
+
+        showToast("收藏操作失敗，請稍後再試");
+      }
+    }
+    window.toggleDetailBookmark = toggleDetailBookmark;
+
+    </script>
+    <script>
+        // 監聽視窗滾動事件
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('main-header');
+            const backBtn = document.getElementById('back-btn');
+            const headerTitle = document.getElementById('header-title');
+            const shareBtn = document.getElementById('share-btn');
+            const heartBtn = document.getElementById('detail-bookmark-btn');
+            
+            // 當滾動超過 80px 時觸發變色與浮動效果
+            if (window.scrollY > 80) {
+                header.classList.remove('bg-transparent', 'text-white');
+                header.classList.add('bg-white/90', 'backdrop-blur-md', 'shadow-sm', 'text-gray-900', 'border-b', 'border-gray-100');
+                
+                headerTitle.classList.remove('opacity-0');
+                headerTitle.classList.add('opacity-100');
+
+                [backBtn,heartBtn, shareBtn].forEach(btn => {
+                    btn.classList.remove('bg-black/40', 'text-white');
+                    btn.classList.add('bg-white', 'text-gray-700');
+                });
+            } else {
+                // 恢復初始透明狀態
+                header.classList.add('bg-transparent', 'text-white');
+                header.classList.remove('bg-white/90', 'backdrop-blur-md', 'shadow-sm', 'text-gray-900', 'border-b', 'border-gray-100');  
+
+                headerTitle.classList.add('opacity-0');
+                headerTitle.classList.remove('opacity-100');
+
+                [backBtn,heartBtn,shareBtn].forEach(btn => {
+                    btn.classList.add('bg-black/40', 'text-white');
+                    btn.classList.remove('bg-white', 'text-gray-700');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -44,7 +44,7 @@ export function renderAppearanceView() {
                                 `).join('')}
                                 <div class="flex flex-col items-center gap-2">
                                     <input type="color" onchange="applyTheme(this.value);switchTab('color')" 
-                                        value="${state.themeColor==='svt'?'#92A8D1':state.themeColor==='bp'?'#FF85D0':state.themeColor}" 
+                                        value="${state.themeColor}" 
                                         class="w-10 h-10 rounded-full border-none cursor-pointer bg-slate-200 shadow-sm">
                                     <span data-i18n="appear_eyedropper" class="text-[10px] font-bold text-slate-400 text-center">滴管選色</span>
                                 </div>

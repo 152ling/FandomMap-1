@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>應援地圖 | 演唱會應援與卡片交換平台 (Firebase RWD 整合版)</title>
+  <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1002,6 +1002,15 @@
             state.currentUser.username = profileData.username || user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`;
             state.currentUser.avatar = profileData.avatar || user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`;
             state.currentUser.contact = profileData.contact || "";
+            const userData = {
+                id: user.uid,
+                username: profileData.username,
+                avatar: profileData.avatar,
+                contact: profileData.contact,
+                isAnonymous: false,
+                email:user.email
+            };
+            localStorage.setItem("fe_v1_user", JSON.stringify(userData));
           } else {
             // 自動初始化並將 Google 資訊或匿名預設值存入
             const initialProfile = {
@@ -1013,6 +1022,15 @@
             state.currentUser.username = initialProfile.username;
             state.currentUser.avatar = initialProfile.avatar;
             state.currentUser.contact = initialProfile.contact;
+            const userData = {
+                id: user.uid,
+                username: initialProfile.username,
+                avatar: initialProfile.avatar,
+                contact: initialProfile.contact,
+                isAnonymous: false,
+                email:user.email
+            };
+            localStorage.setItem("fe_v1_user", JSON.stringify(userData));
           }
 
           // 同步個人中心編輯欄位
@@ -1036,6 +1054,7 @@
           document.getElementById("user-social-handle").disabled = false;
         
           statusText.innerText = "同步現場即時看板中...";
+          
         
         } else {
           // 未登入時，不做處理
@@ -1904,7 +1923,8 @@
 
         `;
 
-        card.onclick = () => openPostDetailModal(modalType, item.id);
+        // card.onclick = () => openPostDetailModal(modalType, item.id);
+        card.onclick =() =>window.location.href =`SupportDetail.html?id=${item.id}&type=${modalType}`;
 
         const specificDateQty =
           (item.datesQuantities && item.datesQuantities[state.selectedDate]) !== undefined
@@ -2014,8 +2034,17 @@
       const container = document.getElementById("my-posts-list-container");
       container.innerHTML = "";
 
-      const uid = auth.currentUser.uid;
-
+      if(state.currentUser.isAnonymous){
+        container.className = "block";
+        container.innerHTML = `
+          <p class="text-xs text-zinc-400 py-6 text-center">
+            您目前在任何看板中尚未發文
+          </p>
+        `;
+        return;
+      }
+      
+      const uid = state.currentUser.id;
       const concertcount = document.getElementById("user-concert-count");
       const supportcount = document.getElementById("user-support-count");
       const collectcount = document.getElementById("user-bookmarked-count");
@@ -2124,7 +2153,7 @@
             return `
               <button 
                 data-tab-id="${tab.id}"
-                class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex-1 items-center space-x-1.5 ${
+                class="px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap flex-1 items-center space-x-1.5 ${
                   isActive 
                     ? 'bg-white text-zinc-900 shadow-sm'
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
