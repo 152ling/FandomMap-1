@@ -180,11 +180,17 @@
         </div>
       </section>
 
-      <!-- SCREEN 2: 收藏的應援與交換看板 -->
       <section id="screen-bookmarks" class="hidden space-y-4 animate-fade-in text-left">
-        <h3 id="bookmarks-title" class="text-zinc-800 text-sm font-bold">我的收藏 (0)</h3>
-        <div id="bookmarks-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- 動態渲染 RWD 收藏卡 -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 id="bookmarks-title" class="text-zinc-900 text-base font-black">
+              我的收藏 (0)
+            </h3>
+            <p class="text-[10px] text-zinc-400 mt-0.5">依演唱會整理你的收藏應援
+            </p>
+          </div>
+        </div>
+        <div id="bookmarks-list-container" class="space-y-4">
         </div>
       </section>
 
@@ -968,15 +974,6 @@
     }
     window.adminApproveConcert = adminApproveConcert;
 
-    // ==================== APP RUNTIME STATE ====================
-    // 當前使用者狀態與自訂頭像設定
-    // let currentUser = {
-    //   id: "user_me",
-    //   username: "匿名用戶",
-    //   avatar: "https://api.dicebear.com/10.x/glyphs/svg",
-    //   contact: "",
-    //   isAnonymous: true
-    // };
 
     // ==================== STREAMING_CHUNK: 監聽 Firebase 身分狀態變更並初始化 Profile ====================
     onAuthStateChanged(auth, async (user) => {
@@ -1108,6 +1105,12 @@
         state.bookmarkedPostIds = []; // 清空書籤狀態
         await signOut(auth);
         showToast("已成功登出");
+        const KEY_PREFIXES = ['fe_v1_'];
+            Object.keys(localStorage).forEach(key => {
+                if (KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                    localStorage.removeItem(key);
+                }
+        });
         window.location.reload(); // 強制重整以確保所有狀態歸零
       } catch (error) {
         console.error("Sign out error:", error);
@@ -1167,8 +1170,17 @@
         onSnapshot(bookmarksCol, (snap) => {
           state.bookmarkedPostIds = [];
           snap.forEach(docSnap => {
+            const data = docSnap.data();
             state.bookmarkedPostIds.push(docSnap.id);
+
+            state.bookmarkData[docSnap.id] = {
+              postId: docSnap.id,
+              type: data.type || "",
+              concertId: data.concertId || null,
+              bookmarkedAt: data.bookmarkedAt || null
+            };
           });
+          localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
           renderAll();
         }, (err) => {
           console.error("Bookmark sync error:", err);
@@ -1704,7 +1716,7 @@
           <div class="flex-1 flex flex-col justify-between min-w-0 text-left m-4">
             <div>
               <span class="text-zinc-800 text-xs font-black bg-zinc-100 px-2 py-0.5 rounded">${c.artist}</span>
-              <h4 class="text-xs md:text-sm font-bold text-zinc-800 truncate mt-1.5">${c.tourName}</h4>
+              <h4 class="text-xs md:text-sm font-bold text-zinc-800 text-wrap mt-1.5">${c.tourName}</h4>
               <p class="text-[10px] md:text-xs text-zinc-500 mt-1">${c.venue} · ${c.dates.length} Days</p>
             </div>
             <div class="flex gap-3 text-[10px] md:text-xs text-zinc-500 border-t border-zinc-50 pt-2.5 font-semibold">
@@ -1721,19 +1733,37 @@
     }
 
     // ==================== STREAMING_CHUNK: 收藏夾清單 RWD 渲染 ====================
-    function renderBookmarks() {
+    // 展開/收合票根詳細應援項目的狀態記憶
+    function toggleBookmarkConcert(concertId) {
+      const currentState = !!state.bookmarkExpandedConcerts[concertId];
+      state.bookmarkExpandedConcerts[concertId] = !currentState;
+      renderBookmarks();
+    }
+    window.toggleBookmarkConcert = toggleBookmarkConcert;
+
+    async function renderBookmarks() {
       const container = document.getElementById("bookmarks-list-container");
       container.innerHTML = "";
+      container.className = "space-y-4";
+        const allBookmarked = [];
 
-      const matchedSupports = state.supportEvents
-        .filter(item => state.bookmarkedPostIds.includes(item.id))
-        .map(item => ({ ...item, bookmarkType: "free-support" }));
+        state.supportEvents.forEach(item => {
+          if (state.bookmarkedPostIds.includes(item.id)) {
+            allBookmarked.push({
+              ...item,
+              bookmarkType: "free-support"
+            });
+          }
+        });
 
-      const matchedExchanges = state.exchangePosts
-        .filter(item => state.bookmarkedPostIds.includes(item.id))
-        .map(item => ({ ...item, bookmarkType: "support-exchange" }));
-
-      const allBookmarked = [...matchedSupports, ...matchedExchanges];
+        state.exchangePosts.forEach(item => {
+          if (state.bookmarkedPostIds.includes(item.id)) {
+            allBookmarked.push({
+              ...item,
+              bookmarkType: "support-exchange"
+            });
+          }
+        });
       document.getElementById("bookmarks-title").innerText = `我的收藏 (${allBookmarked.length})`;
 
       if (allBookmarked.length === 0) {
@@ -1741,50 +1771,165 @@
         container.innerHTML = `
           <div class="text-center py-24 text-zinc-400 bg-zinc-50 rounded-2xl border border-zinc-100">
             <p class="text-xs mt-2.5 font-bold">尚未收藏任何應援或卡片項目</p>
-            <p class="text-[11px] text-zinc-400 mt-1">在詳細看板的卡片詳情中，點選愛心即可加入！</p>
+            <p class="text-[11px] text-zinc-400 mt-1">在應援詳細頁面點擊愛心即可收藏</p>
           </div>
         `;
         return;
       }
 
-      container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
-
+      const groupedByConcert = {};
       allBookmarked.forEach(item => {
-        const isFreeSupport = item.bookmarkType === "free-support";
-        const card = document.createElement("div");
-        card.className = "bg-white hover:bg-zinc-50 border border-zinc-100 rounded-2xl p-4 flex gap-3 cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm";
-        card.onclick = () => openPostDetailModal(item.bookmarkType, item.id);
-
-        card.innerHTML = `
-          <img src="${item.image}" alt="Cover" class="w-16 h-16 rounded-xl object-cover border border-zinc-100 shrink-0">
-          <div class="flex-1 min-w-0 flex flex-col justify-between text-left">
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[9px] px-2 py-0.5 rounded font-black border ${
-                  isFreeSupport 
-                    ? "bg-purple-50 text-purple-700 border-purple-100" 
-                    : "bg-pink-50 text-pink-700 border-pink-100"
-                }">
-                  ${isFreeSupport ? "免費應援" : "交換應援"}
-                </span>
-                <button onclick="toggleBookmark(event, '${item.id}')" class="p-1.5 rounded-full hover:bg-zinc-100 transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500 fill-pink-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </button>
-
-              </div>
-              <h4 class="text-xs md:text-sm font-bold text-zinc-800 truncate mt-1">${item.title}</h4>
-            </div>
-            <p class="text-[10px] text-zinc-400 truncate mt-1">位置：${item.approxLocation || "現場尋找"}</p>
-          </div>
-        `;
-        container.appendChild(card);
+        const concertId = item.concertId;
+        if (!concertId) {
+          console.warn("收藏項目沒有 concertId:", item.id);
+          return;
+        }
+        if (!groupedByConcert[concertId]) {
+          groupedByConcert[concertId] = [];
+        }
+        groupedByConcert[concertId].push(item);
       });
+        /*
+      * 5. 依照演唱會順序渲染
+      */
+      Object.entries(groupedByConcert).forEach(
+        ([concertId, items]) => {
+
+          const concert = state.concerts.find(c => c.id === concertId);
+          if (!concert) {
+            console.warn("找不到收藏所屬演唱會:",concertId);
+            return;
+          }
+
+          const isExpanded = !!state.bookmarkExpandedConcerts?.[concertId];
+
+          /*
+          * 演唱會區塊
+          */
+          const concertSection = document.createElement("div");
+          concertSection.className ="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm";
+          const header = document.createElement("div");
+          // header.type = "button";
+          //header.className ="w-full text-left flex items-center gap-3 p-3.5 hover:bg-zinc-50 transition-colors";
+          
+          header.onclick = () => toggleBookmarkConcert(concertId);
+
+          const dateText = concert.dates?.length? formatBookmarkConcertDates(concert.dates): "";
+          header.innerHTML=`
+          <div class="w-full bg-zinc-900 overflow-hidden shadow-xl transition-all duration-300">
+            <div class="relative h-36 sm:h-44 w-full overflow-hidden">
+              <img src="${concert.image}" alt="${concert.tourName}" class="w-full h-full object-center object-cover brightness-75">
+              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
+
+              <!-- 左上角藝人標籤 -->
+              <div class="absolute top-3 left-3">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-950/70 backdrop-blur-md border border-zinc-700 text-zinc-200">
+                  ${concert.artist}
+                </span>
+              </div>
+
+              <!-- 底部演唱會資訊 -->
+              <div class="absolute bottom-3 left-4 right-4">
+                <div class="flex items-center text-xs text-zinc-300 mb-1 space-x-3">
+                  <span><i class="fa-regular fa-calendar mr-1"></i> ${dateText}</span>
+                  <span><i class="fa-solid fa-location-dot mr-1"></i> ${concert.venue}</span>
+                </div>
+                
+              </div>
+            </div>
+            <!-- 票根虛線與撕口視覺裝飾 -->
+            <div class="relative bg-zinc-950 py-2 px-2 flex items-center justify-between border-y border-dashed border-zinc-800">
+              <span class="text-xs text-zinc-400 font-medium pl-3">
+                <i class="fa-solid fa-gift mr-1 text-zinc-400"></i> 收藏此場次應援物 (<span class="text-zinc-200"> ${items.length} </span>)
+              </span>
+              <button class="text-xs text-zinc-400 hover:text-white transition flex items-center space-x-1 pr-3">
+                <span>${isExpanded? '收合內容':'展開檢視'}</span>
+                <i class="fa-solid ${isExpanded ? "fa-chevron-up":"fa-chevron-down"} text-[10px]"></i>
+              </button>
+            </div>
+          </div>`
+          concertSection.appendChild(header);
+
+          /*
+          * 收藏內容
+          */
+          if (isExpanded) {
+            const itemsContainer = document.createElement("div");
+
+            itemsContainer.className = "px-3 pt-3 pb-3 space-y-2";
+            items.forEach(item => {
+              const isFreeSupport = item.bookmarkType === "free-support";
+              const row = document.createElement("div");
+              row.className = "group border border-zinc-100 hover:border-zinc-200 rounded-xl p-2.5 flex items-center gap-3 cursor-pointer transition-all";
+
+              row.onclick = () => openPostDetailModal(item.bookmarkType,item.id);
+
+              row.innerHTML = `
+                <img src="${item.image || ""}" alt="${item.title || "應援"}" class="w-14 h-14 rounded-xl object-cover border border-zinc-200 shrink-0 bg-white">
+                <div class="flex-1 min-w-0">
+
+                  <div class="flex items-center gap-1.5 mb-1">
+
+                    <span class="text-[9px] px-1.5 py-0.5 rounded-md font-black border ${isFreeSupport ? "bg-violet-50 text-violet-700 border-violet-100": "bg-pink-50 text-pink-700 border-pink-100"}">
+                      ${isFreeSupport ? "免費應援": "交換應援"}
+                    </span>
+
+                    ${item.status? `<span class="text-[9px] text-zinc-400">${getBookmarkStatusText(item.status)}</span>`: ""}
+                  </div>
+
+                  <h5 class="text-xs font-black text-zinc-800 truncate">
+                    ${item.title || "未命名應援"}
+                  </h5>
+
+                  <p class="text-[10px] text-zinc-400 mt-1 truncate">
+                    <i class="fa-solid fa-location-dot mr-1"></i>
+                    ${concert.venue || "場館資訊"}
+                  </p>
+
+                </div>
+
+                <button
+                  type="button"
+                  onclick="event.stopPropagation(); toggleBookmark(event, '${item.id}')"
+                  class="w-9 h-9 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-pink-500 shrink-0 hover:bg-pink-50 transition-colors"
+                  aria-label="取消收藏"
+                >
+                  <i class="fa-solid fa-heart text-xs"></i>
+                </button>
+              `;
+
+              itemsContainer.appendChild(row);
+            });
+
+            concertSection.appendChild(itemsContainer);
+          }
+
+          container.appendChild(concertSection);
+        }
+      );
+
     }
 
 
+    function formatBookmarkConcertDates(dates = []) {
+      if (!dates.length) return "日期未定";
 
+      if (dates.length === 1) {
+        return dates[0].replaceAll("-", "/");
+      }
+
+      return `${dates[0].replaceAll("-", "/")} – ${dates[dates.length - 1].replaceAll("-", "/")}`;
+    }
+    function getBookmarkStatusText(status) {
+      const statusMap = {
+        ACTIVE: "發放中",
+        OPEN: "開放中",
+        ENDED: "已結束",
+        CLOSED: "已結束"
+      };
+
+      return statusMap[status] || "";
+    }
     // ==================== STREAMING_CHUNK: 演唱會詳細看板 RWD 渲染 ====================
     function renderConcertDetail() {
       if (!state.selectedConcert) return;
@@ -1953,7 +2098,7 @@
                     : ''}
               </div>
 
-              <h4 class="text-xs md:text-sm font-bold text-zinc-900 truncate">
+              <h4 class="text-xs md:text-sm font-bold text-zinc-900 text-wrap">
                 ${item.title}
               </h4>
             </div>
@@ -2561,8 +2706,9 @@
       const uid = state.currentUser.id;
       const postId = state.activeDetailItem.data.id;
       const postType = state.activeDetailItem.type;
+      const concertId = state.activeDetailItem.data.concertId;
       const collectionName = postType === "free-support"? "supportEvents" :"exchangePosts";
-
+      
       const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
       const postRef = doc( db, "artifacts", appId, "public", "data",collectionName,postId);
       const isBookmarked = state.bookmarkedPostIds.includes(postId);
@@ -2576,9 +2722,12 @@
         } else {
             showToast("已成功收藏該項目");
             state.bookmarkedPostIds.push(postId);
+            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
             await setDoc(bookmarkRef, {
                 postId,
-                type: state.activeDetailItem.type,
+                type: postType,
+                concertId: concertId,
+                bookmarkedAt: serverTimestamp()
             });
             await updateDoc(postRef, {bookmarkCount: increment(1)});
         }
@@ -2591,17 +2740,16 @@
           heart.classList.remove("fill-pink-500", "text-pink-500");
           heart.classList.add("text-zinc-400");
         }
+        renderBookmarks();
       } catch (error) {
         console.error("Bookmark toggle error:", error);
-
         // Firestore 操作失敗時，重新同步目前收藏狀態
         if (isBookmarked) {
           state.bookmarkedPostIds.push(postId);
         } else {
-          state.bookmarkedPostIds =
-            state.bookmarkedPostIds.filter(id => id !== postId);
+          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
         }
-
+        localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
         showToast("收藏操作失敗，請稍後再試");
       }
     }
@@ -2616,20 +2764,14 @@
         
         const supportItem = state.supportEvents.find(item => item.id === postId);
         const exchangeItem = state.exchangePosts.find(item => item.id === postId);
-
-        let collectionName = "";
-        let postType = "";
-
-        if (supportItem) {
-          collectionName = "supportEvents";
-          postType = "free-support";
-        } else if (exchangeItem) {
-          collectionName = "exchangePosts";
-          postType = "support-exchange";
-        } else {
+        const item = supportItem || exchangeItem;
+        if (!item) {
           showToast("找不到該應援資料");
           return;
         }
+        const postType = supportItem ? "free-support" : "support-exchange";
+        const collectionName = supportItem ? "supportEvents": "exchangePosts";
+
         const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
         const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
         const isBookmarked = state.bookmarkedPostIds.includes(postId);
@@ -2637,31 +2779,41 @@
             state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
             // 開啟確認視窗
             document.getElementById("modal-bookmark-confirm").classList.remove("hidden");
-        } else {
+        } else { //如果收藏頁面沒有馬上更新頁面可以重新收藏
           try {
-            state.bookmarkedPostIds.push(postId);
             await setDoc(bookmarkRef, {
               postId,
-              type: postType
+              type: postType,
+              concertId: item.concertId,
+              bookmarkedAt: serverTimestamp()
             });
 
             await updateDoc(postRef, {
               bookmarkCount: increment(1)
             });
+            state.bookmarkedPostIds.push(postId);
+            state.bookmarkData[postId] = {
+              postId,
+              type: postType,
+              concertId: item.concertId,
+              bookmarkedAt: null
+            };
+            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
 
             showToast("已成功收藏該項目");
+            renderBookmarks();
 
           } catch (error) {
             console.error("Add bookmark error:", error);
-
             state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
-
+            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
+            delete state.bookmarkData[postId];
             showToast("收藏失敗，請稍後再試");
           }
             
         }
     }
-      async function executeRemoveBookmark() {
+      async function executeRemoveBookmark() { //收藏頁用
       if (!state.pendingRemoveBookmarkId) return;
 
       const postId = state.pendingRemoveBookmarkId;
@@ -2691,9 +2843,10 @@
 
         // 更新本地狀態
         state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+        delete state.bookmarkData[postId];
         closeBookmarkConfirmModal();
         showToast("已將該項目移出我的收藏");
-
+        renderBookmarks();
       } catch (error) {
         console.error("Remove bookmark error:", error);
         showToast("取消收藏失敗，請稍後再試");

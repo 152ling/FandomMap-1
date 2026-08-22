@@ -3,7 +3,9 @@ export const state = {
   concerts: [],
   supportEvents: [],
   exchangePosts: [],
-  bookmarkedPostIds: [],
+  bookmarkedPostIds:JSON.parse(localStorage.getItem('fe_v1_bookmarkedPostIds'))|| [],
+  bookmarkData: {},
+  bookmarkExpandedConcerts: {},
   userAttendedConcerts: [],
   pendingRemoveBookmarkId: null,
 

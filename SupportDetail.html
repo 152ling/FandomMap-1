@@ -398,14 +398,19 @@
         if (isBookmarked) {
           showToast("已將該項目移出我的收藏");
           state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
+          localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
           await deleteDoc(bookmarkRef);
           await updateDoc(postRef, { bookmarkCount: increment(-1) });
         } else {
             showToast("已成功收藏該項目");
             state.bookmarkedPostIds.push(postId);
+            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
             await setDoc(bookmarkRef, {
                 postId,
                 type: state.activeDetailItem.type,
+                concertId: state.activeDetailItem.data.id,
+                bookmarkedAt: serverTimestamp()
+                
             });
             await updateDoc(postRef, {bookmarkCount: increment(1)});
         }
