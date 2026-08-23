@@ -5,7 +5,7 @@ export const state = {
   exchangePosts: [],
   bookmarkedPostIds:JSON.parse(localStorage.getItem('fe_v1_bookmarkedPostIds'))|| [],
   bookmarkData: {},
-  bookmarkExpandedConcerts: {},
+  bookmarkedConcerts : {}, //有收藏應援的演唱會資料
   userAttendedConcerts: [],
   pendingRemoveBookmarkId: null,
 
@@ -15,6 +15,7 @@ export const state = {
   selectedDate: "",
   selectedSubCategory: "support",
   searchQuery: "",
+  searchSupportQuery:"",
   profileActiveTab : "all",
   themeColor: localStorage.getItem('fe_v11_theme') || '#18181b',
 
