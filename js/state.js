@@ -16,6 +16,8 @@ export const state = {
   selectedSubCategory: "support",
   searchQuery: "",
   searchSupportQuery:"",
+  currentArtist : 'all',
+  currentConcertId : 'all',
   profileActiveTab : "all",
   themeColor: localStorage.getItem('fe_v11_theme') || '#18181b',
 

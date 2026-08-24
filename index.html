@@ -60,6 +60,9 @@
     .bg-brand { background: var(--brand-color) !important; }
     .border-brand { border-color: var(--brand-color) !important; }
     .text-brand { color: var(--brand-color) !important; }
+    .focus\:ring-brand:focus {--tw-ring-color: var(--brand-color) !important;}
+    .focus-within\:ring-brand:focus-within{--tw-ring-color: var(--brand-color) !important;}
+
     .app-icon { width: 1.05rem; height: 1.05rem; stroke-width: 1.9; flex: 0 0 auto; }
     .tab-active { color: var(--brand-color) !important; font-weight: 900; }
 
@@ -178,7 +181,7 @@
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
             </svg>
           </span>
-          <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="輸入明星藝人、演出場館或巡演名稱..." class="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-3 pl-11 pr-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 text-zinc-800 transition-all">
+          <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="輸入明星藝人、演出場館或巡演名稱..." class="w-full bg-zinc-50 border border-zinc-200 rounded-2xl py-3 pl-11 pr-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-brand text-zinc-800 transition-all">
         </div>
 
         <!-- 熱門演唱會列表 -->
@@ -199,7 +202,12 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <!-- 第一層：藝人分類標籤 (簡潔明瞭) -->
                 <div>
+                  <div id="search-title" class="flex justify-between">
                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">依藝人/團體篩選</span>
+                    <button id="clearFiltersBtn" onclick="clearAllSearch()" class="${hasActiveFilters ? '':'hidden'} text-xs text-brand hover:underline font-semibold">
+                      清除所有篩選
+                    </button>
+                  </div>
                     <div id="artistTabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                         <!-- JS 動態生成 -->
                     </div>
@@ -209,7 +217,7 @@
                 <div class="w-full sm:w-72">
                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">指定演唱會場次</span>
                     <select id="concertSelect" onchange="handleConcertSelect(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-pink-500 cursor-pointer">
-                        <option value="all">-- 全部場次 --</option>
+                        <option value="all">全部場次</option>
                     </select>
                 </div>
             </div>
@@ -1824,9 +1832,7 @@
       }
 
       // ==================== STREAMING_CHUNK: 收藏夾清單 RWD 渲染 ====================
-      let currentArtist = 'all';
-      let currentConcertId = 'all';
-      // let searchQuery = '';
+
       let concertsMap = new Map();
       async function loadBookmarkedConcerts() {
           // 每次 bookmark 更新時重新建立
@@ -1876,7 +1882,7 @@
             
       let html = '';
       artists.forEach(artist => {
-      const isActive = currentArtist === artist;
+      const isActive = state.currentArtist === artist;
       const displayName = artist === 'all' ? '全部藝人' : artist;
       const activeClass = isActive ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200';
                 
@@ -1887,8 +1893,8 @@
     }
         // 切換藝人過濾
     export function setArtistFilter(artist) {
-      currentArtist = artist;
-      currentConcertId = 'all'; // 切換藝人時重置場次選擇
+      state.currentArtist = artist;
+      state.currentConcertId = 'all'; // 切換藝人時重置場次選擇
       renderArtistTabs();
       updateConcertDropdown();
       renderBookmarks();
@@ -1899,13 +1905,13 @@
       const select = document.getElementById('concertSelect');
       let availableConcerts = Object.values(state.bookmarkedConcerts);
             
-      if (currentArtist !== 'all') {
-          availableConcerts =availableConcerts.filter(c => c.artist === currentArtist);
+      if (state.currentArtist !== 'all') {
+          availableConcerts =availableConcerts.filter(c => c.artist === state.currentArtist);
       }
             
       let html = '<option value="all">-- 全部場次 --</option>';
       availableConcerts.forEach(concert => {
-        const selected = currentConcertId === concert.id ? 'selected' : '';
+        const selected = state.currentConcertId === concert.id ? 'selected' : '';
         html += `<option value="${concert.id}" ${selected}>${concert.tourName}</option>`;
       });
       select.innerHTML = html;
@@ -1913,17 +1919,18 @@
 
     // 下拉選單變更場次
     export function handleConcertSelect(concertId) {
-        currentConcertId = concertId;
+        state.currentConcertId = concertId;
         renderBookmarks();
     }
 
     export function clearKeywordSearch() { // 新增：清除搜尋內容函數
       state.searchSupportQuery = '';
+
       const input = document.getElementById('support-search-input');
       if (input) { input.value = '';}
       const clearBtn = document.getElementById('search-clear-btn');
       if (clearBtn) {clearBtn.classList.add('hidden');}
-            
+  
       renderBookmarks();
     }
 
@@ -1934,23 +1941,38 @@
       const btn= document.getElementById('toggleFilterBtn');
       if (showStatusFilter) {
         panel.classList.add('show');
-        panel.classList.add('p-4');
-        btn.className = "p-3 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-brand border-brand text-white";
+        panel.classList.add('p-4');panel.classList.add('mb-4');
+        btn.className = "p-2.5 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-brand border-brand text-white";
       } else {
         panel.classList.remove('show');
-        panel.classList.remove('p-4');
-        btn.className = "p-3 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-white border-gray-100 text-slate-400";
+        panel.classList.remove('p-4');panel.classList.remove('mb-4');
+        btn.className = "p-2.5 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-white border-zinc-200 text-slate-400";
       }
+    }
+    export function clearAllSearch(){ //清除所有篩選
+      // 清除搜尋框與關鍵字狀態
+      state.searchSupportQuery = '';
+      state.currentArtist = 'all';
+      state.currentConcertId = 'all';
+      const input = document.getElementById('support-search-input');
+      if (input) { input.value = '';}
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (clearBtn) {clearBtn.classList.add('hidden');}
+      renderArtistTabs();
+      updateConcertDropdown();
+      renderBookmarks();
     }
     window.setArtistFilter=setArtistFilter;
     window.togglefilterPanelVisibility =togglefilterPanelVisibility ;
-    window.clearKeywordSearch = clearKeywordSearch;
+    window.clearKeywordSearch = clearKeywordSearch; //清input
+    window.clearAllSearch=clearAllSearch; //全部清
     window.handleConcertSelect=handleConcertSelect;
+    
     async function renderBookmarks() {
       const searchContainer =document.getElementById("search-container");
-      searchContainer.innerHTML = `<div class="relative flex mb-3 gap-2">
+      searchContainer.innerHTML = `<div class="relative flex mb-4 gap-2">
             <div class="relative flex-1 flex items-center">
-                <input id="support-search-input" type="text" value="${state.searchSupportQuery || ''}" oninput="state.searchSupportQuery=this.value;document.getElementById('search-clear-btn').classList.toggle('hidden', !this.value);renderBookmarksItems()" class="w-full bg-white border border-gray-100 rounded-2xl py-3 px-10 text-sm shadow-sm outline-none focus:ring-2 focus:ring-brand focus:ring-opacity-20 transition-all text-gray-800">
+                <input placeholder="輸入藝人或是應援物名稱" id="support-search-input" type="text" value="${state.searchSupportQuery || ''}" oninput="state.searchSupportQuery=this.value;document.getElementById('search-clear-btn').classList.toggle('hidden', !this.value);renderBookmarksItems()" class="w-full bg-white border border-zinc-200 rounded-2xl py-3 pl-11 pr-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-brand text-zinc-800 transition-all">
                 <svg class="text-brand w-4 h-4 absolute left-4 top-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3"/></svg>
                 <button id="search-clear-btn" onclick="clearKeywordSearch()" 
                   class="${state.searchSupportQuery ? '' : 'hidden'} absolute right-4 top-3.5 text-slate-400 hover:text-brand transition-colors p-0.5 rounded-full hover:bg-slate-50 active:scale-90 transition-all" 
@@ -1961,11 +1983,18 @@
                 </button>
             </div>
             <button id="toggleFilterBtn"  onclick="togglefilterPanelVisibility()"
-                class="cursor-pointer p-3 rounded-2xl transition-all relative flex items-center justify-center shadow-sm border ${showStatusFilter ? 'bg-brand border-brand text-white' : 'bg-white border-gray-100 text-slate-400'}"
+                class="cursor-pointer p-2.5 rounded-2xl transition-all relative flex items-center justify-center shadow-sm border ${showStatusFilter ? 'bg-brand border-brand text-white' : 'bg-white border-zinc-200 text-slate-400'}"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>
             </button>
       </div>`;
+      const searchtitle =document.getElementById('search-title');
+      const filterStatusText = document.getElementById('filterStatusText');
+      const hasActiveFilters = state.searchSupportQuery || state.currentArtist !=='all' || state.currentConcertId !== 'all';
+      searchtitle.innerHTML=`<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">依藝人/團體篩選</span>
+        <button id="clearFiltersBtn" onclick="clearAllSearch()" class="${hasActiveFilters ? '':'hidden'} text-xs text-brand hover:underline font-semibold">
+          清除所有篩選
+        </button>`
       renderBookmarksItems();
     }
     async function renderBookmarksItems() {
@@ -1991,18 +2020,29 @@
             });
           }
         });
-      //document.getElementById("bookmarks-title").innerText = `我的收藏 (${allBookmarked.length})`;
+      
       let filtered = allBookmarked.filter(item => {
-        // 透過 concertId 取得對應的演唱會與藝人資訊
-        const concertObj = state.bookmarkedConcerts[item.concertId];
-        const matchArtist = currentArtist === 'all' || concertObj.artist === currentArtist;
-        const matchConcert = currentConcertId === 'all' || item.concertId === currentConcertId;
-                  
-        const matchSearch = item.title.includes(state.searchSupportQuery) || 
-            concertObj.tourName.toLowerCase().includes(state.searchSupportQuery) || 
-            concertObj.artist.toLowerCase().includes(state.searchSupportQuery);                              
-            return matchArtist && matchConcert && matchSearch;
-        });
+        const concertObj = state.bookmarkedConcerts[item.concertId] || {};
+        const artistName = concertObj.artist || "";
+        const tourName = concertObj.tourName || "";
+        const matchArtist = state.currentArtist === 'all' || artistName === state.currentArtist;
+        const matchConcert = state.currentConcertId === 'all' || item.concertId === state.currentConcertId;
+        const keyword = (state.searchSupportQuery || "").trim().toLowerCase();
+        const matchSearch = !keyword || (
+          (item.title || "").toLowerCase().includes(keyword) ||
+          tourName.toLowerCase().includes(keyword) ||
+          artistName.toLowerCase().includes(keyword)
+        );
+        return matchArtist && matchConcert && matchSearch;
+      });
+      if (state.currentArtist === 'all') {
+        filterStatusText.textContent = '顯示全部應援物收藏';
+      } else if (state.currentConcertId === 'all') {
+        filterStatusText.textContent = `正在檢視【${state.currentArtist}】的所有場次`;
+      } else {
+          filterStatusText.textContent = `正在檢視特定場次`;
+      }
+
       if (filtered.length === 0) {
         container.className = "block";
         container.innerHTML = `
@@ -2013,93 +2053,49 @@
         `;
         return;
       }
-      
-      const groupedByConcert = {};
+      document.getElementById("itemCount").innerText = `共${filtered.length}件`;
+      const itemsContainer = document.createElement("div");
+      itemsContainer.className = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2";
+
       filtered.forEach(item => {
-        const concertId = item.concertId;
-        if (!concertId) {
-          console.warn("收藏項目沒有 concertId:", item.id);
-          return;
-        }
-        if (!groupedByConcert[concertId]) {
-          groupedByConcert[concertId] = [];
-        }
-        groupedByConcert[concertId].push(item);
-      });
-        /*
-      * 5. 依照演唱會順序渲染
-      */
-      Object.entries(groupedByConcert).forEach(
-        ([concertId, items]) => {
-          const concert = state.bookmarkedConcerts[concertId];
-          if (!concert) {
-            console.warn("bookmark找不到收藏所屬演唱會:",concertId);
-            return;
-          }
+        const isFreeSupport = item.bookmarkType === "free-support";
+        const row = document.createElement("div");
+        row.className = "bg-white border border-slate-200/80 rounded-xl overflow-hidden hover:shadow-md transition group flex flex-col";
 
+        row.onclick = () => openPostDetailModal(item.bookmarkType, item.id);
 
-          /*
-          * 演唱會區塊
-          */
-          const concertSection = document.createElement("div");
-          concertSection.className ="bg-white rounded-xl overflow-hidden shadow-sm";
-
-          /*
-          * 收藏內容
-          */
-          
-            const itemsContainer = document.createElement("div");
-
-            itemsContainer.className = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-3 pt-3 pb-3 gap-2";
-            items.forEach(item => {
-              const isFreeSupport = item.bookmarkType === "free-support";
-              const row = document.createElement("div");
-              row.className = "bg-white border border-slate-200/80 rounded-xl overflow-hidden hover:shadow-md transition group flex flex-col";
-
-              row.onclick = () => openPostDetailModal(item.bookmarkType,item.id);
-
-              row.innerHTML = `
-              <div class="h-40 relative aspect-square bg-slate-100 overflow-hidden cursor-pointer" onclick="openImageModal('${item.image}', '${item.name}')">
-                  <img src="${item.image}" alt="${item.title}" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=400'" 
-                      class="w-full h-full object-cover object-center transition duration-300">
-                  <span class="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-md ${isFreeSupport ? "bg-violet-50 text-violet-700 border-violet-100": "bg-pink-50 text-pink-700 border-pink-100"}">
-                      ${isFreeSupport ? "免費應援": "交換應援"}
-                  </span>
-                </div>
-                <div>
-
-                  
-                  
-                  <div class="p-2.5 flex-1 flex justify-between">
-                    <div class="flex flex-col">
-                      <h3 class="font-bold text-slate-800 text-xs mb-1 line-clamp-1">${item.title}</h3>
-                      <p class="text-[10px] font-medium text-slate-400 line-clamp-1 mb-0.5">位置:${item.approxLocation}</p>
-                    </div>
-                            
-                    <div class="flex items-center justify-end">
-                      <button
-                        type="button"
-                        onclick="event.stopPropagation(); toggleBookmark(event, '${item.id}')"
-                        class="w-6 h-6 rounded-full flex items-center justify-center text-pink-500 shrink-0 hover:bg-pink-50 transition-colors"
-                        aria-label="取消收藏"
-                      >
-                        <i class="fa-solid fa-heart text-xs"></i>
-                      </button>
-                    </div>
-                </div>
-
+        row.innerHTML = `
+          <div class="h-40 relative aspect-square bg-slate-100 overflow-hidden cursor-pointer" onclick="openImageModal('${item.image}', '${item.name}')">
+            <img src="${item.image}" alt="${item.title}" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=400'" 
+                class="w-full h-full object-cover object-center transition duration-300">
+            <span class="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-md ${isFreeSupport ? "bg-violet-50 text-violet-700 border-violet-100": "bg-pink-50 text-pink-700 border-pink-100"}">
+              ${isFreeSupport ? "免費應援": "交換應援"}
+            </span>
+          </div>
+          <div>
+            <div class="p-2.5 flex-1 flex justify-between">
+              <div class="flex flex-col">
+                <h3 class="font-bold text-slate-800 text-xs mb-1 line-clamp-1">${item.title}</h3>
+                <p class="text-[10px] font-medium text-slate-400 line-clamp-1 mb-0.5">位置:${item.approxLocation}</p>
               </div>
-              `;
+              <div class="flex items-center justify-end">
+                <button
+                  type="button"
+                  onclick="event.stopPropagation(); toggleBookmark(event, '${item.id}')"
+                  class="w-6 h-6 rounded-full flex items-center justify-center text-pink-500 shrink-0 hover:bg-pink-50 transition-colors"
+                  aria-label="取消收藏"
+                >
+                  <i class="fa-solid fa-heart text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
 
-              itemsContainer.appendChild(row);
-            });
+        itemsContainer.appendChild(row);
+      });
 
-            concertSection.appendChild(itemsContainer);
-          
-
-          container.appendChild(concertSection);
-        }
-      );
+      container.appendChild(itemsContainer);
 
     }
 
@@ -3262,7 +3258,10 @@
         const blob = await (await fetch(image)).blob();
         const filename = `${Date.now()}-${index}-${crypto.randomUUID()}.jpg`;
         const imageRef = ref(storage, `post-images/${uid}/${postId}/${filename}`);
-        await uploadBytes(imageRef, blob, { contentType: "image/jpeg" });
+        await uploadBytes(imageRef, blob, {
+          contentType: "image/jpeg",
+          cacheControl: "public, max-age=31536000" //應援圖片快取一年
+        });
         return getDownloadURL(imageRef);
       }));
     }
@@ -3869,7 +3868,7 @@
         if (state.currentEditConcertImageBase64) {
           const blob = await (await fetch(state.currentEditConcertImageBase64)).blob();
           const imageRef = ref(storage, `concert-covers/${state.selectedConcert.id}/${Date.now()}-cover.jpg`);
-          await uploadBytes(imageRef, blob, { contentType: 'image/jpeg' });
+          await uploadBytes(imageRef, blob, { contentType: 'image/jpeg',cacheControl: "public, max-age=31536000" }); //編輯演唱會快取一年
           image = await getDownloadURL(imageRef);
         }
         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id), {
@@ -3987,7 +3986,7 @@
             const blob = await (await fetch(state.currentAddConcertImageBase64)).blob();
             const fileName = `${Date.now()}-cover.jpg`;
             const imageRef = ref(storage, `concert-covers/${newId}/${fileName}`);
-            await uploadBytes(imageRef, blob, { contentType: "image/jpeg" });
+            await uploadBytes(imageRef, blob, { contentType: "image/jpeg" ,cacheControl: "public, max-age=31536000"});//新增演唱會快取一年
             finalImageUrl = await getDownloadURL(imageRef);
           } else {
             // 未登入情境下
