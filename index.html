@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel=stylesheet type="text/css" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -34,54 +35,6 @@
       }
     }
   </script>
-  <style>
-    * {
-      -ms-overflow-style: none !important;  /* IE and Edge */
-      scrollbar-width: none !important;  /* Firefox */
-    }
-    *::-webkit-scrollbar {
-      display: none !important; /* Chrome, Safari, Opera */
-    }
-    :root {
-      --brand-color: #18181b; 
-      --app-bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-sub: #64748b;
-    }
-    .pb-safe {
-      padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
-    }
-    body {
-      font-family: 'Noto Sans TC', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      background: radial-gradient(circle at 8% 0%, rgba(124, 58, 237, .10), transparent 28rem), radial-gradient(circle at 92% 100%, rgba(236, 72, 153, .08), transparent 30rem), #f8fafc;
-    }
-    .bg-brand { background: var(--brand-color) !important; }
-    .border-brand { border-color: var(--brand-color) !important; }
-    .text-brand { color: var(--brand-color) !important; }
-    .focus\:ring-brand:focus {--tw-ring-color: var(--brand-color) !important;}
-    .focus-within\:ring-brand:focus-within{--tw-ring-color: var(--brand-color) !important;}
-
-    .app-icon { width: 1.05rem; height: 1.05rem; stroke-width: 1.9; flex: 0 0 auto; }
-    .tab-active { color: var(--brand-color) !important; font-weight: 900; }
-
-    .color-preset { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 2px solid #e2e8f0; transition: all 0.2s; }
-    .color-preset.active { border-color: #fff !important; outline: 3px solid var(--brand-color); }
-    .section-kicker { letter-spacing: .12em; }
-    .ui-card { box-shadow: 0 1px 2px rgba(15, 23, 42, .03), 0 12px 32px rgba(15, 23, 42, .035); }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(124, 58, 237, .28); outline-offset: 2px; }
-    .filter-panel {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-        }
-        .filter-panel.show {
-            max-height: 200px;
-            opacity: 1;
-        }
-  </style>
 </head>
 <body class="bg-zinc-50 text-zinc-800 flex justify-center font-sans antialiased min-h-screen">
 
@@ -192,218 +145,6 @@
           </div>
         </div>
       </section>
-
-      <section id="screen-bookmarks" class="hidden animate-fade-in text-left">
-        <div id="search-container" class="flex flex-col">
-          <!--JS 生成-->
-        </div>
-        <!-- 雙層直覺篩選區：藝人標籤 + 特定場次下拉選單 -->
-        <div id="filterPanel" class="filter-panel bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <!-- 第一層：藝人分類標籤 (簡潔明瞭) -->
-                <div>
-                  <div id="search-title" class="flex justify-between">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">依藝人/團體篩選</span>
-                    <button id="clearFiltersBtn" onclick="clearAllSearch()" class="${hasActiveFilters ? '':'hidden'} text-xs text-brand hover:underline font-semibold">
-                      清除所有篩選
-                    </button>
-                  </div>
-                    <div id="artistTabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <!-- JS 動態生成 -->
-                    </div>
-                </div>
-
-                <!-- 第二層：該藝人底下的具體演唱會場次下拉選單 -->
-                <div class="w-full sm:w-72">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">指定演唱會場次</span>
-                    <select id="concertSelect" onchange="handleConcertSelect(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-pink-500 cursor-pointer">
-                        <option value="all">全部場次</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 狀態統計列 -->
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                <span id="filterStatusText">顯示全部應援物收藏</span>
-                <span id="itemCount" class="font-bold text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-full">共 0 件</span>
-            </div>
-        </div>
-        <div id="bookmarks-list-container" class="space-y-4">
-        </div>
-      </section>
-
-      <!-- SCREEN 3: 個人中心與發布管理 -->
-      <section id="screen-profile" class="hidden space-y-6 animate-fade-in text-left">
-        
-        <!-- 大螢幕採用 雙網格排列：左側為名片/設定，右側為貼文管理 -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
-          <div class="lg:col-span-1 space-y-4">
-            <!-- Firebase 登入與個人頭像卡 -->
-            <div class="bg-gradient-to-br from-zinc-50 to-zinc-100/50 border border-zinc-150 p-3 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
-              <div class="w-full flex items-start justify-between">
-                    <div class="flex items-center space-x-3.5">
-                        <!-- Avatar -->
-                        <div class="relative group">
-                            <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="Avatar" class="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md">
-                            <button onclick="openProfileModal()" id="btn-edit-avatar" class="absolute bottom-0 right-0 bg-zinc-500 hover:bg-zinc-700 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm transition">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                        </div>
-                        
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <h1 id="profile-input-username" class="text-[12px] font-bold text-slate-900">匿名用戶</h1>
-                                <span id="auth-status-badge" class="bg-emerald-100 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center">
-                                    <i class="fa-brands fa-google mr-1 text-[9px]"></i> 已驗證
-                                </span>
-                            </div>
-                            
-                            <!-- Social Media Handle & Email -->
-                            <div class="flex items-center gap-2 mt-1">
-                                <a id="user-social-link" href="#" target="_blank" class="text-xs text-violet-600 font-medium hover:underline flex items-center bg-violet-50 px-2 py-0.5 rounded-md border border-violet-100/60">
-                                    <i class="fa-brands fa-threads mr-1"></i> <span id="user-social-handle">@--</span>
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1 opacity-70"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Options Trigger -->
-                    <div class="flex items-center space-x-1">
-                        <button id="btn-open-settings" onclick="openProfileModal()" title="編輯資料" class="p-2 text-slate-500 hover:text-violet-600 hover:bg-white rounded-xl border border-slate-200/60 shadow-sm transition text-xs font-medium flex items-center">
-                            <i class="fa-solid fa-sliders mr-1.5"></i>
-                            <span class="text-[10px] inline">設定</span>
-                        </button>
-                    </div>
-                </div>
-                 <!-- Personal Stats Summary Grid (演唱會, 發布項目, 總收藏) -->
-                <div class="w-full grid grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-slate-200/40">
-                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
-                        <div class="text-xs text-slate-400 font-medium">演唱會</div>
-                        <div id="user-concert-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
-                    </div>
-                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
-                        <div class="text-xs text-slate-400 font-medium">發布項目</div>
-                        <div id="user-support-count" class="text-base font-bold text-violet-600 mt-0.5">0</div>
-                    </div>
-                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
-                        <div class="text-xs text-slate-400 font-medium">總收藏</div>
-                        <div id="user-bookmarked-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
-                    </div>
-                </div>
-
-              <button onclick="switchTab('color')" class="w-full mt-4 bg-brand  text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">外觀設定</button>
-
-              <!-- Firebase Authentication 互動控制區 -->
-              <div class="w-full mt-4 pt-4 border-t border-zinc-200/60">
-                <!-- 匿名狀態提示與登入按鈕 -->
-                <div id="anonymous-warning-box" class="hidden text-left bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl mb-3 text-[10px] leading-relaxed">
-                  登入後才可開始發布應援以及收藏應援
-                </div>
-                <button id="google-login-btn" onclick="handleGoogleSignIn()" class="w-full bg-white hover:bg-zinc-50 text-zinc-700 font-bold py-2 px-3 rounded-xl text-xs border border-zinc-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
-                  <!-- Google 彩色 G Logo SVG -->
-                  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
-                  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                  </svg>
-                  使用 Google 帳號登入
-                </button>
-
-                <button id="logout-btn" onclick="handleSignOut()" class="hidden w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all mt-2">
-                  登出此帳號
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- 我的發布與管理 (在大螢幕上佔據 2 欄寬度) -->
-          <div class="lg:col-span-2 bg-white border border-zinc-200/80 p-5 rounded-2xl space-y-4">
-            <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5">
-              我的發布與管理
-            </h4>
-            <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <!-- 動態渲染個人專屬貼文 -->
-            </div>
-          </div>
-
-        </div>
-      </section>
-      
-        <!-- MODAL 1: 編輯個人資料彈窗 -->
-        <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden">
-            <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
-                
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="font-bold text-base text-slate-900 flex items-center">
-                        <i class="fa-solid fa-user-gear text-violet-600 mr-2"></i> 編輯個人資料
-                    </h3>
-                    <button onclick="closeProfileModal()" id="btn-close-profile-modal" class="text-slate-400 hover:text-slate-600 p-1">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-
-                <div class="space-y-4">
-                    <!-- Avatar Preview & Change -->
-                    <div class="flex items-center justify-center space-x-4">
-                        <div class="relative group">
-                          <img id="input-avatar-preview" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="個人頭像" class="w-20 h-20 rounded-full border-2 border-white bg-white shadow-md object-cover">
-                          <label for="profile-avatar-file" class="absolute inset-0 rounded-full bg-zinc-900/60 text-white text-[10px] font-bold grid place-items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-pointer transition-opacity">更換頭像</label>
-                            <label for="profile-avatar-file" 
-                                  class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center cursor-pointer shadow-md border-2 border-white hover:bg-violet-600 transition">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
-                            </label>
-                          <input type="file" id="profile-avatar-file" accept="image/*" class="sr-only" onchange="processProfileAvatarUpload(event)">
-                        </div>
-                    </div>
-
-                    <!-- Display Name Input -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">顯示名稱</label>
-                        <input id="input-display-name" type="text" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
-                    </div>
-
-                    <!-- Social Link Input -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">社群個人檔案連結</label>
-                        <input id="input-social-link" type="text" placeholder="https://www.threads.net/@your_name" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
-                        <p class="text-[10px] text-slate-400 mt-1">填寫 Threads、Instagram 連結，方便交換應援物時聯絡</p>
-                    </div>
-
-                    <!-- Account Info -->
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400">登入帳號</span>
-                            <span id="info-account-email" class="font-medium text-slate-700">--</span>
-                        </div>
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400">UID</span>
-                            <div class="flex items-center space-x-1">
-                                <span id="info-account-uid" class="font-mono text-[11px] text-slate-600 truncate max-w-[150px]">--</span>
-                                <button id="btn-copy-uid" onclick="copyUID()" class="text-violet-600 hover:text-violet-700 p-0.5" title="複製 UID">
-                                    <i class="fa-regular fa-copy text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <button id="btn-logout" onclick="handleSignOut()" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center px-2 py-1">
-                        <i class="fa-solid fa-right-from-bracket mr-1.5"></i> 登出此帳號
-                    </button>
-
-                    <div class="flex items-center space-x-2">
-                        <button onclick="closeProfileModal()" id="btn-cancel-profile-modal" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
-                            取消
-                        </button>
-                        <button onclick="saveUserProfile()" id="btn-save-profile" class="px-4 py-2 text-xs bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-sm transition">
-                            儲存變更
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
       <!-- SCREEN 4: 演唱會看板詳細頁 -->
       <section id="screen-concert-detail" class="hidden space-y-6 animate-fade-in">
@@ -779,102 +520,6 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL 3: 看板詳細情報彈窗 ==================== -->
-    <div id="modal-post-detail" onclick="closePostDetailModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
-      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-2xl text-left border-t border-zinc-100 overflow-hidden">
-         <!-- 頂部導覽列 -->
-        <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-3.5 bg-white/90 backdrop-blur-md border-b border-zinc-100">
-          <span class="text-xs font-bold tracking-widest text-zinc-400 uppercase">應援詳細頁面</span>
-          <div class="flex items-center gap-1">
-            <button onclick="closePostDetailModal()" class="text-zinc-400 hover:text-zinc-800 bg-zinc-100 p-1.5 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <!-- 可滾動內容區塊 -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar px-6 space-y-2 pb-6">
-          <!-- 應援主圖區域 (黑白灰視覺) -->
-          <div class="relative w-full">
-            <div class="relative overflow-hidden">
-              <!-- 圖片 -->
-              <div class="h-60 md:h-70 w-full rounded-xl overflow-hidden border border-zinc-100 bg-zinc-50">
-                <img id="detail-item-image" src="" alt="Detail" class="w-full h-full object-cover">
-              </div>
-              <div id="detail-item-image-gallery" class="hidden flex gap-2 mt-2 overflow-x-auto "></div>
-
-              <!-- 應援種類 Tags (極簡黑白貼紙風格) -->
-              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[85%]">
-                <div class="flex items-center pb-3">
-                  <div id="detail-item-tag" class="flex items-center gap-2"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-          <div>
-            <div class="flex items-center justify-between">
-              <h3 id="detail-item-title" class="text-sm md:text-base font-extrabold text-zinc-900 leading-snug"></h3>
-              <button id="detail-bookmark-btn" onclick="toggleDetailBookmark()" class="p-1.5 rounded-full hover:bg-zinc-100 transition-all">
-                <!-- 愛心 SVG -->
-                <svg id="detail-bookmark-heart" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              </button>
-            </div>
-            <div id="detail-item-quantity-row" class="text-xs text-zinc-500 mt-1 font-bold"></div>
-          </div>
-          <div id="detail-item-support-summary" class="hidden rounded-2xl border border-purple-100 bg-purple-50/40 p-3 space-y-3"></div>
-
-          <!-- 連結按鈕 (響應式雙欄排版) -->
-          <div class="space-y-2">
-            <p class="text-[10px] text-zinc-400 font-bold uppercase section-kicker">原始貼文與位置更新連結</p>
-            <div class="grid grid-cols-2 gap-2">
-              <div id="detail-link-original-container"></div>
-              <div id="detail-link-live-container"></div>
-            </div>
-          </div>
-          <!-- 位置說明 -->
-
-          <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-1.5">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-navigation-icon lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              即時位置更新說明
-            </div>
-            <p id="detail-item-approx" class="text-xs text-zinc-800 font-medium leading-relaxed"></p>
-          </div>
-
-          <!-- 獨立三大說明區塊 -->
-          <div class="space-y-2">
-            <div class="p-3 bg-white border border-zinc-200 rounded-xl space-y-2 shadow-2xs">
-              <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-700" viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
-                  領取條件
-              </div>
-              <div class="text-base text-zinc-900 flex items-center gap-2 pl-1">
-                <p id="detail-item-requirement" class="text-xs text-zinc-700 leading-relaxed font-medium"></p>
-              </div>
-            </div>
-
-            <div class="p-4 bg-zinc-100/80 border border-zinc-200/80 rounded-xl space-y-2">
-              <div class="flex items-center gap-1.5 text-xs font-bold text-zinc-800 uppercase tracking-wider">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                注意事項
-              </div>
-              <p id="detail-item-notice" class="text-xs text-zinc-600 mt-1.5 leading-relaxed font-medium"></p>
-            </div>
-          </div>
-
-          <!-- 操作按鈕 -->
-          <div id="detail-action-container" class="border-t border-zinc-100 pt-3">
-            <!-- 根據發布者是自己與否渲染 -->
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ==================== MODAL 4: 自訂防呆刪除確認彈窗 ==================== -->
     <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
@@ -922,8 +567,13 @@
   <!-- ==================== CORE FIREBASE & JAVASCRIPT STATE & FLOW ==================== -->
   <script type="module">
     import { state } from './js/state.js';
+    import './js/common.js';
     import './js/color.js';
+    import './js/action.js';
     import './js/profile.js';
+    import './js/support.js';
+    import './js/bookmark.js';
+    import './js/concert.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -1019,7 +669,7 @@
       try {
         startRealtimeListeners(user);
         const statusText = document.getElementById("loading-status-text");
-        renderAll();
+        //renderAll();
         if (user) {  //登入狀態
           statusText.innerText = "驗證粉絲特許資料中...";
           // 在渲染任何管理功能前先確認 Firebase Custom Claim。
@@ -1046,6 +696,7 @@
                 email:user.email
             };
             localStorage.setItem("fe_v1_user", JSON.stringify(userData));
+            document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
           } else {
             // 自動初始化並將 Google 資訊或匿名預設值存入
             const initialProfile = {
@@ -1067,47 +718,15 @@
             };
             localStorage.setItem("fe_v1_user", JSON.stringify(userData));
           }
-
-          // 同步個人中心編輯欄位
-          document.getElementById("profile-input-username").textContent = state.currentUser.username;
-          document.getElementById("user-social-handle").textContent = getSocialHandle(state.currentUser.contact);
-          document.getElementById('user-social-link').href = state.currentUser.contact;
-          document.getElementById("profile-display-avatar").src = state.currentUser.avatar;
-          document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
-
-          // 更新 Firebase 登入 UI 顯示樣式
-          const badge = document.getElementById("auth-status-badge");
-          const warningBox = document.getElementById("anonymous-warning-box");
-          const gLoginBtn = document.getElementById("google-login-btn");
-          const logoutBtn = document.getElementById("logout-btn");
-
-          warningBox.classList.add("hidden");
-          badge.classList.remove("hidden");
-          gLoginBtn.classList.add("hidden");
-          logoutBtn.classList.remove("hidden");
-          document.getElementById("profile-input-username").disabled = false;
-          document.getElementById("user-social-handle").disabled = false;
         
           statusText.innerText = "同步現場即時看板中...";
-          
-        
         } else {
           // 未登入時，不做處理
             console.log("使用者未登入，功能限制為唯讀模式");
             hasAdminClaim = false;
             isAdminClaimResolved = true;
             if (state.selectedConcert) renderConcertDetail();
-            document.getElementById("profile-input-username").disabled = true;
-            document.getElementById("user-social-handle").disabled = true;
-            document.getElementById("profile-avatar-file").disabled = true;
-            document.getElementById("btn-open-settings").disabled = true;
-            document.getElementById("btn-edit-avatar").disabled = true;
             document.getElementById("loading-overlay").classList.add("hidden");
-
-            document.getElementById("anonymous-warning-box").classList.remove("hidden");
-            document.getElementById("google-login-btn").classList.remove("hidden");
-            document.getElementById("logout-btn").classList.add("hidden");
-            document.getElementById("auth-status-badge").classList.add("hidden");
 
         }
       } catch (error) {
@@ -1203,6 +822,7 @@
           list.push({ id: doc.id, ...doc.data() });
         });
         state.supportEvents = list;
+        localStorage.setItem("fe_v1_supportEvents",JSON.stringify(state.supportEvents));
         
         initialDataLoaded.supportEvents = true;
         tryInitialRender();
@@ -1218,6 +838,7 @@
           list.push({ id: doc.id, ...doc.data() });
         });
         state.exchangePosts = list;
+        localStorage.setItem("fe_v1_exchangePosts",JSON.stringify(state.exchangePosts));
 
         initialDataLoaded.exchangePosts = true;
         tryInitialRender();
@@ -1245,6 +866,7 @@
           await loadBookmarkedConcerts();
           localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
           localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
+          localStorage.setItem("fe_v1_bookmarkedConcerts",JSON.stringify(state.bookmarkedConcerts));
 
           initialDataLoaded.bookmarks = true;
           tryInitialRender();
@@ -1281,7 +903,6 @@
       }
     }
     function tryInitialRender() {
-
         const allLoaded =
             initialDataLoaded.concerts &&
             initialDataLoaded.supportEvents &&
@@ -1294,79 +915,8 @@
         }
 
         renderAll();
-
         document.getElementById("loading-overlay").classList.add("hidden");
     }
-    // ==================== STREAMING_CHUNK: 圖片即時 Canvas 壓縮上傳與防溢位機制 ====================
-    function triggerFileInput() {
-      if (state.currentUploadedImagesBase64.length >= 5) {
-        showToast("最多只能上傳 5 張照片。");
-        return;
-      }
-      document.getElementById("post-image-file").click();
-    }
-
-    function processImageUploadLegacy(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        showToast("請選擇有效的圖片格式！");
-        return;
-      }
-
-      showToast("照片正在壓縮優化中...");
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-          // 限制最大寬高，避免儲存 Base64 超出 Firestore 1MB 上限
-          const max_size = 480; 
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > max_size) {
-              height *= max_size / width;
-              width = max_size;
-            }
-          } else {
-            if (height > max_size) {
-              width *= max_size / height;
-              height = max_size;
-            }
-          }
-
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // 進行中度壓縮（0.68 品質，產出輕量小尺寸 JPEG 格式，完美相容無伺服器架構）
-          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.68);
-          state.currentUploadedImageBase64 = compressedBase64;
-
-          // 展示即時上傳預覽
-          const previewContainer = document.getElementById("image-upload-preview-container");
-          const previewImg = document.getElementById("image-upload-preview");
-          previewImg.src = compressedBase64;
-          previewContainer.classList.remove("hidden");
-          document.getElementById("image-upload-hint").innerText = "照片壓縮就緒";
-          showToast("現場實體照片儲存成功！");
-        };
-      };
-    }
-
-    function clearUploadedImageLegacy() {
-      state.currentUploadedImageBase64 = "";
-      document.getElementById("post-image-file").value = "";
-      document.getElementById("image-upload-preview-container").classList.add("hidden");
-      document.getElementById("image-upload-hint").innerText = "若未上傳，系統將套用預設動態背景";
-    }
-
     // ==================== STREAMING_CHUNK: 個人資料與頭像管理 ====================
     function compressImage(file) {
       return new Promise((resolve, reject) => {
@@ -1388,93 +938,6 @@
         };
         reader.readAsDataURL(file);
       });
-    }
-    function getSocialHandle(link) {
-        if (!link || !link.includes('@')) return '未提供';
-          const cleanLink = link.split('?')[0];
-          const handle = '@' + cleanLink.split('@')[1];
-          return handle.replace(/\/$/, '');
-    }
-    function renderImageUploadPreviewsLegacy() {
-      const container = document.getElementById("image-upload-preview-container");
-      container.innerHTML = "";
-      state.currentUploadedImagesBase64.forEach((image, index) => {
-        const item = document.createElement("div");
-        item.className = "w-12 h-12 rounded-lg border overflow-hidden bg-zinc-100 relative";
-        item.innerHTML = `<img src="${image}" alt="預覽照片 ${index + 1}" class="w-full h-full object-cover"><button type="button" onclick="removeUploadedImage(${index})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center font-bold text-[9px] opacity-0 hover:opacity-100 transition-opacity">移除</button>`;
-        container.appendChild(item);
-      });
-      container.classList.toggle("hidden", state.currentUploadedImagesBase64.length === 0);
-      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
-      document.getElementById("image-upload-hint").innerText = state.currentUploadedImagesBase64.length
-        ? `已壓縮 ${state.currentUploadedImagesBase64.length}/5 張照片`
-        : "可選擇最多 5 張照片，系統會自動壓縮。";
-    }
-
-    function renderImageUploadPreviews() {
-      const container = document.getElementById("image-upload-preview-container");
-      const count = state.currentUploadedImagesBase64.length;
-      container.innerHTML = "";
-
-      state.currentUploadedImagesBase64.forEach((image, index) => {
-        const item = document.createElement("div");
-        item.className = "relative w-20 h-20 shrink-0 overflow-visible rounded-2xl border border-zinc-200 bg-zinc-100";
-        item.innerHTML = `
-          <img src="${image}" alt="照片 ${index + 1}" class="w-full h-full rounded-2xl object-cover">
-          <button type="button" onclick="removeUploadedImage(${index})" aria-label="刪除照片 ${index + 1}" class="absolute top-1 right-1 z-10 w-4 h-4 rounded-full bg-zinc-400 hover:bg-brand text-white flex items-center justify-center shadow-md transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>`;
-        container.appendChild(item);
-      });
-
-      if (count < 5) {
-        const addButton = document.createElement("button");
-        addButton.type = "button";
-        addButton.onclick = triggerFileInput;
-        addButton.setAttribute("aria-label", "新增照片");
-        addButton.className = "w-20 h-20 shrink-0 rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-100 hover:bg-zinc-200 hover:border-zinc-400 text-zinc-400 hover:text-zinc-600 flex items-center justify-center transition-colors";
-        addButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>`;
-        container.appendChild(addButton);
-      }
-
-      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
-      document.getElementById("image-upload-hint").innerText = count
-        ? `已選擇 ${count}/5 張照片`
-        : "可選擇最多 5 張照片，系統會自動壓縮。";
-    }
-
-    async function processImageUpload(event) {
-      const files = Array.from(event.target.files || []);
-      const remaining = 5 - state.currentUploadedImagesBase64.length;
-      event.target.value = "";
-      if (!files.length) return;
-      if (remaining <= 0) return showToast("最多只能上傳 5 張照片。");
-      const imageFiles = files.filter(file => file.type.startsWith("image/"));
-      if (imageFiles.length !== files.length) showToast("已略過非圖片檔案。");
-      const selected = imageFiles.slice(0, remaining);
-      if (imageFiles.length > remaining) showToast(`一次最多還可加入 ${remaining} 張照片。`);
-      if (!selected.length) return;
-      showToast("正在壓縮照片…");
-      try {
-        state.currentUploadedImagesBase64.push(...await Promise.all(selected.map(compressImage)));
-        renderImageUploadPreviews();
-        showToast("照片已壓縮並加入預覽。");
-      } catch (error) {
-        console.error("Image compression error:", error);
-        showToast("照片處理失敗，請改用其他圖片。");
-      }
-    }
-
-    function removeUploadedImage(index) {
-      state.currentUploadedImagesBase64.splice(index, 1);
-      renderImageUploadPreviews();
-    }
-
-    function clearUploadedImage() {
-      state.currentUploadedImageBase64 = "";
-      state.currentUploadedImagesBase64 = [];
-      document.getElementById("post-image-file").value = "";
-      renderImageUploadPreviews();
     }
 
     function processProfileAvatarUpload(event) {
@@ -1508,84 +971,59 @@
     export function renderAll() {
       renderHeroCarousel(state.concerts);
       renderConcerts();
-      renderBookmarks();
-      renderProfile();
-      renderConcertDetail();
-      renderArtistTabs();
-      updateConcertDropdown();
+      // renderBookmarks();
+      // renderProfile();
+      // renderConcertDetail();
+      // renderArtistTabs();
+      // updateConcertDropdown();
     }
 
-    function switchTab(tabId) {
-      state.activeTab = tabId;
-      state.selectedConcert = null; 
+    // function switchTab(tabId) {
+    //   state.activeTab = tabId;
+    //   state.selectedConcert = null; 
 
-      document.getElementById("screen-explore").classList.add("hidden");
-      document.getElementById("screen-bookmarks").classList.add("hidden");
-      document.getElementById("screen-profile").classList.add("hidden");
-      document.getElementById("screen-concert-detail").classList.add("hidden");
-      document.getElementById("screen-color").classList.add("hidden");
+    //   document.getElementById("screen-explore").classList.add("hidden");
+    //   document.getElementById("screen-bookmarks").classList.add("hidden");
+    //   document.getElementById("screen-profile").classList.add("hidden");
+    //   document.getElementById("screen-concert-detail").classList.add("hidden");
+    //   document.getElementById("screen-color").classList.add("hidden");
 
-      document.getElementById(`screen-${tabId}`).classList.remove("hidden");
-      document.getElementById("header-back-btn").classList.add("hidden");
-      document.getElementById("header-logo").classList.remove("hidden");
-      document.getElementById("add-concert-btn").classList.remove("hidden");
-      document.getElementById("floating-publish-btn").classList.add("hidden");
-      if(tabId == "color"){renderAppearanceView();return;}
-      const tabs = ["explore", "bookmarks", "profile"];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`nav-btn-${t}`);
-        if (btn) {
-          if (t === tabId) {
-            btn.classList.add("tab-active");
-            // btn.classList.add("text-zinc-900");
-            btn.classList.remove("text-zinc-400", "hover:text-zinc-600");
-          } else {
-            btn.classList.remove("text-zinc-900");
-            btn.classList.remove("tab-active");
-            btn.classList.add("text-zinc-400", "hover:text-zinc-600");
-          }
-        }
+    //   document.getElementById(`screen-${tabId}`).classList.remove("hidden");
+    //   document.getElementById("header-back-btn").classList.add("hidden");
+    //   document.getElementById("header-logo").classList.remove("hidden");
+    //   document.getElementById("add-concert-btn").classList.remove("hidden");
+    //   document.getElementById("floating-publish-btn").classList.add("hidden");
+    //   if(tabId == "color"){renderAppearanceView();return;}
+    //   const tabs = ["explore", "bookmarks", "profile"];
+    //   tabs.forEach(t => {
+    //     const btn = document.getElementById(`nav-btn-${t}`);
+    //     if (btn) {
+    //       if (t === tabId) {
+    //         btn.classList.add("tab-active");
+    //         // btn.classList.add("text-zinc-900");
+    //         btn.classList.remove("text-zinc-400", "hover:text-zinc-600");
+    //       } else {
+    //         btn.classList.remove("text-zinc-900");
+    //         btn.classList.remove("tab-active");
+    //         btn.classList.add("text-zinc-400", "hover:text-zinc-600");
+    //       }
+    //     }
 
-        const dkBtn = document.getElementById(`dk-nav-btn-${t}`);
-        if (dkBtn) {
-          if (t === tabId) {
-            dkBtn.className = "text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all";
-          } else {
-            dkBtn.className = "text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all";
-          }
-        }
-      });
-      if(tabId == "explore") {renderHeroCarousel(state.concerts);renderConcerts();renderConcertDetail();}
-      else if(tabId =="bookmarks"){renderBookmarks();}
-      else if(tabId =="profile"){renderProfile();}
-      // renderAll();
-    }
+    //     const dkBtn = document.getElementById(`dk-nav-btn-${t}`);
+    //     if (dkBtn) {
+    //       if (t === tabId) {
+    //         dkBtn.className = "text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all";
+    //       } else {
+    //         dkBtn.className = "text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all";
+    //       }
+    //     }
+    //   });
+    //   if(tabId == "explore") {renderHeroCarousel(state.concerts);renderConcerts();renderConcertDetail();}
+    //   else if(tabId =="bookmarks"){renderBookmarks();}
+    //   else if(tabId =="profile"){renderProfile();}
+    //   // renderAll();
+    // }
 
-    function navigateToConcert(concertId) {
-      state.selectedConcert = state.concerts.find(c => c.id === concertId);
-      if (!state.selectedConcert) return;
-
-      state.selectedDate = state.selectedConcert.dates[0];
-      state.selectedSubCategory = "support";
-
-      document.getElementById("screen-explore").classList.add("hidden");
-      document.getElementById("screen-bookmarks").classList.add("hidden");
-      document.getElementById("screen-profile").classList.add("hidden");
-      document.getElementById("screen-concert-detail").classList.remove("hidden");
-
-      document.getElementById("header-back-btn").classList.remove("hidden");
-      document.getElementById("header-logo").classList.add("hidden");
-      document.getElementById("add-concert-btn").classList.add("hidden");
-      document.getElementById("floating-publish-btn").classList.remove("hidden");
-      if(state.selectedConcert.isPending) { //審核中
-        document.getElementById("floating-publish-btn").classList.add("bg-gray-200", "text-gray-400");
-        document.getElementById("floating-publish-btn").classList.remove("hidden","bg-brand", "text-white");
-      }else{
-        document.getElementById("floating-publish-btn").classList.remove("bg-gray-200", "text-gray-400");
-        document.getElementById("floating-publish-btn").classList.add("bg-brand", "text-white");
-      }
-      renderConcertDetail();
-    }
 
     function navigateBack() {
       switchTab("explore");
@@ -1617,45 +1055,7 @@
         return !isNaN(targetDate) && targetDate >= startOfToday && targetDate <= endOf7Days;
       });
     }
-    /**
-     * 計算目標日期陣列中，距離今天最近的剩餘天數 (D-Day)
-     * @param {Array<string>} datesArray - 演唱會日期陣列，如 ["2026-08-05", "2026-08-06"]
-     * @returns {string} 回傳倒數狀態文字，例如 "D-3"、"D-Day"、"進行中" 或 "已結束"
-     */
-    function getDaysRemaining(datesArray) {
-      if (!Array.isArray(datesArray) || datesArray.length === 0) return '';
 
-      const now = new Date();
-      // 取得今天 00:00:00 的時間戳
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const oneDayMs = 24 * 60 * 60 * 1000; // 一天的毫秒數
-
-      // 過濾出未來或今天的日期，並轉成時間戳排序
-      const validTimestamps = datesArray
-        .map(d => {
-          const dateObj = new Date(d);
-          return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
-        })
-        .filter(t => !isNaN(t))
-        .sort((a, b) => a - b);
-
-      if (validTimestamps.length === 0) return '';
-
-      // 尋找第一個尚未發生的日期 ( >= 今天)
-      const upcomingTimestamp = validTimestamps.find(t => t >= todayStart);
-
-      // 如果找不到未來的日期，代表演唱會所有場次都已結束
-      if (!upcomingTimestamp) {
-        return '已結束';
-      }
-      // 計算相差天數
-      const diffDays = Math.round((upcomingTimestamp - todayStart) / oneDayMs);
-      if (diffDays === 0) {
-        return 'D-Day'; // 今天開唱！
-      } else {
-        return `倒數${diffDays}天`; // 倒數 X 天
-      }
-    }
 
     /** 渲染本週熱門演唱會輪播圖*/
     function renderHeroCarousel(concertsData) {
@@ -1691,7 +1091,7 @@
         const bannerImg = concert.image;
         const countdownText = getDaysRemaining(concert.dates);
         return `
-          <div class="w-full flex-shrink-0 relative h-56 sm:h-72 md:h-80 overflow-hidden cursor-pointer" onclick="openConcertDetail('${concert.id}')">
+          <div class="w-full flex-shrink-0 relative h-56 sm:h-72 md:h-80 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=${concert.id}'">
             <img src="${bannerImg}" alt="${concert.tourName}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
@@ -1801,10 +1201,9 @@
 
           const card = document.createElement("div");
           card.className = "bg-white hover:bg-zinc-50 border border-zinc-150 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
-          card.onclick = () => navigateToConcert(c.id);
-
+          card.onclick = () => {window.location.href = `Concert.html?concertId=${c.id}`;};
           card.innerHTML = `
-            <div class="w-28 md:w-32 shrink-0 overflow-hidden relative border-r border-zinc-100 bg-zinc-100">
+            <div class="w-40 md:w-48 max-h-48 shrink-0 overflow-hidden relative border-r border-zinc-100 bg-zinc-100">
               <img src="${c.image}" alt="${c.artist}" class="w-full h-full rounded-xl object-cover">
               ${c.isPending ? `
                 <span class="absolute top-2 left-2 bg-amber-500 text-white text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
@@ -1830,10 +1229,8 @@
           container.appendChild(card);
         });
       }
-
       // ==================== STREAMING_CHUNK: 收藏夾清單 RWD 渲染 ====================
 
-      let concertsMap = new Map();
       async function loadBookmarkedConcerts() {
           // 每次 bookmark 更新時重新建立
           state.bookmarkedConcerts = {};
@@ -1869,704 +1266,213 @@
               }
           });
       }
-      //收藏頁面的藝人篩選分類
-    async  function renderArtistTabs() {
-      const container = document.getElementById('artistTabs');
-       // 從現有收藏項目的 concertId 反查出所有出現過的 artist 集合
-      const artistsSet = new Set();
-      Object.values(state.bookmarkData).forEach(bookmark => {
-        const concert = state.bookmarkedConcerts[bookmark.concertId];
-          if (concert?.artist) {artistsSet.add(concert.artist);}
-      });
-      const artists = ['all', ...Array.from(artistsSet)];
-            
-      let html = '';
-      artists.forEach(artist => {
-      const isActive = state.currentArtist === artist;
-      const displayName = artist === 'all' ? '全部藝人' : artist;
-      const activeClass = isActive ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200';
-                
-      html += `<button onclick="setArtistFilter('${artist}')" class="px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition cursor-pointer ${activeClass}">
-        ${displayName}</button>`;
-      });
-      container.innerHTML = html;
-    }
-        // 切換藝人過濾
-    export function setArtistFilter(artist) {
-      state.currentArtist = artist;
-      state.currentConcertId = 'all'; // 切換藝人時重置場次選擇
-      renderArtistTabs();
-      updateConcertDropdown();
-      renderBookmarks();
-    }
-
-        // 根據當前選擇的藝人動態過濾第二層的演唱會場次下拉選單
-    function updateConcertDropdown() {
-      const select = document.getElementById('concertSelect');
-      let availableConcerts = Object.values(state.bookmarkedConcerts);
-            
-      if (state.currentArtist !== 'all') {
-          availableConcerts =availableConcerts.filter(c => c.artist === state.currentArtist);
-      }
-            
-      let html = '<option value="all">-- 全部場次 --</option>';
-      availableConcerts.forEach(concert => {
-        const selected = state.currentConcertId === concert.id ? 'selected' : '';
-        html += `<option value="${concert.id}" ${selected}>${concert.tourName}</option>`;
-      });
-      select.innerHTML = html;
-    }
-
-    // 下拉選單變更場次
-    export function handleConcertSelect(concertId) {
-        state.currentConcertId = concertId;
-        renderBookmarks();
-    }
-
-    export function clearKeywordSearch() { // 新增：清除搜尋內容函數
-      state.searchSupportQuery = '';
-
-      const input = document.getElementById('support-search-input');
-      if (input) { input.value = '';}
-      const clearBtn = document.getElementById('search-clear-btn');
-      if (clearBtn) {clearBtn.classList.add('hidden');}
-  
-      renderBookmarks();
-    }
-
-    let showStatusFilter = false;
-    export function togglefilterPanelVisibility(){
-      showStatusFilter = !showStatusFilter;
-      const panel = document.getElementById('filterPanel');
-      const btn= document.getElementById('toggleFilterBtn');
-      if (showStatusFilter) {
-        panel.classList.add('show');
-        panel.classList.add('p-4');panel.classList.add('mb-4');
-        btn.className = "p-2.5 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-brand border-brand text-white";
-      } else {
-        panel.classList.remove('show');
-        panel.classList.remove('p-4');panel.classList.remove('mb-4');
-        btn.className = "p-2.5 rounded-2xl transition-all relative flex items-center justify-center  shadow-sm border bg-white border-zinc-200 text-slate-400";
-      }
-    }
-    export function clearAllSearch(){ //清除所有篩選
-      // 清除搜尋框與關鍵字狀態
-      state.searchSupportQuery = '';
-      state.currentArtist = 'all';
-      state.currentConcertId = 'all';
-      const input = document.getElementById('support-search-input');
-      if (input) { input.value = '';}
-      const clearBtn = document.getElementById('search-clear-btn');
-      if (clearBtn) {clearBtn.classList.add('hidden');}
-      renderArtistTabs();
-      updateConcertDropdown();
-      renderBookmarks();
-    }
-    window.setArtistFilter=setArtistFilter;
-    window.togglefilterPanelVisibility =togglefilterPanelVisibility ;
-    window.clearKeywordSearch = clearKeywordSearch; //清input
-    window.clearAllSearch=clearAllSearch; //全部清
-    window.handleConcertSelect=handleConcertSelect;
-    
-    async function renderBookmarks() {
-      const searchContainer =document.getElementById("search-container");
-      searchContainer.innerHTML = `<div class="relative flex mb-4 gap-2">
-            <div class="relative flex-1 flex items-center">
-                <input placeholder="輸入藝人或是應援物名稱" id="support-search-input" type="text" value="${state.searchSupportQuery || ''}" oninput="state.searchSupportQuery=this.value;document.getElementById('search-clear-btn').classList.toggle('hidden', !this.value);renderBookmarksItems()" class="w-full bg-white border border-zinc-200 rounded-2xl py-3 pl-11 pr-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-brand text-zinc-800 transition-all">
-                <svg class="text-brand w-4 h-4 absolute left-4 top-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="3"/></svg>
-                <button id="search-clear-btn" onclick="clearKeywordSearch()" 
-                  class="${state.searchSupportQuery ? '' : 'hidden'} absolute right-4 top-3.5 text-slate-400 hover:text-brand transition-colors p-0.5 rounded-full hover:bg-slate-50 active:scale-90 transition-all" 
-                  title="清空搜尋">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-            </div>
-            <button id="toggleFilterBtn"  onclick="togglefilterPanelVisibility()"
-                class="cursor-pointer p-2.5 rounded-2xl transition-all relative flex items-center justify-center shadow-sm border ${showStatusFilter ? 'bg-brand border-brand text-white' : 'bg-white border-zinc-200 text-slate-400'}"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>
-            </button>
-      </div>`;
-      const searchtitle =document.getElementById('search-title');
-      const filterStatusText = document.getElementById('filterStatusText');
-      const hasActiveFilters = state.searchSupportQuery || state.currentArtist !=='all' || state.currentConcertId !== 'all';
-      searchtitle.innerHTML=`<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">依藝人/團體篩選</span>
-        <button id="clearFiltersBtn" onclick="clearAllSearch()" class="${hasActiveFilters ? '':'hidden'} text-xs text-brand hover:underline font-semibold">
-          清除所有篩選
-        </button>`
-      renderBookmarksItems();
-    }
-    async function renderBookmarksItems() {
-      const container = document.getElementById("bookmarks-list-container");
-      container.innerHTML = "";
-      container.className = "space-y-4";
-      const allBookmarked = [];
-
-        state.supportEvents.forEach(item => {
-          if (state.bookmarkedPostIds.includes(item.id)) {
-            allBookmarked.push({
-              ...item,
-              bookmarkType: "free-support"
-            });
-          }
-        });
-
-        state.exchangePosts.forEach(item => {
-          if (state.bookmarkedPostIds.includes(item.id)) {
-            allBookmarked.push({
-              ...item,
-              bookmarkType: "support-exchange"
-            });
-          }
-        });
-      
-      let filtered = allBookmarked.filter(item => {
-        const concertObj = state.bookmarkedConcerts[item.concertId] || {};
-        const artistName = concertObj.artist || "";
-        const tourName = concertObj.tourName || "";
-        const matchArtist = state.currentArtist === 'all' || artistName === state.currentArtist;
-        const matchConcert = state.currentConcertId === 'all' || item.concertId === state.currentConcertId;
-        const keyword = (state.searchSupportQuery || "").trim().toLowerCase();
-        const matchSearch = !keyword || (
-          (item.title || "").toLowerCase().includes(keyword) ||
-          tourName.toLowerCase().includes(keyword) ||
-          artistName.toLowerCase().includes(keyword)
-        );
-        return matchArtist && matchConcert && matchSearch;
-      });
-      if (state.currentArtist === 'all') {
-        filterStatusText.textContent = '顯示全部應援物收藏';
-      } else if (state.currentConcertId === 'all') {
-        filterStatusText.textContent = `正在檢視【${state.currentArtist}】的所有場次`;
-      } else {
-          filterStatusText.textContent = `正在檢視特定場次`;
-      }
-
-      if (filtered.length === 0) {
-        container.className = "block";
-        container.innerHTML = `
-          <div class="text-center py-24 text-zinc-400 bg-zinc-50 rounded-2xl border border-zinc-100">
-            <p class="text-xs mt-2.5 font-bold">尚未收藏任何應援或卡片項目</p>
-            <p class="text-[11px] text-zinc-400 mt-1">在應援詳細頁面點擊愛心即可收藏</p>
-          </div>
-        `;
-        return;
-      }
-      document.getElementById("itemCount").innerText = `共${filtered.length}件`;
-      const itemsContainer = document.createElement("div");
-      itemsContainer.className = "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2";
-
-      filtered.forEach(item => {
-        const isFreeSupport = item.bookmarkType === "free-support";
-        const row = document.createElement("div");
-        row.className = "bg-white border border-slate-200/80 rounded-xl overflow-hidden hover:shadow-md transition group flex flex-col";
-
-        row.onclick = () => openPostDetailModal(item.bookmarkType, item.id);
-
-        row.innerHTML = `
-          <div class="h-40 relative aspect-square bg-slate-100 overflow-hidden cursor-pointer" onclick="openImageModal('${item.image}', '${item.name}')">
-            <img src="${item.image}" alt="${item.title}" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=400'" 
-                class="w-full h-full object-cover object-center transition duration-300">
-            <span class="absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-md ${isFreeSupport ? "bg-violet-50 text-violet-700 border-violet-100": "bg-pink-50 text-pink-700 border-pink-100"}">
-              ${isFreeSupport ? "免費應援": "交換應援"}
-            </span>
-          </div>
-          <div>
-            <div class="p-2.5 flex-1 flex justify-between">
-              <div class="flex flex-col">
-                <h3 class="font-bold text-slate-800 text-xs mb-1 line-clamp-1">${item.title}</h3>
-                <p class="text-[10px] font-medium text-slate-400 line-clamp-1 mb-0.5">位置:${item.approxLocation}</p>
-              </div>
-              <div class="flex items-center justify-end">
-                <button
-                  type="button"
-                  onclick="event.stopPropagation(); toggleBookmark(event, '${item.id}')"
-                  class="w-6 h-6 rounded-full flex items-center justify-center text-pink-500 shrink-0 hover:bg-pink-50 transition-colors"
-                  aria-label="取消收藏"
-                >
-                  <i class="fa-solid fa-heart text-xs"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        itemsContainer.appendChild(row);
-      });
-
-      container.appendChild(itemsContainer);
-
-    }
-
-
-    function formatBookmarkConcertDates(dates = []) {
-      if (!dates.length) return "日期未定";
-
-      if (dates.length === 1) {
-        return dates[0].replaceAll("-", "/");
-      }
-
-      return `${dates[0].replaceAll("-", "/")} – ${dates[dates.length - 1].replaceAll("-", "/")}`;
-    }
-    function getBookmarkStatusText(status) {
-      const statusMap = {
-        ACTIVE: "發放中",
-        OPEN: "開放中",
-        ENDED: "已結束",
-        CLOSED: "已結束"
-      };
-
-      return statusMap[status] || "";
-    }
     // ==================== STREAMING_CHUNK: 演唱會詳細看板 RWD 渲染 ====================
-    function renderConcertDetail() {
-      if (!state.selectedConcert) return;
-
-      document.getElementById("detail-concert-image").src = state.selectedConcert.image;
-      document.getElementById("detail-concert-artist").innerText = state.selectedConcert.artist;
-      document.getElementById("detail-concert-venue").innerText = state.selectedConcert.venue;
-      document.getElementById("detail-concert-tour").innerText = state.selectedConcert.tourName;
-      document.getElementById("detail-attend-count").innerText = state.selectedConcert.attendCount;
-      document.getElementById("detail-concert-countdown").innerText = getDaysRemaining(state.selectedConcert.dates);
-      const attendContainer = document.getElementById("detail-concert-attend-container");
-
-      const pendingBox = document.getElementById("detail-concert-pending-box");
-      const adminActions = document.getElementById('admin-concert-actions');
-      const adminBtn = document.getElementById('admin-approve-btn');
-      // 按鈕只會在 Custom Claim 識別完成、且確定為管理員後出現。
-      adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
-      if (state.selectedConcert.isPending) {
-        pendingBox.classList.remove("hidden");
-        attendContainer.classList.add("hidden");
-        document.getElementById("detail-concert-pending-stats").innerText = ` ${state.selectedConcert.verifiedCount || 0}/20 位粉絲已確認`;
-        adminBtn.classList.toggle('hidden', !hasAdminClaim);
-      } else {
-        pendingBox.classList.add("hidden");
-        attendContainer.classList.remove("hidden");
-        adminBtn.classList.add('hidden');
-      }
-
-      // 日期 Tabs 繪製
-      const dateTabsContainer = document.getElementById("detail-date-tabs-container");
-      dateTabsContainer.innerHTML = "";
-      state.selectedConcert.dates.forEach((dateStr, idx) => {
-        const formattedDate = dateStr.substring(5).replace("-", "/");
-        const isSelected = state.selectedDate === dateStr;
-
-        const btn = document.createElement("button");
-        btn.className = `flex-1 lg:flex-none min-w-[85px] lg:w-full py-2.5 px-3 rounded-xl flex flex-row lg:justify-between items-center justify-center border transition-all active:scale-95 ${
-          isSelected 
-            ? "bg-brand border-brand text-white shadow-sm" 
-            : "bg-zinc-50 border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
-        }`;
-        btn.onclick = () => {
-          state.selectedDate = dateStr;
-          renderConcertDetail();
-        };
-        btn.innerHTML = `
-          <span class="text-xs font-bold">Day ${idx + 1}</span>
-          <span class="text-[10px] opacity-80 font-medium ml-1 lg:ml-0">${formattedDate}</span>
-        `;
-        dateTabsContainer.appendChild(btn);
-      });
-
-      // 分類統計
-      const currentSupportCount = state.supportEvents.filter(e => e.concertId === state.selectedConcert.id && e.dates.includes(state.selectedDate)).length;
-      const currentExchangeCount = state.exchangePosts.filter(p => p.concertId === state.selectedConcert.id && p.dates.includes(state.selectedDate)).length;
-      const supportBtn = document.getElementById("label-toggle-support");
-      const exchangeBtn = document.getElementById("label-toggle-exchange");
-
-      const listContainer = document.getElementById("detail-event-list-container");
-      listContainer.innerHTML = "";
-
-      if (state.selectedSubCategory === "support") {
-          supportBtn.innerHTML = `
-          <span>免費應援</span>
-          <span class="ml-0.5 px-1.5 py-0.5 bg-brand text-white rounded-full text-[10px]">
-          ${currentSupportCount}</span>`;
-    
-          exchangeBtn.innerHTML = `
-            <span>交換應援</span>
-            <span class="ml-0.5 px-1.5 py-0.5 bg-zinc-200 text-zinc-600 rounded-full text-[10px]">
-              ${currentExchangeCount}
-            </span>
-          `;
-          
-
-          const matched = state.supportEvents.filter(
-            e => e.concertId === state.selectedConcert.id && e.dates.includes(state.selectedDate)
-          );
-
-          renderSupportList(
-            matched,
-            "此場次當天目前暫無免費應援",
-            "點擊右下角「+」即可發布第一個現場應援！",
-            "free-support"
-          );
-      } else {
-          supportBtn.innerHTML = `
-          <span>免費應援</span>
-          <span class="ml-0.5 px-1.5 py-0.5 bg-zinc-200 text-zinc-600  rounded-full text-[10px]">
-          ${currentSupportCount}</span>`;
-    
-          exchangeBtn.innerHTML = `
-            <span>交換應援</span>
-            <span class="ml-0.5 px-1.5 py-0.5 bg-brand text-white rounded-full text-[10px]">
-              ${currentExchangeCount}
-            </span>
-          `;
-          const matched = state.exchangePosts.filter(
-            p => p.concertId === state.selectedConcert.id && p.dates.includes(state.selectedDate)
-          );
-
-          renderSupportList(
-            matched,
-            "此場次當天目前暫無交換需求",
-            "點擊右下角「+」發布卡片與現場交換需求！",
-            "support-exchange"
-          );
-      }
-      updateConcertActionButtons();
-    }
-    // 渲染應援列表
-    function renderSupportList(matched, emptyText, emptySubText, modalType){
-      const listContainer = document.getElementById("detail-event-list-container");
-      listContainer.innerHTML = "";
-      if (matched.length === 0) {
-        listContainer.className = "block";
-        listContainer.innerHTML = `
-          <div class="text-center py-16 text-zinc-400 bg-zinc-50 rounded-2xl border border-zinc-100">
-            <p class="text-xs mt-2 font-bold">${emptyText}</p>
-            <p class="text-[10px] text-zinc-400 mt-1">${emptySubText}</p>
-          </div>
-        `;
-        return;
-      }
-
-      listContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
-
-      matched.forEach(item => {
-
-        const card = document.createElement("div");
-        card.className = `
-          bg-white hover:bg-zinc-50 
-          border border-zinc-200 rounded-2xl p-4 
-          flex gap-3.5 cursor-pointer 
-          transition-all hover:-translate-y-0.5 shadow-sm
-
-        `;
-
-        // card.onclick = () => openPostDetailModal(modalType, item.id);
-        card.onclick =() =>window.location.href =`SupportDetail.html?id=${item.id}&type=${modalType}`;
-
-        const specificDateQty =
-          (item.datesQuantities && item.datesQuantities[state.selectedDate]) !== undefined
-            ? item.datesQuantities[state.selectedDate]
-            : item.quantity;
 
 
-        const categoryHtml = item.category.map(category => `
-          <span class="px-1.5 py-1 text-[9px] font-semibold text-zinc-600 rounded-full flex items-center gap-1 border border-zinc-200">
-            ${category}
-          </span>
-        `).join("");
+    // // ==================== STREAMING_CHUNK: 個人發布管理網格渲染 ====================
+    // export function renderProfile() {
+    //   const container = document.getElementById("my-posts-list-container");
+    //   container.innerHTML = "";
 
-
-        card.innerHTML = `
-          <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden shrink-0 border border-zinc-100 bg-zinc-100">
-            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
-          </div>
-
-          <div class="flex-1 min-w-0 flex flex-col justify-between text-left">
-            <div>
-              <div class="flex items-center mb-1 gap-1">
-                ${categoryHtml}
-                ${item.isAI
-                    ? '<span class="px-1.5 py-1 text-[9px] font-semibold text-blue-600 rounded-full flex items-center gap-1 border border-blue-200">AI 生成</span>'
-                    : ''}
-              </div>
-
-              <h4 class="text-xs md:text-sm font-bold text-zinc-900 text-wrap">
-                ${item.title}
-              </h4>
-            </div>
-
-            <div class="flex items-center justify-between mt-2.5 text-[10px] md:text-xs">
-              <span class="text-zinc-500 font-medium truncate max-w-[140px] md:max-w-[180px]">
-                位置：${item.approxLocation || "現場尋找"}
-              </span>
-
-              <div class="flex items-center gap-2">
-                <span class="text-zinc-400">
-                  發放 ${specificDateQty} 份
-                </span>
-
-              </div>
-            </div>
-          </div>
-        `;
-
-        listContainer.appendChild(card);
-      });
-    }
-    function setSubCategory(cat) {
-      state.selectedSubCategory = cat;
-      const btnSupport = document.getElementById("btn-toggle-support");
-      const btnExchange = document.getElementById("btn-toggle-exchange");
-
-      if (cat === "support") {
-        btnSupport.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-zinc-900 shadow-sm lg:border lg:border-zinc-200";
-        btnExchange.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-zinc-500 lg:border lg:border-transparent";
-      } else {
-        btnExchange.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-zinc-900 shadow-sm lg:border lg:border-zinc-200";
-        btnSupport.className = "flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-zinc-500 lg:border lg:border-transparent";
-      }
-
-      renderConcertDetail();
-    }
-
-    // 演唱會確認票數 +1
-    async function voteForConcert() {
-      if (!state.selectedConcert) return;
-      if (!state.currentUser){
-        showToast("請先前往登入才能執行這項操作");
-        return;
-      }
-      try {
-        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
-        const nextCount = state.selectedConcert.verifiedCount + 1;
-        const isVerified = nextCount >= 20 ? false : state.selectedConcert.isPending; // 達 20 人即結束審核中狀態
-        const verifiedConcertsDocRef = doc(db, 'artifacts', appId, 'users', state.currentUser.id, 'verifiedConcerts',state.selectedConcert.id);
-        
-        const verifiedConcertSnap = await getDoc(verifiedConcertsDocRef);
-        if (verifiedConcertSnap.exists()) {
-          showToast("你已經確認過這場演唱會了！");
-          return;
-        }
-        await updateDoc(concertDocRef, {
-          verifiedCount: increment(1),
-          isPending: isVerified
-        });
-        await setDoc(verifiedConcertsDocRef, {
-          concertId: state.selectedConcert.id,
-          verifiedAt: serverTimestamp()
-        });
-
-        if (nextCount >= 20 && state.selectedConcert.isPending) {
-          showToast("此演唱會確認票數足夠，正式完成上架！");
-        } else {
-          showToast("感謝確認！");
-        }
-      } catch (error) {
-        console.error("Vote concert error:", error);
-      }
-    }
-
-    // ==================== STREAMING_CHUNK: 個人發布管理網格渲染 ====================
-    async function renderProfile() {
-      const container = document.getElementById("my-posts-list-container");
-      container.innerHTML = "";
-
-      if(state.currentUser.isAnonymous){
-        container.className = "block";
-        container.innerHTML = `
-          <p class="text-xs text-zinc-400 py-6 text-center">
-            您目前在任何看板中尚未發文
-          </p>
-        `;
-        return;
-      }
+    //   if(state.currentUser.isAnonymous){
+    //     container.className = "block";
+    //     container.innerHTML = `
+    //       <p class="text-xs text-zinc-400 py-6 text-center">
+    //         您目前在任何看板中尚未發文
+    //       </p>
+    //     `;
+    //     return;
+    //   }
       
-      const uid = state.currentUser.id;
-      const concertcount = document.getElementById("user-concert-count");
-      const supportcount = document.getElementById("user-support-count");
-      const collectcount = document.getElementById("user-bookmarked-count");
-      // 1. 查詢我參加的演唱會數量
-      const attendedRef = collection(db,"artifacts",appId,"users",uid,"attendedConcerts");
-      // 2. 查詢我發布的免費應援
-      const supportRef = collection(db,"artifacts",appId,"public","data","supportEvents");
-      const supportQuery = query(
-        supportRef,
-        where("userId", "==", uid)
-      );
+    //   const uid = state.currentUser.id;
+    //   const concertcount = document.getElementById("user-concert-count");
+    //   const supportcount = document.getElementById("user-support-count");
+    //   const collectcount = document.getElementById("user-bookmarked-count");
+    //   // 1. 查詢我參加的演唱會數量
+    //   const attendedRef = collection(db,"artifacts",appId,"users",uid,"attendedConcerts");
+    //   // 2. 查詢我發布的免費應援
+    //   const supportRef = collection(db,"artifacts",appId,"public","data","supportEvents");
+    //   const supportQuery = query(
+    //     supportRef,
+    //     where("userId", "==", uid)
+    //   );
 
-      // 3. 查詢我發布的交換應援
-      const exchangeRef = collection(db,"artifacts",appId,"public","data","exchangePosts");
-      const exchangeQuery = query(
-        exchangeRef,
-        where("userId", "==", uid)
-      );
+    //   // 3. 查詢我發布的交換應援
+    //   const exchangeRef = collection(db,"artifacts",appId,"public","data","exchangePosts");
+    //   const exchangeQuery = query(
+    //     exchangeRef,
+    //     where("userId", "==", uid)
+    //   );
 
-      const [
-        attendSnapshot,
-        supportSnapshot,
-        exchangeSnapshot
-      ] = await Promise.all([
-        getCountFromServer(attendedRef),
-        getDocs(supportQuery),
-        getDocs(exchangeQuery)
-      ]);
+    //   const [
+    //     attendSnapshot,
+    //     supportSnapshot,
+    //     exchangeSnapshot
+    //   ] = await Promise.all([
+    //     getCountFromServer(attendedRef),
+    //     getDocs(supportQuery),
+    //     getDocs(exchangeQuery)
+    //   ]);
 
-      // 4. 參加演唱會數量
-      const attendedConcertCount =attendSnapshot.data().count;
-      concertcount.innerText = attendedConcertCount;
+    //   // 4. 參加演唱會數量
+    //   const attendedConcertCount =attendSnapshot.data().count;
+    //   concertcount.innerText = attendedConcertCount;
 
-      // 5. 把「我的應援」資料整理出來
-      const mySupports = supportSnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        myType: "free-support"
-      }));
+    //   // 5. 把「我的應援」資料整理出來
+    //   const mySupports = supportSnapshot.docs.map(doc => ({
+    //     ...doc.data(),
+    //     id: doc.id,
+    //     myType: "free-support"
+    //   }));
 
-      const myExchanges = exchangeSnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        myType: "support-exchange"
-      }));
+    //   const myExchanges = exchangeSnapshot.docs.map(doc => ({
+    //     ...doc.data(),
+    //     id: doc.id,
+    //     myType: "support-exchange"
+    //   }));
 
-      // 6. 發布數量
-      const SupportCount = mySupports.length;
-      const ExchangeCount = myExchanges.length;
-      supportcount.innerText = SupportCount + ExchangeCount;
+    //   // 6. 發布數量
+    //   const SupportCount = mySupports.length;
+    //   const ExchangeCount = myExchanges.length;
+    //   supportcount.innerText = SupportCount + ExchangeCount;
 
-      // 7. 我的應援被收藏數
-      const BookmarkCount = [
-        ...mySupports,
-        ...myExchanges
-      ].reduce(
-        (total, item) =>
-          total + Number(item.bookmarkCount || 0),
-        0
-      );
-      collectcount.innerText = BookmarkCount;
+    //   // 7. 我的應援被收藏數
+    //   const BookmarkCount = [
+    //     ...mySupports,
+    //     ...myExchanges
+    //   ].reduce(
+    //     (total, item) =>
+    //       total + Number(item.bookmarkCount || 0),
+    //     0
+    //   );
+    //   collectcount.innerText = BookmarkCount;
 
-      // 8. 合併管理列表
-      const allMyPosts = [
-        ...mySupports,
-        ...myExchanges
-      ];
+    //   // 8. 合併管理列表
+    //   const allMyPosts = [
+    //     ...mySupports,
+    //     ...myExchanges
+    //   ];
 
-      // 9. 沒有發布任何文章
-      if (allMyPosts.length === 0) {
-        container.className = "block";
-        container.innerHTML = `
-          <p class="text-xs text-zinc-400 py-6 text-center">
-            您目前在任何看板中尚未發文
-          </p>
-        `;
-        return;
-      }
-      // 10. 渲染我的發布與管理區塊 (含融入的 Tab 列)
-      const myPostsContainer = document.getElementById("my-posts-list-container");
-      if (!myPostsContainer) return;
-      if (!state.profileActiveTab) {state.profileActiveTab = 'all';}
-      const filterTabs = [
-        { id: 'all', label: 'All' },
-        { id: 'free-support', label: '免費應援' },
-        { id: 'exchange-support', label: '交換應援' }
-      ];
-      const getTabCount = (tabId) => {
-        switch (tabId) {
-          case 'all':
-            return SupportCount + ExchangeCount;
-          case 'free-support':
-            return SupportCount;
-          case 'exchange-support':
-            return ExchangeCount;
-          default:
-            return 0;
-        }
-      };
-      // 組合 Tab 按鈕 HTML (融入您提供的 UI 邏輯與樣式)
-      const tabsHtml = `
-        <div id="profile-tabs-wrapper" class="flex items-center space-x-1 bg-zinc-100 rounded-xl overflow-x-scroll p-1 text-xs no-scrollbar mb-4">
-          ${filterTabs.map(tab => {
-            const isActive = state.profileActiveTab === tab.id;
-            const count = getTabCount(tab.id);
-            return `
-              <button 
-                data-tab-id="${tab.id}"
-                class="px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap flex-1 items-center space-x-1.5 ${
-                  isActive 
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
-                }"
-              >
-                <span>${tab.label}(${count})</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      `;
-      // 根據 Tab 篩選出要顯示的發布列表
-      let displayPosts = [];
-      if (state.profileActiveTab === 'all') {
-        displayPosts = allMyPosts;
-      } else if (state.profileActiveTab === 'free-support') {
-        displayPosts = mySupports;
-      } else if (state.profileActiveTab === 'exchange-support') {
-        displayPosts = myExchanges;
-      }
+    //   // 9. 沒有發布任何文章
+    //   if (allMyPosts.length === 0) {
+    //     container.className = "block";
+    //     container.innerHTML = `
+    //       <p class="text-xs text-zinc-400 py-6 text-center">
+    //         您目前在任何看板中尚未發文
+    //       </p>
+    //     `;
+    //     return;
+    //   }
+    //   // 10. 渲染我的發布與管理區塊 (含融入的 Tab 列)
+    //   const myPostsContainer = document.getElementById("my-posts-list-container");
+    //   if (!myPostsContainer) return;
+    //   if (!state.profileActiveTab) {state.profileActiveTab = 'all';}
+    //   const filterTabs = [
+    //     { id: 'all', label: 'All' },
+    //     { id: 'free-support', label: '免費應援' },
+    //     { id: 'exchange-support', label: '交換應援' }
+    //   ];
+    //   const getTabCount = (tabId) => {
+    //     switch (tabId) {
+    //       case 'all':
+    //         return SupportCount + ExchangeCount;
+    //       case 'free-support':
+    //         return SupportCount;
+    //       case 'exchange-support':
+    //         return ExchangeCount;
+    //       default:
+    //         return 0;
+    //     }
+    //   };
+    //   // 組合 Tab 按鈕 HTML (融入您提供的 UI 邏輯與樣式)
+    //   const tabsHtml = `
+    //     <div id="profile-tabs-wrapper" class="flex items-center space-x-1 bg-zinc-100 rounded-xl overflow-x-scroll p-1 text-xs no-scrollbar mb-4">
+    //       ${filterTabs.map(tab => {
+    //         const isActive = state.profileActiveTab === tab.id;
+    //         const count = getTabCount(tab.id);
+    //         return `
+    //           <button 
+    //             data-tab-id="${tab.id}"
+    //             class="px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap flex-1 items-center space-x-1.5 ${
+    //               isActive 
+    //                 ? 'bg-white text-zinc-900 shadow-sm'
+    //                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+    //             }"
+    //           >
+    //             <span>${tab.label}(${count})</span>
+    //           </button>
+    //         `;
+    //       }).join('')}
+    //     </div>
+    //   `;
+    //   // 根據 Tab 篩選出要顯示的發布列表
+    //   let displayPosts = [];
+    //   if (state.profileActiveTab === 'all') {
+    //     displayPosts = allMyPosts;
+    //   } else if (state.profileActiveTab === 'free-support') {
+    //     displayPosts = mySupports;
+    //   } else if (state.profileActiveTab === 'exchange-support') {
+    //     displayPosts = myExchanges;
+    //   }
 
-      // 根據當前 Tab 選擇渲染對應內容
-      let contentHtml = '';
-      if (displayPosts.length === 0) {
-        contentHtml = `<div class="col-span-full text-center py-8 text-zinc-400 text-xs">尚無發布項目</div>`;
-      } else {
-        contentHtml = displayPosts.map(post => {
-          const isFreeSupport =post.type === "free-support";
-          return `
-            <div class="bg-white border border-zinc-200 rounded-xl p-3 flex gap-3 items-center justify-between">
-              <div class="flex items-center gap-3 overflow-hidden">
-                <img src="${post.images ? post.images[0] : (post.image || '')}" class="w-12 h-12 rounded-lg object-cover bg-zinc-100 shrink-0">
-                <div class="truncate">
-                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${
-                    isFreeSupport ? 'bg-emerald-50 text-emerald-600 border border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'
-                  }">
-                    ${isFreeSupport ? "應援" : "交換"}
-                  </span>
-                  <h5 class="text-xs font-bold text-zinc-800 truncate">${post.title}</h5>
-                  <span class="text-[10px] flex items-center text-slate-400"><i class="fa-regular fa-bookmark mr-1 text-[11px]"></i> ${post.bookmarkCount} 收藏</span>
-                </div>
-              </div>
+    //   // 根據當前 Tab 選擇渲染對應內容
+    //   let contentHtml = '';
+    //   if (displayPosts.length === 0) {
+    //     contentHtml = `<div class="col-span-full text-center py-8 text-zinc-400 text-xs">尚無發布項目</div>`;
+    //   } else {
+    //     contentHtml = displayPosts.map(post => {
+    //       const isFreeSupport =post.type === "free-support";
+    //       return `
+    //         <div class="bg-white border border-zinc-200 rounded-xl p-3 flex gap-3 items-center justify-between">
+    //           <div class="flex items-center gap-3 overflow-hidden">
+    //             <img src="${post.images ? post.images[0] : (post.image || '')}" class="w-12 h-12 rounded-lg object-cover bg-zinc-100 shrink-0">
+    //             <div class="truncate">
+    //               <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${
+    //                 isFreeSupport ? 'bg-emerald-50 text-emerald-600 border border-emerald-200':'bg-amber-50 text-amber-600 border border-amber-200'
+    //               }">
+    //                 ${isFreeSupport ? "應援" : "交換"}
+    //               </span>
+    //               <h5 class="text-xs font-bold text-zinc-800 truncate">${post.title}</h5>
+    //               <span class="text-[10px] flex items-center text-slate-400"><i class="fa-regular fa-bookmark mr-1 text-[11px]"></i> ${post.bookmarkCount} 收藏</span>
+    //             </div>
+    //           </div>
 
-                <button onclick="openPostDetailModal('${post.type || 'support'}', '${post.id}')" class="text-purple-600 font-bold shrink-0 text-[10px] ml-2 font-semibold">
-                  管理
-                </button>
-            </div>
-          `;
-        }).join('');
-      }
-      // 更新畫面 DOM
-      myPostsContainer.parentElement.innerHTML = `
-        <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5 mb-3">
-          我的發布管理
-        </h4>
-        ${tabsHtml}
-        <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          ${contentHtml}
-        </div>
-      `;
+    //             <button onclick="openPostDetailModal('${post.type || 'support'}', '${post.id}')" class="text-purple-600 font-bold shrink-0 text-[10px] ml-2 font-semibold">
+    //               管理
+    //             </button>
+    //         </div>
+    //       `;
+    //     }).join('');
+    //   }
+    //   // 更新畫面 DOM
+    //   myPostsContainer.parentElement.innerHTML = `
+    //     <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5 mb-3">
+    //       我的發布管理
+    //     </h4>
+    //     ${tabsHtml}
+    //     <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    //       ${contentHtml}
+    //     </div>
+    //   `;
 
-      // 綁定 Tab 切換點擊事件 (Event Delegation)
-      const tabsWrapper = document.getElementById('profile-tabs-wrapper');
-      if (tabsWrapper) {
-        tabsWrapper.addEventListener('click', (e) => {
-          const button = e.target.closest('button[data-tab-id]');
-          if (!button) return;
+    //   // 綁定 Tab 切換點擊事件 (Event Delegation)
+    //   const tabsWrapper = document.getElementById('profile-tabs-wrapper');
+    //   if (tabsWrapper) {
+    //     tabsWrapper.addEventListener('click', (e) => {
+    //       const button = e.target.closest('button[data-tab-id]');
+    //       if (!button) return;
           
-          const tabId = button.getAttribute('data-tab-id');
-          if (tabId && state.profileActiveTab !== tabId) {
-            state.profileActiveTab = tabId;
-            renderProfile(); // 重新渲染更新面板內容
-          }
-        });
-      }
-    }
+    //       const tabId = button.getAttribute('data-tab-id');
+    //       if (tabId && state.profileActiveTab !== tabId) {
+    //         state.profileActiveTab = tabId;
+    //         renderProfile(); // 重新渲染更新面板內容
+    //       }
+    //     });
+    //   }
+    // }
 
     // ==================== STREAMING_CHUNK: 貼文詳情視窗控制與複製 ====================
-    function openPostDetailModal(type, itemId, previewItem = null) {
+    export function openPostDetailModal(type, itemId, previewItem = null) {
       const isFreeSupport = type === "free-support";
       const item = previewItem || (isFreeSupport 
         ? state.supportEvents.find(s => s.id === itemId)
@@ -2812,198 +1718,11 @@
       document.getElementById("modal-post-detail").classList.remove("hidden");
     }
 
-    function closePostDetailModal() {
-      document.getElementById("modal-post-detail").classList.add("hidden");
-      state.activeDetailItem = null;
-      document.getElementById("detail-bookmark-btn").classList.remove("hidden");
-      if (state.isPublishPreview && !state.isConfirmingPublish) {
-        state.isPublishPreview = false;
-        document.getElementById("modal-publish-post").classList.remove("hidden");
-      }
-    }
     function closeBookmarkConfirmModal() {
       document.getElementById("modal-bookmark-confirm").classList.add("hidden");
       state.pendingRemoveBookmarkId = null;
     }
-
-    async function toggleConcertAttend() {
-      const concert = state.bookmarkedConcerts.find(c => c.id === state.selectedConcert.id);
-      if (!concert) return;
-      if (state.currentUser.isAnonymous){
-        showToast("請先前往登入才能執行這項操作");
-        return;
-      }
-      const uid = state.currentUser.id;
-      const AttendedConcertsRef = doc(db,"artifacts",appId,"users",uid,"attendedConcerts",state.selectedConcert.id);
-      const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
-      const idx = state.userAttendedConcerts.indexOf(state.selectedConcert.id);
-      const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
-
-      if (idx > -1) {
-        showToast("已取消參加", "fa-circle-info");
-        const nextCount = state.selectedConcert.attendedCount - 1;
-        state.userAttendedConcerts = state.userAttendedConcerts.filter(id => id !== state.selectedConcert.id);
-        await deleteDoc(AttendedConcertsRef);
-        await updateDoc(concertDocRef, {
-          attendedCount: increment(-1),
-        });
-
-      } else {
-        showToast("已確認參加！當天現場見 🎉", "fa-circle-check");
-        const nextCount = state.selectedConcert.attendedCount + 1;
-        state.userAttendedConcerts.push(state.selectedConcert.id);
-        await setDoc(AttendedConcertsRef, {
-            concertId: state.selectedConcert.id,
-        });
-        await updateDoc(concertDocRef, {
-          attendedCount: increment(1),
-        });
-
-      }
-      updateConcertActionButtons();
-      renderConcertDetail();
-    }
-    window.toggleConcertAttend = toggleConcertAttend;
-    // 更新確定參戰 / 關注場次按鈕樣式
-    function updateConcertActionButtons() {
-      const concert = state.concerts.find(c => c.id === state.selectedConcert.id);
-      if (!concert) return;
-      const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
-      // 收藏
-      const attendBtn = document.getElementById('btn-detail-attend');
-      const attendText = document.getElementById('detail-attend-text');
-      const attendIcon = document.getElementById('detail-attend-icon');
-      document.getElementById('detail-attend-count').innerText = concert.attendedCount || 0;
-
-      if (isAttended) {
-        attendText.innerText = "已參加";
-        attendBtn.className = "bg-amber-400 text-zinc-950 text-[11px] px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md active:scale-95";
-        attendIcon.className = "fa-solid fa-ticket text-zinc-950";
-      } else {
-        attendText.innerText = "我會去";
-        attendBtn.className = "bg-brand hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
-        attendIcon.className = "fa-solid fa-ticket text-amber-400";
-      }
-    }
-
-    async function toggleDetailBookmark() {
-      if (!state.activeDetailItem) return;
-      if (state.currentUser.isAnonymous){
-        showToast("請先前往登入才能收藏應援");
-        return;
-      }
-      const uid = state.currentUser.id;
-      const postId = state.activeDetailItem.data.id;
-      const postType = state.activeDetailItem.type;
-      const concertId = state.activeDetailItem.data.concertId;
-      const collectionName = postType === "free-support"? "supportEvents" :"exchangePosts";
-      
-      const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-      const postRef = doc( db, "artifacts", appId, "public", "data",collectionName,postId);
-      const isBookmarked = state.bookmarkedPostIds.includes(postId);
-
-      try{
-        if (isBookmarked) {
-          showToast("已將該項目移出我的收藏");
-          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
-          await deleteDoc(bookmarkRef);
-          await updateDoc(postRef, { bookmarkCount: increment(-1) });
-        } else {
-            showToast("已成功收藏該項目");
-            state.bookmarkedPostIds.push(postId);
-            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
-            await setDoc(bookmarkRef, {
-                postId,
-                type: postType,
-                concertId: concertId,
-                bookmarkedAt: serverTimestamp()
-            });
-            await updateDoc(postRef, {bookmarkCount: increment(1)});
-        }
-        
-        const heart = document.getElementById("detail-bookmark-heart");
-        if (state.bookmarkedPostIds.includes(postId)) {
-          heart.classList.add("fill-pink-500", "text-pink-500");
-          heart.classList.remove("text-zinc-400");
-        } else {
-          heart.classList.remove("fill-pink-500", "text-pink-500");
-          heart.classList.add("text-zinc-400");
-        }
-        renderBookmarks();
-      } catch (error) {
-        console.error("Bookmark toggle error:", error);
-        // Firestore 操作失敗時，重新同步目前收藏狀態
-        if (isBookmarked) {
-          state.bookmarkedPostIds.push(postId);
-        } else {
-          state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
-        }
-        localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
-        showToast("收藏操作失敗，請稍後再試");
-      }
-    }
-    //收藏頁面的取消收藏
-    async function toggleBookmark(event,postId) {
-        event.stopPropagation();
-        if (state.currentUser.isAnonymous) {
-          showToast("請先前往登入才能收藏應援");
-          return;
-        }
-        const uid = state.currentUser.id;
-        
-        const supportItem = state.supportEvents.find(item => item.id === postId);
-        const exchangeItem = state.exchangePosts.find(item => item.id === postId);
-        const item = supportItem || exchangeItem;
-        if (!item) {
-          showToast("找不到該應援資料");
-          return;
-        }
-        const postType = supportItem ? "free-support" : "support-exchange";
-        const collectionName = supportItem ? "supportEvents": "exchangePosts";
-
-        const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-        const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
-        const isBookmarked = state.bookmarkedPostIds.includes(postId);
-        if (isBookmarked) {  
-            state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
-            // 開啟確認視窗
-            document.getElementById("modal-bookmark-confirm").classList.remove("hidden");
-        } else { //如果收藏頁面沒有馬上更新頁面可以重新收藏
-          try {
-            await setDoc(bookmarkRef, {
-              postId,
-              type: postType,
-              concertId: item.concertId,
-              bookmarkedAt: serverTimestamp()
-            });
-
-            await updateDoc(postRef, {
-              bookmarkCount: increment(1)
-            });
-            state.bookmarkedPostIds.push(postId);
-            state.bookmarkData[postId] = {
-              postId,
-              type: postType,
-              concertId: item.concertId,
-            };
-            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
-            localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
-
-            showToast("已成功收藏該項目");
-            renderBookmarks();
-
-          } catch (error) {
-            console.error("Add bookmark error:", error);
-            state.bookmarkedPostIds = state.bookmarkedPostIds.filter(id => id !== postId);
-            localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
-            delete state.bookmarkData[postId];
-            localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
-            showToast("收藏失敗，請稍後再試");
-          }
-            
-        }
-    }
-      async function executeRemoveBookmark() { //收藏頁用
+    async function executeRemoveBookmark() { //收藏頁用
       if (!state.pendingRemoveBookmarkId) return;
 
       const postId = state.pendingRemoveBookmarkId;
@@ -3045,639 +1764,8 @@
       }
     }
 
-    // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
-    function getPublishDraftStorageKey() {
-      return state.selectedConcert ? `fanmap-publish-draft:${state.selectedConcert.id}` : null;
-    }
-
-    function savePublishDraft() {
-      if (state.isEditingMode || state.isRestoringPublishDraft || !state.selectedConcert) return;
-
-      const datesQuantities = {};
-      document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
-        const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
-        datesQuantities[checkbox.value] = qtyInput ? qtyInput.value : "";
-      });
-
-      const draft = {
-        type: state.publishPostType,
-        title: document.getElementById("post-title").value,
-        category: getSelectedCategories(),
-        isAI: document.getElementById("ai-checkbox").checked,
-        requirement: document.getElementById("post-requirement").value,
-        notice: document.getElementById("post-notice").value,
-        approxLocation: document.getElementById("post-approx-location").value,
-        originalLink: document.getElementById("post-original-link").value,
-        liveUpdateLink: document.getElementById("post-live-update-link").value,
-        datesQuantities
-      };
-
-      try {
-        localStorage.setItem(getPublishDraftStorageKey(), JSON.stringify(draft));
-      } catch (error) {
-        console.warn("Unable to save publish draft:", error);
-      }
-    }
-
-    function loadPublishDraft() {
-      const key = getPublishDraftStorageKey();
-      if (!key) return null;
-      try {
-        return JSON.parse(localStorage.getItem(key) || "null");
-      } catch (error) {
-        console.warn("Unable to load publish draft:", error);
-        return null;
-      }
-    }
-
-    function clearPublishDraft() {
-      const key = getPublishDraftStorageKey();
-      if (key) localStorage.removeItem(key);
-    }
-
-    function restorePublishDraft(draft) {
-      document.getElementById("post-title").value = draft.title || "";
-      document.getElementById("post-requirement").value = draft.requirement || "";
-      document.getElementById("post-notice").value = draft.notice || "";
-      document.getElementById("post-approx-location").value = draft.approxLocation || "";
-      document.getElementById("post-original-link").value = draft.originalLink || "";
-      document.getElementById("post-live-update-link").value = draft.liveUpdateLink || "";
-      document.getElementById("ai-checkbox").checked = Boolean(draft.isAI);
-      document.querySelectorAll('#support-category-options input[type="checkbox"]').forEach(checkbox => {
-        checkbox.checked = (draft.category || []).includes(checkbox.value);
-      });
-      setPublishType(draft.type === "support-exchange" ? "support-exchange" : "free-support");
-      buildPublishDateOptions(Object.keys(draft.datesQuantities || {}), draft.datesQuantities || {});
-    }
-
-    function openPublishModal() {
-      if (!state.selectedConcert) return;
-      if(state.selectedConcert.isPending === true){
-        showToast("場次尚未完成驗證，無法新增應援")
-        return;}
-      if (state.currentUser.isAnonymous){
-        showToast("請先前往登入才能發布");
-        return;
-      }
-      const contactHandle = state.currentUser.contact.trim();
-      if (!contactHandle){
-        showToast("請先前往個人中心填寫社群連結後才能發布");
-        return;
-      }
-      state.isEditingMode = false;
-      state.editingItemId = null;
-      const draft = loadPublishDraft();
-      state.isRestoringPublishDraft = true;
-      clearUploadedImage();
-
-      document.getElementById("publish-modal-title").innerText = "發布新應援項目";
-      document.getElementById("publish-edit-badge").classList.add("hidden");
-      document.getElementById("publish-type-toggle-container").classList.remove("hidden");
-
-      document.getElementById("post-title").value = "";
-      document.getElementById("post-requirement").value = "";
-      document.getElementById("post-notice").value = "";
-      document.getElementById("post-approx-location").value = "";
-      document.getElementById("post-original-link").value = "";
-      document.getElementById("post-live-update-link").value = "";
-      document.getElementById("ai-checkbox").checked = false;
-      document.querySelectorAll('#support-category-options input[type="checkbox"]').forEach(checkbox => {
-        checkbox.checked = false;
-      });
-
-      if (draft) {
-        restorePublishDraft(draft);
-      } else {
-        setPublishType("free-support");
-      }
-      state.isRestoringPublishDraft = false;
-
-      document.getElementById("modal-publish-post").classList.remove("hidden");
-    }
-
-    function closePublishModal() {
-      document.getElementById("modal-publish-post").classList.add("hidden");
-      state.isEditingMode = false;
-      state.editingItemId = null;
-    }
-
-    function setPublishType(type) {
-      state.publishPostType = type;
-      const btnSupport = document.getElementById("publish-type-btn-free-support");
-      const btnExchange = document.getElementById("publish-type-btn-support-exchange");
-
-      [btnSupport, btnExchange].forEach(btn => {
-        btn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-400";
-      });
-
-      const activeBtn = type === "free-support" ? btnSupport : btnExchange ;
-      activeBtn.className = "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-zinc-850 shadow-xs";
-
-      const supOnly = document.getElementById("support-only-fields");
-      const labelTitle = document.getElementById("label-post-title");
-      const labelRequire = document.getElementById("label-post-requirement");
-
-      if (type === "free-support") {
-        supOnly.classList.remove("hidden");
-        labelRequire.innerText="領取條件限制";
-      } else if(type === "support-exchange"){
-        supOnly.classList.remove("hidden");
-        labelRequire.innerText="交換對象限制";
-      }
-
-      buildPublishDateOptions();
-      savePublishDraft();
-    }
-
-    function buildPublishDateOptions(selectedDatesArray = [], quantitiesMap = {}) {
-      const container = document.getElementById("post-date-options");
-      container.innerHTML = "";
-      if (!state.selectedConcert || !state.selectedConcert.dates) return;
-
-      // 改用垂直排列的容器，方便每一行展開數量輸入框
-      container.className = "space-y-3";
-
-      state.selectedConcert.dates.forEach(dateStr => {
-        const dateSub = dateStr.substring(5);
-        const isChecked = selectedDatesArray.includes(dateStr);
-        // 取得該日期對應的數量（如果有的話）
-        const qtyValue = quantitiesMap[dateStr] || "";
-
-        // 建立外層區塊包住「勾選按鈕」與「展開的數量輸入框」
-        const wrapper = document.createElement("div");
-        wrapper.className = "flex justify-between p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl ";
-        if (state.publishPostType === "free-support" || state.publishPostType === "support-exchange") {
-          wrapper.innerHTML = `
-            <label class="flex items-center space-x-3 cursor-pointer">
-              <input type="checkbox" name="pub-dates" value="${dateStr}" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" ${isChecked ? "checked" : ""} onchange="togglePublishDateBox(this, '${dateStr}')">
-              <span class="text-xs font-bold text-zinc-900">${dateSub}</span>
-            </label>
-            <div id="qty-box-${dateStr}" class="${isChecked ? 'flex' : 'hidden'} items-center space-x-2">
-              <input type="number" inputmode="numeric" name="pub-qty-${dateStr}" placeholder="請輸入發放份數" value="${qtyValue}" class="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-xs text-zinc-900 focus:outline-none focus:border-indigo-500">
-              <span class="text-xs text-zinc-500 flex-shrink-0">份</span>
-            </div>
-          `;
-        } else {
-          // 如果是其他類型（例如交換應援，若也需要單選或對應數量可在此調整）
-          const isSelected = singleDateStr === dateStr || (singleDateStr === "" && state.selectedDate === dateStr);
-          wrapper.innerHTML = `
-            <label class="flex items-center space-x-3 cursor-pointer">
-              <input type="radio" name="pub-date" value="${dateStr}" class="text-indigo-600 focus:ring-indigo-500 w-4 h-4" ${isSelected ? "checked" : ""}>
-              <span class="text-xs font-bold text-zinc-900">${dateSub}</span>
-            </label>
-          `;
-        }
-
-        container.appendChild(wrapper);
-      });
-    }
-
-    // 勾選時動態展開/隱藏對應數量的函式
-    async function togglePublishDateBox(checkbox, dateStr) {
-      const qtyBox = document.getElementById(`qty-box-${dateStr}`);
-      if (checkbox.checked) {
-        qtyBox.classList.remove('hidden');
-        qtyBox.classList.add('flex');
-      } else {
-        qtyBox.classList.remove('flex');
-        qtyBox.classList.add('hidden');
-        // 如果取消勾選，也可以順便清空裡面的輸入框數值
-        const input = qtyBox.querySelector('input');
-        if (input) input.value = '';
-      }
-      savePublishDraft();
-    }
-
-    // ==================== STREAMING_CHUNK: 發布與編輯存檔（寫入 Cloud Firestore） ====================
-    async function uploadPostImages(postId) {
-      const uid = state.currentUser.id;
-      return Promise.all(state.currentUploadedImagesBase64.map(async (image, index) => {
-        // 編輯既有貼文時，已存在的 Storage URL 不需重複上傳。
-        if (!image.startsWith("data:image/")) return image;
-
-        const blob = await (await fetch(image)).blob();
-        const filename = `${Date.now()}-${index}-${crypto.randomUUID()}.jpg`;
-        const imageRef = ref(storage, `post-images/${uid}/${postId}/${filename}`);
-        await uploadBytes(imageRef, blob, {
-          contentType: "image/jpeg",
-          cacheControl: "public, max-age=31536000" //應援圖片快取一年
-        });
-        return getDownloadURL(imageRef);
-      }));
-    }
-    function getSelectedCategories() {
-      // 選出 #support-category-options 裡面所有被勾選的 checkbox
-      const checkedBoxes = document.querySelectorAll('#support-category-options input[type="checkbox"]:checked');
-      // 使用 map 將每一個 checkbox 的 value 轉成陣列
-      const selectedValues = Array.from(checkedBoxes).map(checkbox => checkbox.value);
-      return selectedValues;
-    }
-    function openPublishPreview(item) {
-      state.isPublishPreview = true;
-      document.getElementById("modal-publish-post").classList.add("hidden");
-      openPostDetailModal(item.type, item.id, item);
-    }
-
-    function returnToPublishEditor() {
-      closePostDetailModal();
-    }
-
-    async function confirmPublishFromPreview() {
-      state.isConfirmingPublish = true;
-      state.publishSucceeded = false;
-      const confirmButton = document.getElementById("confirm-publish-btn");
-      const returnButton = document.getElementById("return-to-publish-editor-btn");
-      confirmButton.disabled = true;
-      returnButton.disabled = true;
-      confirmButton.classList.add("opacity-70", "cursor-wait");
-      returnButton.classList.add("opacity-50", "cursor-not-allowed");
-      confirmButton.innerHTML = `
-        <span>發布中…</span>`;
-      await handlePublishPostSubmit({ preventDefault() {} });
-      if (state.publishSucceeded) {
-        closePostDetailModal();
-        state.isPublishPreview = false;
-      } else {
-        confirmButton.disabled = false;
-        returnButton.disabled = false;
-        confirmButton.classList.remove("opacity-70", "cursor-wait");
-        returnButton.classList.remove("opacity-50", "cursor-not-allowed");
-        confirmButton.innerText = "確認發布";
-      }
-      state.isConfirmingPublish = false;
-    }
-
-    async function handlePublishPostSubmit(event) {
-      event.preventDefault();
-
-      if (state.currentUser.isAnonymous) {
-        showToast("請先登入");
-        return;
-      }  
-      const contactHandle = state.currentUser.contact.trim();
-      if (!contactHandle){
-        showToast("請先前往個人中心填寫社群連結後才能發布");
-        return;
-      }
-      
-
-      const title = document.getElementById("post-title").value.trim();
-      const category = getSelectedCategories();
-      const approxLocation = document.getElementById("post-approx-location").value.trim(); //即時位置更新說明
-      const originalLink = document.getElementById("post-original-link").value.trim();//原始貼文連結
-      const liveUpdateLink = document.getElementById("post-live-update-link").value.trim(); //即時位置更新處
-      const requirement = document.getElementById("post-requirement").value.trim();//領取條件／交換對象限制
-      const notice = document.getElementById("post-notice").value.trim();//注意事項
-      const isAI =document.getElementById("ai-checkbox").checked; //是否 AI 生成
-      
-      const authorData = {
-        userId: state.currentUser.id,
-        authorName: state.currentUser.username,
-        userAvatar: state.currentUser.avatar,
-        contactInfo: contactHandle 
-      };
-
-      if (!title) {
-        showToast("請填寫應援物標題");
-        return;
-      }else if (category.length === 0) {
-        showToast("請至少選擇一個應援物類別");
-        return;
-      } else if (!approxLocation) {
-        showToast("請填寫即時位置更新說明");
-        return;
-      }
-
-      // 新增貼文時，先以表單中的本機圖片與欄位資料預覽，不進行上傳或寫入。
-      if (!state.isEditingMode && !state.isConfirmingPublish) {
-        const datesQuantities = {};
-        document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
-          const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
-          datesQuantities[checkbox.value] = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
-        });
-        const selectedDates = Object.keys(datesQuantities);
-        const totalQuantity = Object.values(datesQuantities).reduce((sum, qty) => sum + qty, 0);
-
-        if (selectedDates.length === 0) {
-          showToast("請至少選取一個發放日期");
-          return;
-        }
-        if (totalQuantity <= 0) {
-          showToast("請至少輸入一個發放份數");
-          return;
-        }
-        if (state.currentUploadedImagesBase64.length === 0) {
-          showToast("請至少上傳一張應援物照片");
-          return;
-        }
-
-        openPublishPreview({
-          type: state.publishPostType,
-          id: `preview_${Date.now()}`,
-          concertId: state.selectedConcert.id,
-          title, category, totalquantity: totalQuantity, datesQuantities, dates: selectedDates,
-          requirement, notice, approxLocation, originalLink, liveUpdateLink,
-          image: state.currentUploadedImagesBase64[0], images: [...state.currentUploadedImagesBase64], isAI,
-          ...authorData
-        });
-        return;
-      }
-
-      // 如果有上傳 Canvas 壓縮照片就使用它，否則套用 Unsplash 的動態配圖
-      const postId = state.isEditingMode && state.editingItemId
-        ? state.editingItemId
-        : (state.publishPostType === "free-support" ? `sup_${Date.now()}` : `exch_${Date.now()}`);
-      let finalImage = "";
-      let finalImages = [];
-
-      const submitBtn = document.getElementById("publish-submit-btn");
-      submitBtn.disabled = true;
-      submitBtn.innerText = "資料同步中...";
-
-      try {
-        // 1. 抓取所有被勾選的日期與對應數量
-        const datesQuantities = {};
-        const datecheckedBoxes = document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked');
-
-        datecheckedBoxes.forEach(checkbox => {
-          const dateStr = checkbox.value;
-          // 找到該日期對應的數量輸入框
-          const qtyInput = document.querySelector(`input[name="pub-qty-${dateStr}"]`);
-          const qty = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
-          datesQuantities[dateStr] = qty;
-        });
-
-        // 2. 提取出所有有被勾選的日期陣列 (給 dates 欄位用)
-        const selectedDates = Object.keys(datesQuantities);
-        const totalQuantity = Object.values(datesQuantities).reduce((a, b) => a + b, 0); //總發放數量
-
-        finalImages = await uploadPostImages(postId);
-        finalImage = finalImages[0] || finalImage;
-        if (state.isEditingMode && state.editingItemId) {
-          if (selectedDates.length === 0) {
-              showToast("請至少選取一個發放日期");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布應援";
-              return;
-            }else if (totalQuantity <= 0) {
-              showToast("請至少輸入一個發放份數");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布應援";
-              return;
-            }
-            else if (finalImages.length === 0) {
-              showToast("請至少上傳一張應援物照片");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布應援";
-              return;
-            }
-          // A. 編輯存檔
-          if (state.publishPostType === "free-support") {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', state.editingItemId);
-            await updateDoc(docRef, {
-              type: state.publishPostType,
-              title, category, 
-              totalquantity: totalQuantity, // 總數量
-              datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
-              dates: selectedDates,  // 存入有參與的日期陣列：["2026-01-10", "2026-01-11"]
-              requirement, notice, approxLocation,
-              originalLink, liveUpdateLink, dates: selectedDates,
-              image: finalImage,
-              images: finalImages,
-              isAI, // 是否 AI 生成
-              ...authorData
-            });
-          } else { //交換應援
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', state.editingItemId);
-            await updateDoc(docRef, {
-              type: state.publishPostType,
-              title, category, 
-              totalquantity: totalQuantity, // 總數量
-              datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
-              dates: selectedDates,  // 存入有參與的日期陣列：["2026-01-10", "2026-01-11"]
-              requirement, notice, approxLocation,
-              originalLink, liveUpdateLink, dates: selectedDates,
-              image: finalImage,
-              images: finalImages,
-              isAI, // 是否 AI 生成
-              ...authorData
-            });
-          }
-          showToast("應援資料修改成功！");
-
-        } else {
-          // B. 發布全新項目
-          if (selectedDates.length === 0) {
-              showToast("請至少選取一個發放日期");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布看板項目";
-              return;
-            }else if (totalQuantity <= 0) {
-              showToast("請至少輸入一個發放份數");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布看板項目";
-              return;
-            }else if (finalImages.length === 0) {
-              showToast("請至少上傳一張應援物照片");
-              submitBtn.disabled = false;
-              submitBtn.innerText = "發布看板項目";
-              return;
-          }
-          if (state.publishPostType === "free-support") {
-            const checkboxes = document.getElementsByName("pub-dates");
-            const selectedDates = [];
-            checkboxes.forEach(c => { if (c.checked) selectedDates.push(c.value); });
-            const newSupportId = postId;
-            const newSupport = {
-              type: state.publishPostType,
-              id: newSupportId,
-              concertId:state.selectedConcert.id,
-              title, category, 
-              totalquantity: totalQuantity, // 總數量
-              datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
-              dates: selectedDates, // 存入有參與的日期陣列
-              requirement, notice, approxLocation,
-              originalLink, liveUpdateLink,
-              image: finalImage,
-              images: finalImages,
-              isAI, // 是否 AI 生成
-              ...authorData,
-              bookmarkCount: 0,
-            };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', newSupportId), newSupport);
-            showToast("成功新增免費應援！");
-          } else { //交換應援
-            const checkboxes = document.getElementsByName("pub-dates");
-            const selectedDates = [];
-            checkboxes.forEach(c => { if (c.checked) selectedDates.push(c.value); });
-
-            const newExchangeId = postId;
-            const newExchange = {
-              type: state.publishPostType,
-              id: newExchangeId,
-              concertId: state.selectedConcert.id,
-              title, category, 
-              totalquantity: totalQuantity, // 總數量
-              datesQuantities,       // 存入詳細對應 {"2026-01-10": 50, "2026-01-11": 30}
-              dates: selectedDates,  // 存入有參與的日期陣列：["2026-01-10", "2026-01-11"]
-              requirement, notice, approxLocation,
-              originalLink, liveUpdateLink,
-              image: finalImage,
-              images: finalImages,
-              isAI, // 是否 AI 生成true or false
-              ...authorData,
-              bookmarkCount: 0,
-            };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', newExchangeId), newExchange);
-            showToast("成功新增交換應援！");
-          }
-        }
-        if (!state.isEditingMode) clearPublishDraft();
-        state.publishSucceeded = true;
-        closePublishModal();
-      } catch (error) {
-        console.error("Publish error:", error);
-        showToast("儲存失敗，請確認 Firestore 安全規則設定");
-        state.publishSucceeded = false;
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "發布看板項目";
-      }
-    }
-
-    // 啟動編輯
-    function startEditPost() {
-      if (!state.activeDetailItem) return;
-      const { type, data } = state.activeDetailItem;
-
-      state.isEditingMode = true;
-      state.editingItemId = data.id;
-      closePostDetailModal();
-
-      document.getElementById("publish-modal-title").innerText = "編輯應援項目";
-      document.getElementById("publish-submit-btn").innerText = "儲存編輯";
-      document.getElementById("publish-edit-badge").classList.remove("hidden");
-      document.getElementById("publish-type-toggle-container").classList.add("hidden");
-
-      document.getElementById("post-title").value = data.title;
-
-      document.getElementById("post-requirement").value = data.requirement || "";
-      document.getElementById("post-notice").value = data.notice || "";
-      document.getElementById("post-approx-location").value = data.approxLocation || "";
-      document.getElementById("post-original-link").value = data.originalLink || "";
-      document.getElementById("post-live-update-link").value = data.liveUpdateLink || "";
-      const categoryCheckboxes = document.querySelectorAll('#support-category-options input[type="checkbox"]');
-      
-      categoryCheckboxes.forEach(cb => {
-        // 假設單一字串或陣列皆可相容判斷
-        cb.checked = data.category && data.category.includes(cb.value);
-      });
-
-      // 載入原有照片預覽
-      if (data.image) {
-        state.currentUploadedImageBase64 = data.image;
-        state.currentUploadedImagesBase64 = Array.isArray(data.images) ? data.images : [data.image];
-        const previewContainer = document.getElementById("image-upload-preview-container");
-        const previewImg = document.getElementById("image-upload-preview");
-        if (previewImg) previewImg.src = data.image;
-        previewContainer.classList.remove("hidden");
-        renderImageUploadPreviews();
-        document.getElementById("image-upload-hint").innerText = "已載入原始照片";
-        renderImageUploadPreviews();
-      } else {
-        clearUploadedImage();
-      }
-
-      const pType = type === "free-support" ? "free-support" : "support-exchange";
-      setPublishType(pType);
-
-      buildPublishDateOptions(data.dates || [], data.datesQuantities || {});
-
-      document.getElementById("modal-publish-post").classList.remove("hidden");
-    }
-
-    // ==================== STREAMING_CHUNK: 貼文刪除處理 ====================
-    function triggerDeletePost() {
-      if (!state.activeDetailItem) return;
-      const { type, data } = state.activeDetailItem;
-      state.deleteTarget = { type, id: data.id };
-      state.isDeletingPost = false;
-      resetDeleteButtons();
-
-      closePostDetailModal();
-      document.getElementById("modal-delete-confirm").classList.remove("hidden");
-    }
-
-    function closeDeleteConfirmModal() {
-      if (state.isDeletingPost) return;
-      document.getElementById("modal-delete-confirm").classList.add("hidden");
-      state.deleteTarget = null;
-    }
-
-    function resetDeleteButtons() {
-      const cancelButton = document.getElementById("cancel-delete-btn");
-      const confirmButton = document.getElementById("confirm-delete-btn");
-      cancelButton.disabled = false;
-      confirmButton.disabled = false;
-      cancelButton.classList.remove("opacity-50", "cursor-not-allowed");
-      confirmButton.classList.remove("opacity-70", "cursor-wait");
-      confirmButton.innerText = "確認刪除";
-    }
-
-    async function executeDeletePost() {
-      if (!state.deleteTarget || !state.currentUser || state.isDeletingPost) return;
-      const { type, id } = state.deleteTarget;
-      const uid = state.currentUser.id;
-      state.isDeletingPost = true;
-      const cancelButton = document.getElementById("cancel-delete-btn");
-      const confirmButton = document.getElementById("confirm-delete-btn");
-      cancelButton.disabled = true;
-      confirmButton.disabled = true;
-      cancelButton.classList.add("opacity-50", "cursor-not-allowed");
-      confirmButton.classList.add("opacity-70", "cursor-wait");
-      confirmButton.innerHTML = `
-        <span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle><path class="opacity-90" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path></svg>刪除中…</span>`;
-
-      try {
-        const folderRef = ref(storage, `post-images/${uid}/${id}`); //刪除storage該應援資料夾圖片
-        try {
-          const res = await listAll(folderRef);
-          // 透過 Promise.all 平行刪除資料夾內的所有圖片
-          const deletePromises = res.items.map((fileRef) => deleteObject(fileRef));
-          await Promise.all(deletePromises);
-        } catch (storageErr) {
-          // 若該貼文本來就沒有照片或資料夾不存在，抓取錯誤並記錄日誌，不中斷貼文刪除流程
-          console.warn("Storage 照片資料夾清理狀況:", storageErr);
-        }
-
-        const collectionName = type === "free-support" ? "supportEvents" : "exchangePosts";
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, id);
-        await deleteDoc(docRef);
-
-        state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== id);
-
-        showToast("項目成功自即時看板下架！");
-        state.isDeletingPost = false;
-        closeDeleteConfirmModal();
-      } catch (error) {
-        console.error("Delete error:", error);
-        showToast("下架失敗，請稍後再試");
-        state.isDeletingPost = false;
-        resetDeleteButtons();
-      }
-    }
 
     // ==================== STREAMING_CHUNK: 提案建立新場次與公用工具 ====================
-    function handleCopyText(text, platform) {
-      const tempInput = document.createElement("input");
-      tempInput.value = text;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-      showToast(`已複製聯絡人 ${platform} 帳號！`);
-    }
-
     function openAddConcertModal() {
       if (state.currentUser.isAnonymous){
         showToast("請先前往登入才能提案");
@@ -4026,45 +2114,33 @@
 
     // ==================== STREAMING_CHUNK: 綁定 window 全域互動方法（防 iFrame onclick 遺失） ====================
     window.showToast=showToast;
-    window.switchTab = switchTab;
+    // window.switchTab = switchTab;
     window.renderAll=renderAll;
-    window.navigateToConcert = navigateToConcert;
+    window.renderHeroCarousel =renderHeroCarousel;
+    // window.navigateToConcert = navigateToConcert;
     window.nextCarouselSlide = nextCarouselSlide;
     window.prevCarouselSlide = prevCarouselSlide;
     window.goToCarouselSlide = goToCarouselSlide;
-    window.openConcertDetail = navigateToConcert;
+    // window.openConcertDetail = navigateToConcert;
     window.processConcertImageUpload = processConcertImageUpload;
     window.addConcertDateField = addConcertDateField;
     window.removeConcertDateField = removeConcertDateField;
     window.clearConcertUploadedImage = clearConcertUploadedImage;
     window.navigateBack = navigateBack;
     window.handleSearch = handleSearch;
-    window.setSubCategory = setSubCategory;
-    window.voteForConcert = voteForConcert;
+    //window.setSubCategory = setSubCategory;
+    // window.voteForConcert = voteForConcert;
 
     window.processProfileAvatarUpload = processProfileAvatarUpload;
     window.openPostDetailModal = openPostDetailModal;
-    window.closePostDetailModal = closePostDetailModal;
-    window.closeBookmarkConfirmModal = closeBookmarkConfirmModal;
-    window.toggleDetailBookmark = toggleDetailBookmark;
+    // window.closeBookmarkConfirmModal = closeBookmarkConfirmModal;
+    // window.toggleDetailBookmark = toggleDetailBookmark;
 
-    window.renderBookmarks=renderBookmarks;
-    window.renderBookmarksItems=renderBookmarksItems;
-    window.toggleBookmark = toggleBookmark; //收藏頁用
-    window.executeRemoveBookmark = executeRemoveBookmark; //收藏頁用
+    // window.renderBookmarks=renderBookmarks;
+    // window.renderBookmarksItems=renderBookmarksItems;
+    // window.toggleBookmark = toggleBookmark; //收藏頁用
+    // window.executeRemoveBookmark = executeRemoveBookmark; //收藏頁用
 
-    window.openPublishModal = openPublishModal;
-    window.closePublishModal = closePublishModal;
-    window.setPublishType = setPublishType;
-    window.togglePublishDateBox=togglePublishDateBox;
-    window.handlePublishPostSubmit = handlePublishPostSubmit;
-    window.returnToPublishEditor = returnToPublishEditor;
-    window.confirmPublishFromPreview = confirmPublishFromPreview;
-    window.startEditPost = startEditPost;
-    window.triggerDeletePost = triggerDeletePost;
-    window.closeDeleteConfirmModal = closeDeleteConfirmModal;
-    window.executeDeletePost = executeDeletePost;
-    window.handleCopyText = handleCopyText;
     window.openAddConcertModal = openAddConcertModal;
     window.closeAddConcertModal = closeAddConcertModal;
     window.handleAddConcertSubmit = handleAddConcertSubmit;
@@ -4074,15 +2150,13 @@
     window.processEditConcertImageUpload = processEditConcertImageUpload;
     window.addEditConcertDateField = addEditConcertDateField;
     window.triggerFileInput = triggerFileInput;
-    window.processImageUpload = processImageUpload;
-    window.clearUploadedImage = clearUploadedImage;
-    window.removeUploadedImage = removeUploadedImage;
+
     window.handleGoogleSignIn = handleGoogleSignIn;
     window.handleSignOut = handleSignOut;
 
-    const publishForm = document.querySelector("#modal-publish-post form");
-    publishForm.addEventListener("input", savePublishDraft);
-    publishForm.addEventListener("change", savePublishDraft);
+    // const publishForm = document.querySelector("#modal-publish-post form");
+    // publishForm.addEventListener("input", savePublishDraft);
+    // publishForm.addEventListener("change", savePublishDraft);
   </script>
 </body>
 </html>

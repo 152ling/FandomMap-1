@@ -4,11 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
-    <link rel="stylesheet" href="./style.css" />
+    <link rel=stylesheet type="text/css" href="css/style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- ==================== MODAL 2: 發布與編輯應援/交換貼文 ==================== -->
+    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
+        <!-- 頂部導覽列 -->
+        <div class="sticky top-0 z-20 flex items-center justify-between px-6 py-3.5 bg-white/90 backdrop-blur-md border-b border-zinc-100">
+          <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2">
+              <h3 id="publish-modal-title" class="text-sm md:text-base font-black text-zinc-850">發布新看板項目</h3>
+              <span id="publish-edit-badge" class="hidden text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-black">僅限自己編輯</span>
+            </div>
+            <button onclick="closePublishModal()" class="text-zinc-400 hover:text-zinc-800 bg-zinc-100 p-1.5 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+        <!-- 可滾動內容區塊 -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar px-6 space-y-2 pb-6">
+          <!-- 類型切換 (僅新增模式下顯示) -->
+          <div id="publish-type-toggle-container" class="flex bg-zinc-100 p-1 rounded-xl">
+            <button type="button" id="publish-type-btn-free-support" onclick="setPublishType('free-support')" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all bg-white text-zinc-850 shadow-xs">
+              免費應援
+            </button>
+            <button type="button" id="publish-type-btn-support-exchange" onclick="setPublishType('support-exchange')" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all text-zinc-400">
+              交換應援
+            </button>
+          </div>
+
+          <form onsubmit="handlePublishPostSubmit(event)" class="space-y-3.5 text-xs text-zinc-800">
+            <div>
+              <label id="label-post-title" class="block text-zinc-500 font-bold mb-1">應援物標題<span class="text-red-500">*</span></label>
+              <input type="text" id="post-title" placeholder="例:oo吊飾、oo杯套" class="w-full bg-white border border-zinc-200 rounded-lg py-2.5 px-3 text-zinc-800" required>
+            </div>
+
+            <!-- 應援相片上傳區 (現場拍照/上傳、自動安全等比 Canvas 壓縮) -->
+            <div>
+              <label class="block text-zinc-500 font-bold mb-1">上傳實體照片<span class="text-red-500">*</span></label>
+              <div>
+                <button type="button" onclick="triggerFileInput()" class="hidden">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  上傳圖片
+                </button>
+                <input type="file" id="post-image-file" accept="image/*" multiple class="hidden" onchange="processImageUpload(event)">
+                <div id="image-upload-preview-container" class="flex items-center gap-3 overflow-x-auto pb-1"></div>
+          
+                <p id="image-upload-hint" class="text-[9px] text-zinc-400"></p>
+              </div>
+            </div>
+
+            <div id="support-only-fields" class="flex flex-col gap-y-4">
+              <div>
+                <label class="block text-zinc-500 font-bold mb-1">應援種類（可複選）<span class="text-red-500">*</span></label>
+                
+                <div id="support-category-options" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                      <input type="checkbox" value="吊飾" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                      <span class="text-xs font-medium text-neutralDark">吊飾</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                      <input type="checkbox" value="卡片" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                      <span class="text-xs font-medium text-neutralDark">卡片</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="杯套" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">杯套</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="貼紙" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">貼紙</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="布類" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">布類</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="配件" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">配件</span>
+                    </label>      
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="生活用品" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">生活用品</span>
+                    </label>                                    
+                    <label class="flex items-center space-x-2.5 p-3 bg-zinc-50 border border-borderSubtle rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                        <input type="checkbox" value="其他" class="rounded text-accentBrand focus:ring-accentBrand w-4 h-4">
+                        <span class="text-xs font-medium text-neutralDark">其他</span>
+                    </label>
+                </div>
+                <!-- ai標示 -->
+                <label class="flex items-center justify-between space-x-2.5 mt-2 p-3 bg-zinc-50 border border-blue-200 rounded-xl cursor-pointer hover:border-accentBrand transition-colors">
+                  <div class="flex items-center space-x-2.5">
+                      <input type="checkbox" id="ai-checkbox" value="true" class="rounded text-blue-600 border-2 border-blue-400 focus:ring-blue-500 w-4 h-4">
+                      <span class="text-xs font-medium text-blue-500">本應援物含有 AI 生成／輔助</span>
+                  </div>
+                  <span class="text-[10px] text-zinc-400 shrink-0">供領取者參考</span>
+                </label>
+              </div>
+              <!-- 日期選擇 -->
+              <div class="border-t border-zinc-300 pt-4">
+                <label class="block text-zinc-500 font-bold mb-1">發放日期與數量分配<span class="text-red-500">*</span></label>
+                <div id="post-date-options" class="flex gap-2">
+                  <!-- 動態生成日期按鈕 checkbox/radio -->
+                </div>
+              </div>
+
+              <!-- 網址外宣與即時更新 -->
+              <div class="border-t border-zinc-300 pt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-zinc-500 mb-0.5 font-bold">原始貼文連結 (例：Threads應援圖貼文)</label>
+                    <input type="url" id="post-original-link" placeholder="https://www.threads.com/@.../post" class="w-full bg-white border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800 text-[11px]">
+                  </div>
+                  <div>
+                    <label class="block text-zinc-500 mb-0.5 font-bold">即時位置更新處 (例：個人IG、Threads、指定貼文)</label>
+                    <input type="url" id="post-live-update-link" placeholder="https://www.threads.com/@..." class="w-full bg-white border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800 text-[11px]">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-zinc-500 font-bold mb-1">即時位置更新說明<span class="text-red-500">*</span></label>
+                <input type="text" id="post-approx-location" placeholder="例: 當天公布在Threads貼文底下或是IG限時動態" class="w-full bg-white border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800">
+              </div>
+            </div>
+            <div id="support-shared-fields" class="flex flex-col gap-y-4 border-t border-zinc-300 pt-4">
+              <div class="space-y-2">
+                <div>
+                  <label id="label-post-requirement" class="block text-zinc-500 font-bold mb-1">領取條件／交換對象限制</label>
+                  <input type="text" id="post-requirement" placeholder="例: 出示粉絲證明" class="w-full bg-white border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800">
+                </div>
+                <div>
+                  <label class="block text-zinc-500 font-bold mb-1">注意事項</label>
+                  <textarea
+                    id="post-notice"
+                    rows="4"
+                    placeholder="例如：&#10;應援物不得轉售&#10;不得與其他人交換&#10;一人限領一份"
+                    class="w-full bg-white border border-zinc-200 rounded-lg py-2 px-3 text-zinc-800 resize-none"></textarea>
+                </div>
+              </div>
+            </div>
+
+
+
+            <button id="publish-submit-btn" type="submit" class="w-full bg-brand hover:bg-zinc-800 text-white font-black py-3 rounded-xl transition-colors shadow-sm mt-2">發布應援</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- ==================== 應援詳細頁 ==================== -->
     <div id="modal-post-detail"  class="bg-white flex items-end md:items-center justify-center">
       <div class="bg-white md:rounded-3xl w-full max-w-lg shadow-2xl text-left border-t border-zinc-100 ">
         <!-- 頂部導覽列：使用 fixed 浮在最上方，並設定預設為透明、無邊框 -->
@@ -102,47 +251,44 @@
         </div>
       </div>
     </div>
+    <!-- ==================== 自訂防呆刪除確認彈窗 ==================== -->
+    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
+        <span class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 mx-auto grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+        <div>
+          <h4 class="text-sm font-extrabold text-zinc-900">確認要刪除此項目嗎？</h4>
+          <p class="text-[11px] text-zinc-500 mt-1 leading-normal">刪除後，其他現場粉絲將無法在當天看板上看見，此動作無法復原。</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+          <button id="cancel-delete-btn" onclick="closeDeleteConfirmModal()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2.5 rounded-lg font-bold transition-all">取消</button>
+          <button id="confirm-delete-btn" onclick="executeDeletePost()" class="bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-bold transition-all shadow-sm">確認刪除</button>
+        </div>
+      </div>
+    </div>
+
+    
     <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-brand backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
       <span id="toast-text"></span>
     </div>
     <script type="module">
     import { state } from './js/state.js';
+    import './js/action.js';
+    import './js/support.js';
     import './js/common.js';
     import './js/color.js';
     import './js/profile.js';
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { db,auth,storage,appId} from "./js/firebase-config.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import {query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { query,where,getCountFromServer} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
     window.onload = () => {
         applyTheme(state.themeColor);
         }
-        // 取得環境注入配置，若無則降級為預設模擬配置
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'concert-support-map';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-        ? JSON.parse(__firebase_config) 
-        : {
-            apiKey: "AIzaSyAhjvu_SHZJUkJYTyXEaBA5HZfGdvObfIY",
-            authDomain: "fan-map-68117.firebaseapp.com",
-            projectId: "fan-map-68117",
-            storageBucket: "fan-map-68117.firebasestorage.app",
-            messagingSenderId: "1066740158853",
-            appId: "1:1066740158853:web:1ea5f5283c20fed067f4ec",
-            measurementId: "G-NYL7N1MX39"
-        };
-
-        // 初始化 Firebase 與服務
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
-
         const params = new URLSearchParams(window.location.search);
         const id = params.get("id");
         const type=params.get("type");
         if (type && id) {
-            openPostDetailModal(type,id);
+            renderPostDetail(type,id);
         }else {
             //window.location.href = "index.html";
             console.log("沒有帶參數");
@@ -156,8 +302,8 @@
       document.body.removeChild(tempInput);
       showToast('已將連結複製到剪貼簿');
    }
-   window.copyURL=copyURL;
-    async function openPostDetailModal(type, itemId) {
+    window.copyURL=copyURL;
+    async function renderPostDetail(type, itemId) {
       const isFreeSupport = type === "free-support";
       const supportRef = doc(db,"artifacts",appId,"public","data","supportEvents",itemId);
 
@@ -174,6 +320,14 @@
       if (!item) {window.location.href = "index.html";return; }
       state.activeDetailItem = { type, data: item };
 
+      const concertRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', item.concertId);
+      const concertSnap = await getDoc(concertRef);
+      if (concertSnap.exists()) {
+        state.selectedConcert = concertSnap.data();
+        localStorage.setItem("fe_v1_selectedConcert", JSON.stringify(state.selectedConcert));
+      } else {
+        console.log("no such concert");
+      }
       const tag = document.getElementById("detail-item-tag");
       tag.innerHTML =item.category.map(category => `
         <span class="px-1.5 py-1 text-[10px] font-semibold bg-zinc-100 text-zinc-800 rounded-full flex items-center gap-1 border border-zinc-200">
@@ -438,6 +592,7 @@
       }
     }
     window.toggleDetailBookmark = toggleDetailBookmark;
+    window.renderPostDetail= renderPostDetail;
 
     </script>
     <script>
@@ -475,6 +630,10 @@
                 });
             }
         });
+
+    const publishForm = document.querySelector("#modal-publish-post form");
+    publishForm.addEventListener("input", savePublishDraft);
+    publishForm.addEventListener("change", savePublishDraft);
     </script>
 </body>
 </html>

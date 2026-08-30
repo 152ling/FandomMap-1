@@ -1,17 +1,17 @@
 export const state = {
   // 資料狀態
   concerts: [],
-  supportEvents: [],
-  exchangePosts: [],
+  supportEvents: JSON.parse(localStorage.getItem('fe_v1_supportEvents'))|| [],
+  exchangePosts:JSON.parse(localStorage.getItem('fe_v1_exchangePosts'))|| [],
   bookmarkedPostIds:JSON.parse(localStorage.getItem('fe_v1_bookmarkedPostIds'))|| [],
-  bookmarkData: {},
-  bookmarkedConcerts : {}, //有收藏應援的演唱會資料
+  bookmarkData: JSON.parse(localStorage.getItem('fe_v1_bookmarkData'))|| {},
+  bookmarkedConcerts : JSON.parse(localStorage.getItem('fe_v1_bookmarkedConcerts'))|| {}, //有收藏應援的演唱會資料
   userAttendedConcerts: [],
   pendingRemoveBookmarkId: null,
 
   // 頁面 / 篩選狀態
   activeTab: "explore",
-  selectedConcert: null,
+  selectedConcert: JSON.parse(localStorage.getItem('fe_v1_selectedConcert'))|| null,
   selectedDate: "",
   selectedSubCategory: "support",
   searchQuery: "",

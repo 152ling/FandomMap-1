@@ -1,76 +1,98 @@
-export async function handleMultiImage(input) {
-            if (!state.user) {
-                showToast(t('toast_login_required')); //請先登入以開啟圖片上傳功能☁️
-                input.value = "";
-                return;
-            }
+  import { state } from './state.js';
+  function renderImageUploadPreviewsLegacy() {
+      const container = document.getElementById("image-upload-preview-container");
+      container.innerHTML = "";
+      state.currentUploadedImagesBase64.forEach((image, index) => {
+        const item = document.createElement("div");
+        item.className = "w-12 h-12 rounded-lg border overflow-hidden bg-zinc-100 relative";
+        item.innerHTML = `<img src="${image}" alt="預覽照片 ${index + 1}" class="w-full h-full object-cover"><button type="button" onclick="removeUploadedImage(${index})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center font-bold text-[9px] opacity-0 hover:opacity-100 transition-opacity">移除</button>`;
+        container.appendChild(item);
+      });
+      container.classList.toggle("hidden", state.currentUploadedImagesBase64.length === 0);
+      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
+      document.getElementById("image-upload-hint").innerText = state.currentUploadedImagesBase64.length
+        ? `已壓縮 ${state.currentUploadedImagesBase64.length}/5 張照片`
+        : "可選擇最多 5 張照片，系統會自動壓縮。";
+    }
 
-            const files = Array.from(input.files);
-            if (files.length === 0) return;
+    function renderImageUploadPreviews() {
+      const container = document.getElementById("image-upload-preview-container");
+      const count = state.currentUploadedImagesBase64.length;
+      container.innerHTML = "";
 
-            const currentCount = state.tempImages.length + state.tempImageBase64.length;
-            const remain = 3 - currentCount;
-            if (remain <= 0) {
-                showToast("已達上傳上限 (最多 3 張)");
-                input.value = "";
-                return;
-            }
+      state.currentUploadedImagesBase64.forEach((image, index) => {
+        const item = document.createElement("div");
+        item.className = "relative w-20 h-20 shrink-0 overflow-visible rounded-2xl border border-zinc-200 bg-zinc-100";
+        item.innerHTML = `
+          <img src="${image}" alt="照片 ${index + 1}" class="w-full h-full rounded-2xl object-cover">
+          <button type="button" onclick="removeUploadedImage(${index})" aria-label="刪除照片 ${index + 1}" class="absolute top-1 right-1 z-10 w-4 h-4 rounded-full bg-zinc-400 hover:bg-brand text-white flex items-center justify-center shadow-md transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>`;
+        container.appendChild(item);
+      });
 
-            const toProcess = files.slice(0, remain);
-            showToast(t('toast_uploading')); //正在上傳圖片...
+      if (count < 5) {
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.onclick = triggerFileInput;
+        addButton.setAttribute("aria-label", "新增照片");
+        addButton.className = "w-20 h-20 shrink-0 rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-100 hover:bg-zinc-200 hover:border-zinc-400 text-zinc-400 hover:text-zinc-600 flex items-center justify-center transition-colors";
+        addButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>`;
+        container.appendChild(addButton);
+      }
 
-            for (const file of toProcess) {
-                // 1. 類型檢查 (每一張圖片都會個別執行此檢查)
-                let isImage = false;
-                if (file.type) {
-                    isImage = file.type.startsWith('image/');
-                } else {
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    isImage = ['jpg', 'jpeg', 'png', 'webp', 'heic'].includes(ext);
-                }
+      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
+      document.getElementById("image-upload-hint").innerText = count
+        ? `已選擇 ${count}/5 張照片`
+        : "可選擇最多 5 張照片，系統會自動壓縮。";
+    }
 
-                if (!isImage) {
-                    showToast(t('toast_format_error')); //檔案格式錯誤
-                    continue;
-                }
+    async function processImageUpload(event) {
+      const files = Array.from(event.target.files || []);
+      const remaining = 5 - state.currentUploadedImagesBase64.length;
+      event.target.value = "";
+      if (!files.length) return;
+      if (remaining <= 0) return showToast("最多只能上傳 5 張照片。");
+      const imageFiles = files.filter(file => file.type.startsWith("image/"));
+      if (imageFiles.length !== files.length) showToast("已略過非圖片檔案。");
+      const selected = imageFiles.slice(0, remaining);
+      if (imageFiles.length > remaining) showToast(`一次最多還可加入 ${remaining} 張照片。`);
+      if (!selected.length) return;
+      showToast("正在壓縮照片…");
+      try {
+        state.currentUploadedImagesBase64.push(...await Promise.all(selected.map(compressImage)));
+        renderImageUploadPreviews();
+        showToast("照片已壓縮並加入預覽。");
+      } catch (error) {
+        console.error("Image compression error:", error);
+        showToast("照片處理失敗，請改用其他圖片。");
+      }
+    }
 
-                // 2. 大小檢查 (上限 15MB)
-                if (file.size > 15 * 1024 * 1024) {
-                    showToast(t('toast_img_too_large')); //圖片太大囉！請選擇較小的照片
-                    continue;
-                }
+    function removeUploadedImage(index) {
+      state.currentUploadedImagesBase64.splice(index, 1);
+      renderImageUploadPreviews();
+    }
 
-                try {
-                    const b64 = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onerror = () => {
-                            showToast(t('toast_img_error')); //圖片處理失敗，請換一張試試
-                            reject(new Error("Read failed"));
-                        };
-                        reader.onload = async (e) => {
-                            try {
-                                // 3. 壓縮邏輯 (與單圖上傳一致)
-                                const compressionWidth = file.size > 2 * 1024 * 1024 ? 500 : 800;
-                                const compressedBase64 = await compressImage(e.target.result, compressionWidth);
-                                resolve(compressedBase64);
-                            } catch (err) {
-                                reject(err);
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    });
+    function clearUploadedImage() {
+      state.currentUploadedImageBase64 = "";
+      state.currentUploadedImagesBase64 = [];
+      document.getElementById("post-image-file").value = "";
+      renderImageUploadPreviews();
+    }
+    // ==================== STREAMING_CHUNK: 圖片即時 Canvas 壓縮上傳與防溢位機制 ====================
+    function triggerFileInput() {
+      if (state.currentUploadedImagesBase64.length >= 5) {
+        showToast("最多只能上傳 5 張照片。");
+        return;
+      }
+      document.getElementById("post-image-file").click();
+    }
 
-                    if (b64) {
-                        state.tempImageBase64.push(b64);
-                        // 每處理完一張就更新一次預覽，增加反應速度
-                        updateImagePreviewUI();
-                    }
-                } catch (error) {
-                    console.error("Image processing error:", error);
-                    showToast(t('toast_img_error')); //圖片處理失敗，請換一張試試
-                }
-            }
-            
-            showToast(t('toast_img_success')); //圖片上傳成功
-            input.value = ""; // 清空 input 以便下次選擇
-        }
+    window.renderImageUploadPreviewsLegacy=renderImageUploadPreviewsLegacy;
+    window.renderImageUploadPreviews=renderImageUploadPreviews;
+    window.processImageUpload = processImageUpload;
+    window.removeUploadedImage = removeUploadedImage;
+    window.clearUploadedImage = clearUploadedImage;
+
+    window.triggerFileInput=triggerFileInput;

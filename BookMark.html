@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+    <link rel=stylesheet type="text/css" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70  top-0 z-30 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div id="header-back-btn" class="hidden">
+          <button onclick="navigateBack()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-800 transition-colors">
+            <!-- 向左箭頭 SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="font-semibold text-sm">返回</span>
+          </button>
+        </div>
+        <div id="header-logo" class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-brand text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
+          <span class="text-xl md:text-2xl font-extrabold text-zinc-900 tracking-tight">我的收藏</span>
+        </div>
+      </div>
+
+      <!-- 桌機版選單列 (RWD: md 以上顯示) -->
+      <div class="hidden md:flex items-center gap-8 border-l border-zinc-200 pl-8 mr-auto">
+        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="tab-active text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all">
+          探索場次
+        </button>
+        <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
+          我的收藏
+        </button>
+        <button onclick="switchTab('profile')" id="dk-nav-btn-profile" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
+          個人中心
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- 模擬頭像 -->
+        <img id="user-avatar-snapshot" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="avatar" class="w-9 h-9 rounded-full border border-zinc-200 bg-zinc-50 cursor-pointer" onclick="switchTab('profile')">
+      </div>
+    </header>
+    <main id="main-content" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
+        <section id="screen-bookmarks" class="animate-fade-in text-left">
+            <div id="search-container" class="flex flex-col">
+            <!--JS 生成-->
+            </div>
+            <!-- 雙層直覺篩選區：藝人標籤 + 特定場次下拉選單 -->
+            <div id="filterPanel" class="filter-panel bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <!-- 第一層：藝人分類標籤 (簡潔明瞭) -->
+                    <div>
+                    <div id="search-title" class="flex justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">依藝人/團體篩選</span>
+                        <button id="clearFiltersBtn" onclick="clearAllSearch()" class="${hasActiveFilters ? '':'hidden'} text-xs text-brand hover:underline font-semibold">
+                        清除所有篩選
+                        </button>
+                    </div>
+                        <div id="artistTabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                            <!-- JS 動態生成 -->
+                        </div>
+                    </div>
+
+                    <!-- 第二層：該藝人底下的具體演唱會場次下拉選單 -->
+                    <div class="w-full sm:w-72">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">指定演唱會場次</span>
+                        <select id="concertSelect" onchange="handleConcertSelect(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-pink-500 cursor-pointer">
+                            <option value="all">全部場次</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 狀態統計列 -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                    <span id="filterStatusText">顯示全部應援物收藏</span>
+                    <span id="itemCount" class="font-bold text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-full">共 0 件</span>
+                </div>
+            </div>
+            <div id="bookmarks-list-container" class="space-y-4">
+            </div>
+        </section>
+    </main>
+    <!-- ==================== MODAL 4: 自訂防呆刪除確認彈窗 ==================== -->
+    <div id="modal-bookmark-confirm" onclick="closeBookmarkConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div onclick="event.stopPropagation()" 
+      class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
+        <span class="w-11 h-11 rounded-2xl bg-pink-50 text-pink-600 mx-auto grid place-items-center">
+          ♥
+        </span>
+        <div>
+          <h4 class="text-sm font-extrabold text-zinc-900">
+            確認取消收藏？
+          </h4>
+          <p class="text-[11px] text-zinc-500 mt-1 leading-normal">
+            這篇應援將會從收藏清單移除。
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+          <button onclick="closeBookmarkConfirmModal()" 
+          class="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2.5 rounded-lg font-bold transition-all">
+            保留收藏
+          </button>
+          <button onclick="executeRemoveBookmark()" 
+          class="bg-pink-600 hover:bg-pink-700 text-white py-2.5 rounded-lg font-bold transition-all shadow-sm">
+            取消收藏
+          </button>
+        </div>
+
+      </div>
+    </div>
+    <!-- ==================== 底部行動導覽列 (僅在手機 md 以下顯示) ==================== -->
+    <nav id="bottom-nav-bar" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-zinc-200/70 z-30 flex py-2 px-6 justify-between items-center shadow-[0_-6px_24px_rgba(15,23,42,0.06)] pb-safe">
+      <button onclick="switchTab('explore')" id="nav-btn-explore" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-400 hover:text-zinc-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" /></svg>
+        <span class="text-[10px] font-bold">探索場次</span>
+      </button>
+      <button onclick="switchTab('bookmarks')" id="nav-btn-bookmarks" class="tab-active flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-900">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>
+        <span class="text-[10px] font-bold">我的收藏</span>
+      </button>
+      <button onclick="switchTab('profile')" id="nav-btn-profile" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-400 hover:text-zinc-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" /></svg>
+        <span class="text-[10px] font-bold">個人中心</span>
+      </button>
+    </nav>
+<script type="module">
+    import { state } from './js/state.js';
+    import './js/common.js';
+    import './js/color.js';
+    import './js/profile.js';
+    import './js/bookmark.js'
+    import { db,auth,storage,appId} from "./js/firebase-config.js";
+    import { getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {  //登入狀態
+            document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+            renderArtistTabs();
+            updateConcertDropdown();
+            renderBookmarks();
+        } else {
+          // 未登入時，不做處理
+            console.log("使用者未登入，功能限制為唯讀模式");
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        showToast("Firebase 安全認證出錯，請確認後台設定");
+        document.getElementById("loading-overlay").classList.add("hidden");
+      }
+    });
+</script>
+</body>
+</html>

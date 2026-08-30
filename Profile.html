@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+    <link rel=stylesheet type="text/css" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70  top-0 z-30 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div id="header-back-btn" class="hidden">
+          <button onclick="navigateBack()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-800 transition-colors">
+            <!-- 向左箭頭 SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span class="font-semibold text-sm">返回</span>
+          </button>
+        </div>
+        <div id="header-logo" class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-brand text-white grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2Z" /></svg></span>
+          <span class="text-xl md:text-2xl font-extrabold text-zinc-900 tracking-tight">我的收藏</span>
+        </div>
+      </div>
+
+      <!-- 桌機版選單列 (RWD: md 以上顯示) -->
+      <div class="hidden md:flex items-center gap-8 border-l border-zinc-200 pl-8 mr-auto">
+        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="tab-active text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all">
+          探索場次
+        </button>
+        <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
+          我的收藏
+        </button>
+        <button onclick="switchTab('profile')" id="dk-nav-btn-profile" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
+          個人中心
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- 模擬頭像 -->
+        <img id="user-avatar-snapshot" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="avatar" class="w-9 h-9 rounded-full border border-zinc-200 bg-zinc-50 cursor-pointer" onclick="switchTab('profile')">
+      </div>
+    </header>
+    <main id="main-content" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
+      <!-- SCREEN 3: 個人中心與發布管理 -->
+      <section id="screen-profile" class="space-y-6 animate-fade-in text-left">
+        
+        <!-- 大螢幕採用 雙網格排列：左側為名片/設定，右側為貼文管理 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          
+          <div class="lg:col-span-1 space-y-4">
+            <!-- Firebase 登入與個人頭像卡 -->
+            <div class="bg-gradient-to-br from-zinc-50 to-zinc-100/50 border border-zinc-150 p-3 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
+              <div class="w-full flex items-start justify-between">
+                    <div class="flex items-center space-x-3.5">
+                        <!-- Avatar -->
+                        <div class="relative group">
+                            <img id="profile-display-avatar" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="Avatar" class="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md">
+                            <button onclick="openProfileModal()" id="btn-edit-avatar" class="absolute bottom-0 right-0 bg-zinc-500 hover:bg-zinc-700 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 id="profile-input-username" class="text-[12px] font-bold text-slate-900">匿名用戶</h1>
+                                <span id="auth-status-badge" class="bg-emerald-100 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center">
+                                    <i class="fa-brands fa-google mr-1 text-[9px]"></i> 已驗證
+                                </span>
+                            </div>
+                            
+                            <!-- Social Media Handle & Email -->
+                            <div class="flex items-center gap-2 mt-1">
+                                <a id="user-social-link" href="#" target="_blank" class="text-xs text-violet-600 font-medium hover:underline flex items-center bg-violet-50 px-2 py-0.5 rounded-md border border-violet-100/60">
+                                    <i class="fa-brands fa-threads mr-1"></i> <span id="user-social-handle">@--</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1 opacity-70"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Options Trigger -->
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-open-settings" onclick="openProfileModal()" title="編輯資料" class="p-2 text-slate-500 hover:text-violet-600 hover:bg-white rounded-xl border border-slate-200/60 shadow-sm transition text-xs font-medium flex items-center">
+                            <i class="fa-solid fa-sliders mr-1.5"></i>
+                            <span class="text-[10px] inline">設定</span>
+                        </button>
+                    </div>
+                </div>
+                 <!-- Personal Stats Summary Grid (演唱會, 發布項目, 總收藏) -->
+                <div class="w-full grid grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-slate-200/40">
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">演唱會</div>
+                        <div id="user-concert-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">發布項目</div>
+                        <div id="user-support-count" class="text-base font-bold text-violet-600 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-200 text-center shadow-xs">
+                        <div class="text-xs text-slate-400 font-medium">總收藏</div>
+                        <div id="user-bookmarked-count" class="text-base font-bold text-slate-900 mt-0.5">0</div>
+                    </div>
+                </div>
+
+              <button onclick="switchTab('color')" class="w-full mt-4 bg-brand  text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">外觀設定</button>
+
+              <!-- Firebase Authentication 互動控制區 -->
+              <div class="w-full mt-4 pt-4 border-t border-zinc-200/60">
+                <!-- 匿名狀態提示與登入按鈕 -->
+                <div id="anonymous-warning-box" class="hidden text-left bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl mb-3 text-[10px] leading-relaxed">
+                  登入後才可開始發布應援以及收藏應援
+                </div>
+                <button id="google-login-btn" onclick="handleGoogleSignIn()" class="w-full bg-white hover:bg-zinc-50 text-zinc-700 font-bold py-2 px-3 rounded-xl text-xs border border-zinc-200 flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm">
+                  <!-- Google 彩色 G Logo SVG -->
+                  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
+                  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                  </svg>
+                  使用 Google 帳號登入
+                </button>
+
+                <button id="logout-btn" onclick="handleSignOut()" class="hidden w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all mt-2">
+                  登出此帳號
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 我的發布與管理 (在大螢幕上佔據 2 欄寬度) -->
+          <div class="lg:col-span-2 bg-white border border-zinc-200/80 p-5 rounded-2xl space-y-4">
+            <h4 class="text-sm font-bold text-zinc-800 flex items-center gap-1.5">
+              我的發布與管理
+            </h4>
+            <div id="my-posts-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- 動態渲染個人專屬貼文 -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+      
+        <!-- MODAL 1: 編輯個人資料彈窗 -->
+        <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden">
+            <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-base text-slate-900 flex items-center">
+                        <i class="fa-solid fa-user-gear text-violet-600 mr-2"></i> 編輯個人資料
+                    </h3>
+                    <button onclick="closeProfileModal()" id="btn-close-profile-modal" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Avatar Preview & Change -->
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="relative group">
+                          <img id="input-avatar-preview" src="https://api.dicebear.com/10.x/glyphs/svg?seed=Tina" alt="個人頭像" class="w-20 h-20 rounded-full border-2 border-white bg-white shadow-md object-cover">
+                          <label for="profile-avatar-file" class="absolute inset-0 rounded-full bg-zinc-900/60 text-white text-[10px] font-bold grid place-items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-pointer transition-opacity">更換頭像</label>
+                            <label for="profile-avatar-file" 
+                                  class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-violet-500 text-white flex items-center justify-center cursor-pointer shadow-md border-2 border-white hover:bg-violet-600 transition">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                            </label>
+                          <input type="file" id="profile-avatar-file" accept="image/*" class="sr-only" onchange="processProfileAvatarUpload(event)">
+                        </div>
+                    </div>
+
+                    <!-- Display Name Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">顯示名稱</label>
+                        <input id="input-display-name" type="text" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
+                    </div>
+
+                    <!-- Social Link Input -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">社群個人檔案連結</label>
+                        <input id="input-social-link" type="text" placeholder="https://www.threads.net/@your_name" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
+                        <p class="text-[10px] text-slate-400 mt-1">填寫 Threads、Instagram 連結，方便交換應援物時聯絡</p>
+                    </div>
+
+                    <!-- Account Info -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">登入帳號</span>
+                            <span id="info-account-email" class="font-medium text-slate-700">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">UID</span>
+                            <div class="flex items-center space-x-1">
+                                <span id="info-account-uid" class="font-mono text-[11px] text-slate-600 truncate max-w-[150px]">--</span>
+                                <button id="btn-copy-uid" onclick="copyUID()" class="text-violet-600 hover:text-violet-700 p-0.5" title="複製 UID">
+                                    <i class="fa-regular fa-copy text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <button id="btn-logout" onclick="handleSignOut()" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center px-2 py-1">
+                        <i class="fa-solid fa-right-from-bracket mr-1.5"></i> 登出此帳號
+                    </button>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="closeProfileModal()" id="btn-cancel-profile-modal" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition">
+                            取消
+                        </button>
+                        <button onclick="saveUserProfile()" id="btn-save-profile" class="px-4 py-2 text-xs bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-sm transition">
+                            儲存變更
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <!-- ==================== 底部行動導覽列 (僅在手機 md 以下顯示) ==================== -->
+    <nav id="bottom-nav-bar" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-zinc-200/70 z-30 flex py-2 px-6 justify-between items-center shadow-[0_-6px_24px_rgba(15,23,42,0.06)] pb-safe">
+      <button onclick="switchTab('explore')" id="nav-btn-explore" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-400 hover:text-zinc-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m3 9 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" /></svg>
+        <span class="text-[10px] font-bold">探索場次</span>
+      </button>
+      <button onclick="switchTab('bookmarks')" id="nav-btn-bookmarks" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-400 hover:text-zinc-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" /></svg>
+        <span class="text-[10px] font-bold">我的收藏</span>
+      </button>
+      <button onclick="switchTab('profile')" id="nav-btn-profile" class="tab-active flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-900">
+        <svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" /></svg>
+        <span class="text-[10px] font-bold">個人中心</span>
+      </button>
+    </nav>
+    <script  type="module">
+    import { state } from './js/state.js';
+    import './js/profile.js'
+    import './js/common.js';
+    import { db,auth,storage,appId} from "./js/firebase-config.js";
+    import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {  //登入狀態
+          // 在渲染任何管理功能前先確認 Firebase Custom Claim。
+          state.currentUser.id = user.uid;
+          state.currentUser.email = user.email;
+          state.currentUser.isAnonymous = false;
+          // 連接至私有安全路徑 /users/{userId}/profile/data 讀取或註冊 Profile
+          const profileDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+          const profileSnap = await getDoc(profileDocRef);
+
+          if (profileSnap.exists()) {
+            const profileData = profileSnap.data();
+            state.currentUser.username = profileData.username || user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`;
+            state.currentUser.avatar = profileData.avatar || user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`;
+            state.currentUser.contact = profileData.contact || "";
+            const userData = {
+                id: user.uid,
+                username: profileData.username,
+                avatar: profileData.avatar,
+                contact: profileData.contact,
+                isAnonymous: false,
+                email:user.email
+            };
+            localStorage.setItem("fe_v1_user", JSON.stringify(userData));
+          } else {
+            // 自動初始化並將 Google 資訊或匿名預設值存入
+            const initialProfile = {
+              username: user.displayName || `現場粉絲_${user.uid.substring(0, 4)}`,
+              avatar: user.photoURL || `https://api.dicebear.com/10.x/glyphs/svg?seed=${user.uid}`,
+              contact: "",
+            };
+            await setDoc(profileDocRef, initialProfile);
+            state.currentUser.username = initialProfile.username;
+            state.currentUser.avatar = initialProfile.avatar;
+            state.currentUser.contact = initialProfile.contact;
+            const userData = {
+                id: user.uid,
+                username: initialProfile.username,
+                avatar: initialProfile.avatar,
+                contact: initialProfile.contact,
+                isAnonymous: false,
+                email:user.email
+            };
+            localStorage.setItem("fe_v1_user", JSON.stringify(userData));
+          }
+
+          // 同步個人中心編輯欄位
+          document.getElementById("profile-input-username").textContent = state.currentUser.username;
+          document.getElementById("user-social-handle").textContent = getSocialHandle(state.currentUser.contact);
+          document.getElementById('user-social-link').href = state.currentUser.contact;
+          document.getElementById("profile-display-avatar").src = state.currentUser.avatar;
+          document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+
+          // 更新 Firebase 登入 UI 顯示樣式
+          const badge = document.getElementById("auth-status-badge");
+          const warningBox = document.getElementById("anonymous-warning-box");
+          const gLoginBtn = document.getElementById("google-login-btn");
+          const logoutBtn = document.getElementById("logout-btn");
+
+          warningBox.classList.add("hidden");
+          badge.classList.remove("hidden");
+          gLoginBtn.classList.add("hidden");
+          logoutBtn.classList.remove("hidden");
+          document.getElementById("profile-input-username").disabled = false;
+          document.getElementById("user-social-handle").disabled = false;
+          
+          renderProfile();
+        } else {
+          // 未登入時，不做處理
+            console.log("使用者未登入，功能限制為唯讀模式");
+            hasAdminClaim = false;
+            isAdminClaimResolved = true;
+            if (state.selectedConcert) renderConcertDetail();
+            document.getElementById("profile-input-username").disabled = true;
+            document.getElementById("user-social-handle").disabled = true;
+            document.getElementById("profile-avatar-file").disabled = true;
+            document.getElementById("btn-open-settings").disabled = true;
+            document.getElementById("btn-edit-avatar").disabled = true;
+
+            document.getElementById("anonymous-warning-box").classList.remove("hidden");
+            document.getElementById("google-login-btn").classList.remove("hidden");
+            document.getElementById("logout-btn").classList.add("hidden");
+            document.getElementById("auth-status-badge").classList.add("hidden");
+
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        showToast("Firebase 安全認證出錯，請確認後台設定");
+      }
+    });
+    </script>
+</body>
+</html>
