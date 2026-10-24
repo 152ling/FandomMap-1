@@ -2,7 +2,10 @@ import { state } from './state.js';
 // --- 外觀設定 ---
 export function renderAppearanceView() {
     const container = document.getElementById('color-container');
-    if(!container) return;
+    if(!container)
+       { console.log("Color container not found");
+        return;
+    }
     container.innerHTML = '';
             const presets = [
                 {key: 'theme_black', name:'黑色', c:'#18181b'},
@@ -114,7 +117,7 @@ export function renderAppearanceView() {
 
             root.style.setProperty('--brand-color', color);
             
-            localStorage.setItem('fe_v11_theme', color);
+            localStorage.setItem('fe_v1_theme', color);
         }
 window.renderAppearanceView=renderAppearanceView;
 window.toggleDarkMode=toggleDarkMode;

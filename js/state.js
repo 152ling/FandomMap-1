@@ -6,7 +6,7 @@ export const state = {
   bookmarkedPostIds:JSON.parse(localStorage.getItem('fe_v1_bookmarkedPostIds'))|| [],
   bookmarkData: JSON.parse(localStorage.getItem('fe_v1_bookmarkData'))|| {},
   bookmarkedConcerts : JSON.parse(localStorage.getItem('fe_v1_bookmarkedConcerts'))|| {}, //有收藏應援的演唱會資料
-  userAttendedConcerts: [],
+  userAttendedConcerts: JSON.parse(localStorage.getItem('userAttendedConcerts')) || [],
   pendingRemoveBookmarkId: null,
 
   // 頁面 / 篩選狀態
@@ -19,7 +19,7 @@ export const state = {
   currentArtist : 'all',
   currentConcertId : 'all',
   profileActiveTab : "all",
-  themeColor: localStorage.getItem('fe_v11_theme') || '#18181b',
+  themeColor: localStorage.getItem('fe_v1_theme') || '#18181b',
 
   // 模態框與照片上傳狀態
   activeDetailItem: null,

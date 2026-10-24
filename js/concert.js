@@ -27,11 +27,6 @@ async function navigateToConcert(concertId) {
       state.selectedDate = state.selectedConcert.dates[0];
       state.selectedSubCategory = "support";
 
-    //   document.getElementById("screen-explore").classList.add("hidden");
-      // document.getElementById("screen-bookmarks").classList.add("hidden");
-      // document.getElementById("screen-profile").classList.add("hidden");
-    //   document.getElementById("screen-concert-detail").classList.remove("hidden");
-
       document.getElementById("header-back-btn").classList.remove("hidden");
       document.getElementById("header-logo").classList.add("hidden");
     //   document.getElementById("add-concert-btn").classList.add("hidden");
@@ -46,9 +41,6 @@ async function navigateToConcert(concertId) {
       renderConcertDetail();
     }
 
-    function navigateBack() {
-      switchTab("explore");
-    }
     function renderConcertDetail() {
       if (!state.selectedConcert) return;
 
@@ -238,7 +230,7 @@ async function navigateToConcert(concertId) {
         listContainer.appendChild(card);
       });
     }
-    function setSubCategory(cat) {
+    export function setSubCategory(cat) {
       state.selectedSubCategory = cat;
       const btnSupport = document.getElementById("btn-toggle-support");
       const btnExchange = document.getElementById("btn-toggle-exchange");
@@ -254,7 +246,8 @@ async function navigateToConcert(concertId) {
       renderConcertDetail();
     }
     async function toggleConcertAttend() {
-      const concert = state.bookmarkedConcerts.find(c => c.id === state.selectedConcert.id);
+      // const concert = state.bookmarkedConcerts.find(c => c.id === state.selectedConcert.id);
+      const concert = state.selectedConcert;
       if (!concert) return;
       if (state.currentUser.isAnonymous){
         showToast("請先前往登入才能執行這項操作");
@@ -292,7 +285,7 @@ async function navigateToConcert(concertId) {
     }
     
     // 更新確定參戰 / 關注場次按鈕樣式
-    function updateConcertActionButtons() {
+    export function updateConcertActionButtons() {
       const concert = state.selectedConcert;
       if (!concert) return;
       const isAttended = state.userAttendedConcerts.includes(state.selectedConcert.id);
@@ -350,4 +343,8 @@ async function navigateToConcert(concertId) {
     }
     window.navigateToConcert=navigateToConcert;
     window.renderConcertDetail =renderConcertDetail;
+    window.updateConcertActionButtons = updateConcertActionButtons;
+    window.renderSupportList = renderSupportList;
     window.toggleConcertAttend = toggleConcertAttend;
+    window.voteForConcert = voteForConcert;
+    window.setSubCategory = setSubCategory;

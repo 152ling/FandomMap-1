@@ -1,4 +1,5 @@
   import { state } from './state.js';
+  import { openPostDetailModal } from "./common.js";
   import { db,auth,storage,appId} from "./firebase-config.js";
   import { getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -256,6 +257,34 @@
           const cleanLink = link.split('?')[0];
           const handle = '@' + cleanLink.split('@')[1];
           return handle.replace(/\/$/, '');
+    }
+    // ==================== STREAMING_CHUNK: 個人資料與頭像管理 ====================
+
+    function processProfileAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !file.type.startsWith("image/")) {
+        showToast("請選擇有效的圖片格式");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        const image = new Image();
+        image.onload = () => {
+          const maxSize = 320;
+          const scale = Math.min(maxSize / image.width, maxSize / image.height, 1);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(image.width * scale);
+          canvas.height = Math.round(image.height * scale);
+          canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+          state.currentUser.avatar = canvas.toDataURL("image/jpeg", 0.82);
+          document.getElementById("input-avatar-preview").src = state.currentUser.avatar;
+          // document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+          showToast("頭像上傳成功");
+        };
+        image.src = loadEvent.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 window.renderProfile=renderProfile;
 window.openProfileModal=openProfileModal;

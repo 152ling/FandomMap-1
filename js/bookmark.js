@@ -1,5 +1,6 @@
     import { state } from './state.js';
     import './common.js';
+    import { openPostDetailModal } from "./common.js";
     import './color.js';
     import { db,auth,storage,appId} from "./firebase-config.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -100,8 +101,47 @@
       updateConcertDropdown();
       renderBookmarks();
     }
+
+    export function renderBookmarkGuestState() {
+      const container = document.getElementById("bookmarks-list-container");
+      const searchContainer = document.getElementById("search-container");
+      const filterPanel = document.getElementById("filterPanel");
+      const itemCount = document.getElementById("itemCount");
+      const filterStatusText = document.getElementById("filterStatusText");
+
+      if (searchContainer) searchContainer.innerHTML = "";
+      if (filterPanel) filterPanel.classList.add("hidden");
+      if (filterStatusText) filterStatusText.textContent = "請先登入後查看收藏";
+      if (itemCount) itemCount.textContent = "共 0 件";
+
+      if (container) {
+        container.className = "block";
+        container.innerHTML = `
+          <div class="flex flex-col items-center justify-center text-center py-20 px-6">
+            <div class="w-20 h-20 rounded-full bg-pink-50 border border-pink-100 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-8.5-4.35-8.5-10.07A4.43 4.43 0 0 1 8 6.5c1.18 0 2.31.46 3.12 1.28A4.42 4.42 0 0 1 16 6.5a4.43 4.43 0 0 1 4.5 4.43C20.5 16.65 12 21 12 21Z"/>
+              </svg>
+            </div>
+            <h3 class="mt-5 text-lg font-extrabold text-zinc-900">登入後才能查看收藏</h3>
+            <p class="mt-2 text-sm text-zinc-500 leading-relaxed">收藏的應援物、交換卡片與場次資訊，會集中顯示在這裡。</p>
+            <button onclick="switchTab('profile')" class="mt-5 px-5 py-2.5 rounded-xl bg-brand text-white text-sm font-bold shadow-sm hover:opacity-95 transition-all">
+              前往登入 / 註冊
+            </button>
+          </div>
+        `;
+      }
+    }
     
     export function renderBookmarks() {
+      const filterPanel = document.getElementById("filterPanel");
+      if (filterPanel) filterPanel.classList.remove("hidden");
+
+      if (!auth.currentUser || state.currentUser.isAnonymous) {
+        renderBookmarkGuestState();
+        return;
+      }
+
       const searchContainer =document.getElementById("search-container");
       searchContainer.innerHTML = `<div class="relative flex mb-4 gap-2">
             <div class="relative flex-1 flex items-center">

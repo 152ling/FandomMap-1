@@ -2,6 +2,8 @@
     import {db,auth,storage,appId} from "./firebase-config.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { query,where,getCountFromServer} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { openPostDetailModal } from "./common.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
   // ==================== STREAMING_CHUNK: 發布與編輯貼文表單維護 ====================
     function getPublishDraftStorageKey() { //草稿
@@ -68,7 +70,7 @@
       buildPublishDateOptions(Object.keys(draft.datesQuantities || {}), draft.datesQuantities || {});
     }
 
-    function openPublishModal() {
+    function openPublishModal() { //新增應援按鈕-發布新應援
       if (!state.selectedConcert) return;
       if(state.selectedConcert.isPending === true){
         showToast("場次尚未完成驗證，無法新增應援")
@@ -84,7 +86,7 @@
       }
       state.isEditingMode = false;
       state.editingItemId = null;
-      const draft = loadPublishDraft();
+      const draft = loadPublishDraft(); // 讀取草稿
       state.isRestoringPublishDraft = true;
       clearUploadedImage();
 
@@ -104,9 +106,10 @@
       });
 
       if (draft) {
-        restorePublishDraft(draft);
+        restorePublishDraft(draft); // 復原草稿
       } else {
         setPublishType("free-support");
+        buildPublishDateOptions();
       }
       state.isRestoringPublishDraft = false;
 
@@ -217,8 +220,8 @@
         const filename = `${Date.now()}-${index}-${crypto.randomUUID()}.jpg`;
         const imageRef = ref(storage, `post-images/${uid}/${postId}/${filename}`);
         await uploadBytes(imageRef, blob, {
-          contentType: "image/jpeg",
-          cacheControl: "public, max-age=31536000" //應援圖片快取一年
+          contentType: blob.type || "image/jpeg",
+          cacheControl: "public, max-age=31536000"
         });
         return getDownloadURL(imageRef);
       }));
@@ -423,6 +426,11 @@
             });
           }
           showToast("應援資料修改成功！");
+          if (typeof refreshConcertPageData === 'function') {
+            setTimeout(() => refreshConcertPageData(), 300);
+          } else {
+            setTimeout(() => window.location.reload(), 300);
+          }
           renderPostDetail(state.publishPostType,postId); //重整頁面
 
         } else {
@@ -497,6 +505,11 @@
         if (!state.isEditingMode) clearPublishDraft();
         state.publishSucceeded = true;
         closePublishModal();
+        if (typeof refreshConcertPageData === 'function') {
+          setTimeout(() => refreshConcertPageData(), 300);
+        } else {
+          setTimeout(() => window.location.reload(), 300);
+        }
       } catch (error) {
         console.error("Publish error:", error);
         showToast("儲存失敗，請確認 Firestore 安全規則設定");
@@ -543,7 +556,6 @@
         const previewImg = document.getElementById("image-upload-preview");
         if (previewImg) previewImg.src = data.image;
         previewContainer.classList.remove("hidden");
-        renderImageUploadPreviews();
         document.getElementById("image-upload-hint").innerText = "已載入原始照片";
         renderImageUploadPreviews();
       } else {
@@ -626,9 +638,18 @@
 
         state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== id);
 
+        const concertId = state.activeDetailItem?.data?.concertId || state.deleteTarget?.concertId;
         showToast("項目成功自即時看板下架！");
         state.isDeletingPost = false;
         closeDeleteConfirmModal();
+
+        setTimeout(() => {
+          if (concertId) {
+            window.location.href = `Concert.html?concertId=${concertId}`;
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 300);
       } catch (error) {
         console.error("Delete error:", error);
         showToast("下架失敗，請稍後再試");

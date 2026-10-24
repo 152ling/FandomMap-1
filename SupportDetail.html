@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
-    <link rel=stylesheet type="text/css" href="css/style.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="./manifest.json">
+  <link rel=stylesheet type="text/css" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- ==================== MODAL 2: 發布與編輯應援/交換貼文 ==================== -->
-    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <!-- 頂部導覽列 -->
         <div class="sticky top-0 z-20 flex items-center justify-between px-6 py-3.5 bg-white/90 backdrop-blur-md border-b border-zinc-100">
@@ -252,7 +254,7 @@
       </div>
     </div>
     <!-- ==================== 自訂防呆刪除確認彈窗 ==================== -->
-    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
         <span class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 mx-auto grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
         <div>
@@ -630,7 +632,34 @@
                 });
             }
         });
+    function savePublishDraft() {
+      if (state.isEditingMode || state.isRestoringPublishDraft || !state.selectedConcert) return;
 
+      const datesQuantities = {};
+      document.querySelectorAll('#post-date-options input[name="pub-dates"]:checked').forEach(checkbox => {
+        const qtyInput = document.querySelector(`input[name="pub-qty-${checkbox.value}"]`);
+        datesQuantities[checkbox.value] = qtyInput ? qtyInput.value : "";
+      });
+
+      const draft = {
+        type: state.publishPostType,
+        title: document.getElementById("post-title").value,
+        category: getSelectedCategories(),
+        isAI: document.getElementById("ai-checkbox").checked,
+        requirement: document.getElementById("post-requirement").value,
+        notice: document.getElementById("post-notice").value,
+        approxLocation: document.getElementById("post-approx-location").value,
+        originalLink: document.getElementById("post-original-link").value,
+        liveUpdateLink: document.getElementById("post-live-update-link").value,
+        datesQuantities
+      };
+
+      try {
+        localStorage.setItem(getPublishDraftStorageKey(), JSON.stringify(draft));
+      } catch (error) {
+        console.warn("Unable to save publish draft:", error);
+      }
+    }
     const publishForm = document.querySelector("#modal-publish-post form");
     publishForm.addEventListener("input", savePublishDraft);
     publishForm.addEventListener("change", savePublishDraft);

@@ -1,20 +1,4 @@
   import { state } from './state.js';
-  function renderImageUploadPreviewsLegacy() {
-      const container = document.getElementById("image-upload-preview-container");
-      container.innerHTML = "";
-      state.currentUploadedImagesBase64.forEach((image, index) => {
-        const item = document.createElement("div");
-        item.className = "w-12 h-12 rounded-lg border overflow-hidden bg-zinc-100 relative";
-        item.innerHTML = `<img src="${image}" alt="預覽照片 ${index + 1}" class="w-full h-full object-cover"><button type="button" onclick="removeUploadedImage(${index})" class="absolute inset-0 bg-black/60 text-white flex items-center justify-center font-bold text-[9px] opacity-0 hover:opacity-100 transition-opacity">移除</button>`;
-        container.appendChild(item);
-      });
-      container.classList.toggle("hidden", state.currentUploadedImagesBase64.length === 0);
-      state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
-      document.getElementById("image-upload-hint").innerText = state.currentUploadedImagesBase64.length
-        ? `已壓縮 ${state.currentUploadedImagesBase64.length}/5 張照片`
-        : "可選擇最多 5 張照片，系統會自動壓縮。";
-    }
-
     function renderImageUploadPreviews() {
       const container = document.getElementById("image-upload-preview-container");
       const count = state.currentUploadedImagesBase64.length;
@@ -47,7 +31,7 @@
         : "可選擇最多 5 張照片，系統會自動壓縮。";
     }
 
-    async function processImageUpload(event) {
+    async function processImageUpload(event) { //應援物圖片上傳
       const files = Array.from(event.target.files || []);
       const remaining = 5 - state.currentUploadedImagesBase64.length;
       event.target.value = "";
@@ -68,7 +52,27 @@
         showToast("照片處理失敗，請改用其他圖片。");
       }
     }
-
+    function compressImage(file) { //應援物圖片壓縮0.6
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (event) => {
+          const image = new Image();
+          image.onerror = reject;
+          image.onload = () => {
+            const maxSize = 1024; // 最大邊長 1024px
+            const scale = Math.min(maxSize / image.width, maxSize / image.height, 1);
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(image.width * scale);
+            canvas.height = Math.round(image.height * scale);
+            canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.60));
+          };
+          image.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     function removeUploadedImage(index) {
       state.currentUploadedImagesBase64.splice(index, 1);
       renderImageUploadPreviews();
@@ -89,7 +93,6 @@
       document.getElementById("post-image-file").click();
     }
 
-    window.renderImageUploadPreviewsLegacy=renderImageUploadPreviewsLegacy;
     window.renderImageUploadPreviews=renderImageUploadPreviews;
     window.processImageUpload = processImageUpload;
     window.removeUploadedImage = removeUploadedImage;

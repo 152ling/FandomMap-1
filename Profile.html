@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
-    <link rel=stylesheet type="text/css" href="css/style.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="./manifest.json">
+  <link rel=stylesheet type="text/css" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70  top-0 z-30 flex items-center justify-between">
@@ -106,7 +108,7 @@
                     </div>
                 </div>
 
-              <button onclick="switchTab('color')" class="w-full mt-4 bg-brand  text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">外觀設定</button>
+              <button onclick="renderAppearanceView()" class="w-full mt-4 bg-brand  text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition-all">外觀設定</button>
 
               <!-- Firebase Authentication 互動控制區 -->
               <div class="w-full mt-4 pt-4 border-t border-zinc-200/60">
@@ -144,7 +146,7 @@
       </section>
       
         <!-- MODAL 1: 編輯個人資料彈窗 -->
-        <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm hidden">
+        <div id="profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
             <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
                 
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -179,8 +181,8 @@
                     <!-- Social Link Input -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">社群個人檔案連結</label>
-                        <input id="input-social-link" type="text" placeholder="https://www.threads.net/@your_name" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
-                        <p class="text-[10px] text-slate-400 mt-1">填寫 Threads、Instagram 連結，方便交換應援物時聯絡</p>
+                        <input id="input-social-link" type="text" placeholder="https://www.threads.com/@your_name" class="w-full bg-slate-50 border border-slate-200 focus:border-violet-500 rounded-xl px-3.5 py-2 text-xs focus:outline-none transition">
+                        <p class="text-[10px] text-slate-400 mt-1">填寫 Threads或Instagram 連結，方便交換應援物時聯絡</p>
                     </div>
 
                     <!-- Account Info -->
@@ -217,8 +219,14 @@
                 </div>
             </div>
         </div>
-
+      <section id="screen-color">
+        <div id="color-container" class="flex-grow overflow-y-auto no-scrollbar pb-36 sm:pb-40">
+          <!-- 動態渲染 RWD 外觀設定 -->
+        </div>
+      </section>
     </main>
+
+
     <!-- ==================== 底部行動導覽列 (僅在手機 md 以下顯示) ==================== -->
     <nav id="bottom-nav-bar" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-zinc-200/70 z-30 flex py-2 px-6 justify-between items-center shadow-[0_-6px_24px_rgba(15,23,42,0.06)] pb-safe">
       <button onclick="switchTab('explore')" id="nav-btn-explore" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all text-zinc-400 hover:text-zinc-600">
@@ -234,13 +242,18 @@
         <span class="text-[10px] font-bold">個人中心</span>
       </button>
     </nav>
+    <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-brand backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
+      <span id="toast-text"></span>
+    </div>
+
     <script  type="module">
     import { state } from './js/state.js';
-    import './js/profile.js'
+    import './js/profile.js';
+    // import './js/color.js';
     import './js/common.js';
     import { db,auth,storage,appId} from "./js/firebase-config.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {  //登入狀態
@@ -312,8 +325,9 @@
         } else {
           // 未登入時，不做處理
             console.log("使用者未登入，功能限制為唯讀模式");
-            hasAdminClaim = false;
-            isAdminClaimResolved = true;
+            // hasAdminClaim = false;
+            // isAdminClaimResolved = true;
+            resetAdminState();
             if (state.selectedConcert) renderConcertDetail();
             document.getElementById("profile-input-username").disabled = true;
             document.getElementById("user-social-handle").disabled = true;
@@ -332,6 +346,319 @@
         showToast("Firebase 安全認證出錯，請確認後台設定");
       }
     });
+
+
+    async function handleGoogleSignIn() {
+      const provider = new GoogleAuthProvider();
+      showToast("正在連線至 Google 安全登入程序...");
+      try {
+        await signInWithPopup(auth, provider);
+
+    } catch (err) {
+        if (err.code === 'auth/popup-closed-by-user') {
+            showToast("ℹ️ 登入程序已被手動取消");
+          } else {
+            console.error("登入失敗:", err);
+            showToast("登入程序發生錯誤");
+          }
+        
+    }
+    }
+
+    async function handleSignOut() {
+      showToast("正在安全登出...");
+      
+      try {
+        unsubscribeListeners(); // 先關閉監聽
+        state.bookmarkedPostIds = []; // 清空書籤狀態
+        await signOut(auth);
+        showToast("已成功登出");
+        const KEY_PREFIXES = ['fe_v1_'];
+            Object.keys(localStorage).forEach(key => {
+                if (KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                    localStorage.removeItem(key);
+                }
+        });
+        window.location.reload(); // 強制重整以確保所有狀態歸零
+      } catch (error) {
+        console.error("Sign out error:", error);
+      }
+    }
+
+    // ==================== STREAMING_CHUNK: 開啟 Firestore 三大即時監聽即時更新 ====================
+    let initialDataLoaded = {
+        concerts: false,
+        supportEvents: false,
+        exchangePosts: false,
+        bookmarks: false,
+        attendedConcerts: false
+    };
+    function startRealtimeListeners(user) {
+      unsubscribeListeners(); // 確保重新開啟前先清理
+      initialDataLoaded = {
+        concerts: false,
+        supportEvents: false,
+        exchangePosts: false,
+        bookmarks: false,
+        attendedConcerts: false
+      };
+      // 1. Concerts 監聽
+      const today = new Date().toISOString().split('T')[0];
+      const concertsCol = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
+      const upcomingConcertsQuery = query(
+          concertsCol,
+          where("endDate", ">=", today)
+      );
+      onSnapshot(upcomingConcertsQuery, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        if (list.length > 0) {
+          state.concerts = list;
+        } else {
+          showToast("目前尚無任何應援場次，請先新增一場演唱會或活動");
+        }
+        initialDataLoaded.concerts = true;
+        tryInitialRender();
+      }, (err) => {
+        console.error("Concert sync error:", err);
+      });
+
+      // 2. Support Events 監聽
+      const supportsCol = collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents');
+      onSnapshot(supportsCol, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        state.supportEvents = list;
+        localStorage.setItem("fe_v1_supportEvents",JSON.stringify(state.supportEvents));
+        
+        initialDataLoaded.supportEvents = true;
+        tryInitialRender();
+      }, (err) => {
+        console.error("Support sync error:", err);
+      });
+
+      // 3. Exchange Posts 監聽
+      const exchangesCol = collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts');
+      onSnapshot(exchangesCol, (snap) => {
+        let list = [];
+        snap.forEach(doc => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        state.exchangePosts = list;
+        localStorage.setItem("fe_v1_exchangePosts",JSON.stringify(state.exchangePosts));
+
+        initialDataLoaded.exchangePosts = true;
+        tryInitialRender();
+
+      }, (err) => {
+        console.error("Exchange sync error:", err);
+      });
+      if(user){
+        // 4. BooksMark 監聽
+        const uid = user.uid;
+        const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
+        onSnapshot(bookmarksCol, async (snap) => {
+          state.bookmarkedPostIds = [];
+          state.bookmarkData = {};
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            state.bookmarkedPostIds.push(docSnap.id);
+
+            state.bookmarkData[docSnap.id] = {
+              postId: docSnap.id,
+              type: data.type || "",
+              concertId: data.concertId || null,
+            };
+          });
+          await loadBookmarkedConcerts();
+          localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
+          localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
+          localStorage.setItem("fe_v1_bookmarkedConcerts",JSON.stringify(state.bookmarkedConcerts));
+
+          initialDataLoaded.bookmarks = true;
+          tryInitialRender();
+        }, (err) => {
+          initialDataLoaded.bookmarks = true;
+          console.error("Bookmark sync error:", err);
+        });
+      
+        // 4. ConcertsAttended 監聽
+        const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
+        onSnapshot(attendedCol, (snap) => {
+          state.userAttendedConcerts = [];
+          snap.forEach(doc => {
+            state.userAttendedConcerts.push(doc.id);
+          });
+          initialDataLoaded.attendedConcerts = true;
+          tryInitialRender();
+        }, (err) => {
+          initialDataLoaded.attendedConcerts = true;
+          console.error("Attended sync error:", err);
+        });
+      }else{ // 未登入
+          state.bookmarkedPostIds = [];
+          state.bookmarkData = {};
+          state.bookmarkedConcerts = {};
+          state.userAttendedConcerts = [];
+
+          // 未登入時沒有這兩個 Firebase listener
+          // 所以直接告訴初始化系統：「這兩項已完成」
+          initialDataLoaded.bookmarks = true;
+          initialDataLoaded.attendedConcerts = true;
+
+          tryInitialRender();
+      }
+    }
+    function tryInitialRender() {
+        const allLoaded =
+            initialDataLoaded.concerts &&
+            initialDataLoaded.supportEvents &&
+            initialDataLoaded.exchangePosts &&
+            initialDataLoaded.bookmarks &&
+            initialDataLoaded.attendedConcerts;
+
+        if (!allLoaded) {
+            return;
+        }
+
+        renderAll();
+        document.getElementById("loading-overlay").classList.add("hidden");
+    }
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.handleSignOut = handleSignOut;
+    </script>
+    <script  type="module">
+      // --- 外觀設定 ---
+export function renderAppearanceView() {
+  console.log("Rendering appearance view...");
+    const container = document.getElementById('color-container');
+    const screen_profile = document.getElementById('screen-profile');
+    screen_profile.classList.add('hidden');
+    if(!container)
+       { console.log("Color container not found");
+        return;
+    }
+    container.innerHTML = '';
+            const presets = [
+                {key: 'theme_black', name:'黑色', c:'#18181b'},
+                {key: 'theme_pink', name:'粉色', c:'#F7CAC9'},
+                {key: 'theme_purple', name:'幻紫', c:'#BB96FF'},
+                {key: 'theme_blue', name:'沁藍', c:'#69C4E0'},
+                {key: 'theme_green', name:'螢綠', c:'#B6ED00'},
+                {key: 'theme_aurora', name:'極光', c:'#6C3591'},
+                {key: 'theme_gold', name:'熠金', c:'#E2B216'}
+            ];
+            const currentHex = (state.themeColor && state.themeColor.startsWith('#')) ? state.themeColor : '';
+            container.innerHTML = `
+                    <div>
+                        
+                        <div class="bg-white rounded-3xl p-1 card-shadow text-slate-800">
+                            <div class="flex mb-6 justify-between">
+                                <h3 data-i18n="appear_preset" class="text-sm font-bold text-slate-500 tracking-wide">選擇預設主題</h3>
+                                <div class="flex justify-center border-gray-100">
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="grad-dark-toggle" class="sr-only peer" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
+                                        <div class="relative w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer 
+                                                    peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full 
+                                                    after:content-[''] after:absolute after:top-[2px] after:start-[2px] 
+                                                    after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all 
+                                                    peer-checked:bg-slate-700"></div>
+                                        
+                                        <span class="select-none text-sm font-bold text-slate-500" data-i18n="appear_dark">深色模式</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-y-8 gap-x-4 place-items-center mb-10">
+                                ${presets.map(p => `
+                                    <div class="flex flex-col items-center gap-2">
+                                        <div onclick="applyTheme('${p.c}');;switchTab('color')" 
+                                            class="color-preset ${state.themeColor===p.c?'active':''}" 
+                                            style="background:${p.g || p.c}"></div>
+                                        <span class="text-[10px] font-bold text-slate-400 text-center" data-i18n="${p.key}">${p.name}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="flex flex-col items-center gap-2">
+                                    <input type="color" onchange="applyTheme(this.value);switchTab('color')" 
+                                        value="${state.themeColor}" 
+                                        class="w-10 h-10 rounded-full border-none cursor-pointer bg-slate-200 shadow-sm">
+                                    <span data-i18n="appear_eyedropper" class="text-[10px] font-bold text-slate-400 text-center">滴管選色</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-gray-100">
+                                <h3 data-i18n="appear_custom_hex" class="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">輸入自訂色碼</h3>
+                                <div class="flex gap-2">
+                                    <input type="text" id="custom-hex-input" placeholder="#RRGGBB" 
+                                        value="${currentHex}"
+                                        class="flex-grow min-w-0 w-full bg-slate-50 border-2 border-transparent focus:border-brand rounded-2xl px-4 py-3 text-sm outline-none font-mono text-slate-700">
+                                    <button data-i18n="btn_apply" onclick="applyHexColor()" 
+                                            class="flex-shrink-0 bg-brand text-white font-bold px-6 py-3 rounded-2xl shadow-lg active:scale-95 transition-all">
+                                        套用
+                                    </button>
+                                </div>
+                                <p data-i18n="appear_hex_hint" class="text-[10px] text-slate-300 mt-2 ml-1">請輸入包含 # 的六位數色碼，例如 #92A8D1</p>
+                            </div>
+                        </div>
+                        
+
+                    </div>`;
+            }
+        export function toggleDarkMode(isDark) {
+            // 套用目前的顏色，但傳入新的深淺設定
+            applyTheme(state.themeColor, isDark);
+            showToast(isDark ? "開啟深色模式" : "關閉深色模式");
+        }
+        export function applyHexColor() {
+            const hexInput = document.getElementById('custom-hex-input');
+            const color = hexInput.value.trim();
+            
+            // 驗證格式是否為有效的 Hex 色碼 (例如 #FFFFFF 或 #FFF)
+            const isHex = /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
+            
+            if (isHex) {
+                applyTheme(color);
+                showToast("顏色已更新"); //更新自訂主題色
+            } else {
+                showToast("格式錯誤"); //格式錯誤 
+            }
+        }
+
+        //應用主題顏色
+    export function applyTheme(color, isDarkMode = null) {
+            state.themeColor = color;
+            const root = document.documentElement;
+            const body = document.body;
+
+            // --- 深色模式判斷邏輯 ---
+            let targetDark;
+            
+            if (isDarkMode !== null) {
+                // 如果有從 saveGrad 傳進來 (true 或 false)，就用傳進來的
+                targetDark = isDarkMode;
+            } else {
+                // 如果是點擊「粉藍」或其他預設顏色（只傳一個參數時），就讀取原本存的狀態
+                targetDark = localStorage.getItem('fe_v11_darkMode') === 'true';
+            }
+
+            localStorage.setItem('fe_v11_darkMode', targetDark);
+            if (targetDark) {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+
+            root.style.setProperty('--brand-color', color);
+            
+            localStorage.setItem('fe_v11_theme', color);
+        }
+      window.renderAppearanceView=renderAppearanceView;
+      window.toggleDarkMode=toggleDarkMode;
+      window.applyHexColor=applyHexColor;
+      window.applyTheme=applyTheme;
     </script>
 </body>
 </html>
