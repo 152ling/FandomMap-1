@@ -1,0 +1,54 @@
+{
+  "id": "/",
+  "name": "應援地圖",
+  "short_name": "應援地圖",
+  "description": "演唱會應援交換地圖",
+  "start_url": "/",
+  "display_override": ["standalone", "minimal-ui"],
+  "display": "standalone",
+  "categories": ["lifestyle", "social", "navigation"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/map-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/map-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/map-logo-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/map-logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "電腦版介面預覽"
+    },
+    {
+      "src": "/map-logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "手機版介面預覽"
+    }
+  ]
+}
