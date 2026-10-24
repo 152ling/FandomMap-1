@@ -16,41 +16,7 @@ import {renderAppearanceView} from "./color.js";
       isAdminClaimResolved = true;
     }
 
-    async function adminApproveConcert() {
-      if (!state.selectedConcert) return;
 
-      if (!(await isUserAdmin())) {
-        showToast("您沒有管理員權限^^");
-        return;
-      }
-
-      const approveBtn = document.getElementById('admin-approve-btn');
-      approveBtn.disabled = true;
-      approveBtn.innerText = "處理中...";
-
-      try {
-        const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
-        // 將 isPending 設為 false，正式上架
-        await updateDoc(concertDocRef, {
-          isPending: false,
-          approvedBy: state.currentUser.id,
-          approvedAt: new Date().toISOString()
-        });
-
-        // 隱藏審核區塊
-        document.getElementById('detail-concert-pending-box').classList.add('hidden');
-        showToast("已成功以管理員權限將此場次審核通過並正式上架！");
-
-        // 重新載入或更新畫面
-        if (typeof fetchConcerts === 'function') fetchConcerts();
-      } catch (error) {
-        console.error("Admin approve error:", error);
-        showToast("審核失敗，請稍後再試");
-      } finally {
-        approveBtn.disabled = false;
-        approveBtn.innerText = "直接通過";
-      }
-    }
 
     export function navigateBack() {
       switchTab("explore");
@@ -394,5 +360,5 @@ window.showToast=showToast;
 window.getDaysRemaining=getDaysRemaining;
 window.isUserAdmin =isUserAdmin;
 window.resetAdminState =resetAdminState;
-window.adminApproveConcert = adminApproveConcert;
+
 window.openPostDetailModal = openPostDetailModal;

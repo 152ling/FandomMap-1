@@ -107,13 +107,13 @@ async function loadConcertSupportData() {
       const adminBtn = document.getElementById('admin-approve-btn');
       // 按鈕只會在 Custom Claim 識別完成、且確定為管理員後出現。
       const isAdmin = await isUserAdmin();
-adminActions.classList.toggle('hidden', !isAdmin);
+        adminActions.classList.toggle('hidden', !isAdmin);
       //adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
       if (state.selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
         attendContainer.classList.add("hidden");
         document.getElementById("detail-concert-pending-stats").innerText = ` ${state.selectedConcert.verifiedCount || 0}/20 位粉絲已確認`;
-        adminBtn.classList.toggle('hidden', !hasAdminClaim);
+        adminBtn.classList.toggle('hidden', !isAdmin);
       } else {
         pendingBox.classList.add("hidden");
         attendContainer.classList.remove("hidden");
