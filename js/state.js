@@ -37,7 +37,9 @@ export const state = {
 
   // 演唱會圖片
   currentAddConcertImageBase64: "",
+  currentAddConcertVerticalImageBase64: "",
   currentEditConcertImageBase64: "",
+  currentEditConcertVerticalImageBase64: "",
 
   // 應援物圖片
   // 保留第一張，供既有卡片與詳情畫面使用

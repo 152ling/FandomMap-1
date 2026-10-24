@@ -35,7 +35,46 @@
         }
       }
     }
+    
   </script>
+  <style>
+    /* 外層容器，設定滿版或固定寬度並隱藏溢出範圍 */
+.banner-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 400px;
+  margin: 0 auto;
+  background-color: #0b0f19; /* 整體深色底色 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 底層模糊背景效果 */
+.bg-blur {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(5px) brightness(0.4); /* 調整模糊度與明暗 */
+  transform: scale(1.2); /* 放大以避免模糊邊緣露出白邊 */
+  z-index: -1;
+}
+
+/* 確保上層內容壓在模糊背景上方 */
+.banner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+
+  </style>
 </head>
 <body class="bg-zinc-50 text-zinc-800 flex justify-center font-sans antialiased min-h-screen">
 
@@ -47,7 +86,7 @@
   </div>
 
   <!-- 響應式主外框（手機版滿版、桌機版適配寬螢幕、具備圓角與柔和陰影） -->
-  <div class="w-full max-w-7xl bg-white md:shadow-2xl md:my-6 md:rounded-3xl flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-zinc-100 overflow-hidden">
+  <div class="w-full max-w-7xl bg-white flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-zinc-100 overflow-hidden">
     
     <!-- ==================== TOP HEADER (響應式雙向導覽列) ==================== -->
     <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70 sticky top-0 z-30 flex items-center justify-between">
@@ -94,12 +133,12 @@
     </header>
 
     <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
-    <main id="main-content" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 pb-24 md:pb-12">
+    <main id="main-content" class="flex-1 overflow-y-auto md:px-8 pb-24 md:pb-12">
       
       <!-- SCREEN 1: 探索演唱會列表 -->
       <section id="screen-explore" class="space-y-6 animate-fade-in">
         <!-- 宣傳看板 (桌機版適配為優雅通欄) -->
-        <div id="announcement-container" class="hidden bg-gradient-to-r from-violet-50 via-white to-fuchsia-50/50 border border-violet-100/80 p-5 rounded-2xl flex gap-4 items-start ui-card">
+        <div id="announcement-container" class="hidden mx-4 mt-4 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50/50 border border-violet-100/80 p-5 rounded-2xl flex gap-4 items-start ui-card">
           <span class="w-10 h-10 shrink-0 rounded-xl bg-white border border-violet-100 text-violet-700 grid place-items-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 3.75 12l4.5 7.5M15.75 4.5l4.5 7.5-4.5 7.5M12 3v18" /></svg></span>
           <div>
             <h3 class="text-sm font-bold text-zinc-800 md:text-base">即時應援看板與粉絲卡片交換</h3>
@@ -109,28 +148,28 @@
           </div>
         </div>
         <!-- 本周演唱會輪播圖 -->
-        <div id="hero-carousel-container" class="hidden relative w-full overflow-hidden rounded-3xl bg-brand text-white shadow-xl group">
+        <div id="hero-carousel-container" class="hidden relative w-full overflow-hidden bg-black text-white group">
           <div id="carousel-track" class="flex transition-transform duration-500 ease-out w-full">
             </div>
 
-          <button onclick="prevCarouselSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button onclick="prevCarouselSlide()" class="absolute left-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-40 group-hover:opacity-100 transition-opacity z-10">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <button onclick="nextCarouselSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button onclick="nextCarouselSlide()" class="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white grid place-items-center opacity-40 group-hover:opacity-100 transition-opacity z-10">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
-          <div id="carousel-dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+          <div id="carousel-dots" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
             </div>
         </div>
 
         <!-- 搜尋與篩選列 (RWD: 在大螢幕下更顯大器) -->
-        <div class="relative max-w-xl">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-400">
+        <div class="relative max-w-xl px-4">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-6 text-zinc-400">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
             </svg>
@@ -139,7 +178,7 @@
         </div>
 
         <!-- 熱門演唱會列表 -->
-        <div class="space-y-4">
+        <div class="space-y-4  px-4 ">
           <h3 class="text-zinc-500 text-xs font-bold uppercase section-kicker">熱門演出看板</h3>
           <div id="concert-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <!-- 動態渲染 RWD 卡片 -->
@@ -147,109 +186,6 @@
         </div>
       </section>
 
-      <!-- SCREEN 4: 演唱會看板詳細頁 -->
-      <section id="screen-concert-detail" class="hidden space-y-6 animate-fade-in">
-        <!-- 演唱會頭部 Banner -->
-        <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden ui-card">
-          <!-- 1. 上方純海報視覺 Banner (無混亂文字重疊，維持高質感) -->
-          <div class="relative h-44 sm:h-52 w-full overflow-hidden bg-brand">
-            <img id="detail-concert-image" src="" alt="Poster" class="w-full h-full object-cover">
-          </div>
-          <!-- 2. 下方獨立資訊與操作按鈕卡片區塊 (獨立白底，清晰高對比) -->
-          <div class="p-4 sm:p-5 space-y-1">
-            <!-- 地點與參戰 Badge -->
-            <div class="flex items-center justify-between text-xs flex-wrap">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-location-dot text-rose-500"></i>
-                <span id="detail-concert-venue" class="text-zinc-500 font-bold flex items-center gap-1 text-[11px]">
-                  場館資訊
-                </span>
-              </div>
-              <span id="detail-concert-countdown" class="text-zinc-400 font-bold text-[11px]">
-                倒數幾天
-              </span>
-            </div>
-
-            <!-- 演唱會主標題 -->
-            <h2 id="detail-concert-tour" class="text-base sm:text-lg font-black text-zinc-900 leading-snug tracking-tight">
-              巡迴演唱會全稱
-            </h2>
-            <span id="detail-concert-artist" class="text-[11px] text-zinc-500 font-bold tracking-wide uppercase">
-                ARTIST
-            </span>
-
-            <!-- 參加人數統計與獨立操作按鈕列 -->
-            <div id="detail-concert-attend-container" class="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
-              <!-- 左側：參戰數據 -->
-              <div class="text-[11px] text-zinc-500 font-medium flex items-center gap-1.5 shrink-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>已加入：<strong id="detail-attend-count" class="text-zinc-900 font-black text-xs">0</strong> 人</span>
-              </div>
-
-              <!-- 右側：獨立操作按鈕組 -->
-              <div class="flex items-center gap-2">
-                <button id="btn-detail-attend" onclick="toggleConcertAttend()" class="bg-brand text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm">
-                  <i id="detail-attend-icon" class="fa-solid fa-ticket text-amber-400"></i>
-                  <span id="detail-attend-text">加入我的演唱會</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 審核中提案提示區 -->
-        <div id="detail-concert-pending-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between text-xs text-amber-800">
-          <div class="space-y-0.5">
-            <p class="font-bold text-sm">本場次由粉絲自行提案</p>
-            <p>協助確認此場演唱會資訊正確<br>完成驗證後將正式開放</p>
-            <p id="detail-concert-pending-stats" class="text-zinc-500 text-[11px]"></p>
-          </div>
-          <button onclick="voteForConcert()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm">
-            確認資訊正確
-          </button>
-
-        </div>
-        <div id="admin-concert-actions" class="hidden flex flex-wrap gap-2">
-          <button id="admin-edit-concert-btn" onclick="openEditConcertModal()" class="text-sm bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
-            <i class="fa-solid fa-pen-to-square"></i><span>編輯演出資訊</span>
-          </button>
-          <button id="admin-approve-btn" onclick="adminApproveConcert()" class="hidden text-sm bg-emerald-600 text-white font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center space-x-1">
-              <span>直接通過</span>
-          </button>
-        </div>
-
-        <!-- 雙欄桌面視圖佈局：左側面板放置篩選、右側展示對應卡片 -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start text-left">
-          
-          <div class="lg:col-span-1 space-y-5">
-            <!-- 日期選擇 -->
-            <div class="bg-zinc-50/50 p-4 rounded-2xl border border-zinc-200/50">
-              <p class="text-zinc-500 text-[11px] font-bold mb-2.5 uppercase section-kicker">選擇演唱會日</p>
-              <div id="detail-date-tabs-container" class="flex lg:flex-col gap-2 overflow-x-auto pb-1 lg:pb-0">
-                <!-- 動態渲染日期卡 -->
-              </div>
-            </div>
-
-            <!-- 看板分類切換 -->
-            <div class="flex lg:flex-col bg-zinc-100 lg:bg-transparent p-1 lg:p-0 rounded-xl lg:space-y-2">
-              <button onclick="setSubCategory('support')" id="btn-toggle-support" class="flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all bg-white text-zinc-900 shadow-sm lg:border lg:border-zinc-200">
-                <div id="label-toggle-support">免費應援 (0)</div>
-              </button>
-              <button onclick="setSubCategory('exchange')" id="btn-toggle-exchange" class="flex-1 py-2.5 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center lg:justify-start lg:px-4 gap-2 transition-all text-zinc-500 lg:border lg:border-transparent">
-                <span id="label-toggle-exchange">交換應援 (0)</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 右側動態應援項目網格 -->
-          <div class="lg:col-span-3">
-            <div id="detail-event-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- 動態渲染卡片 -->
-            </div>
-          </div>
-
-        </div>
-      </section>
       <section id="screen-color">
         <div id="color-container" class="flex-grow overflow-y-auto no-scrollbar pb-36 sm:pb-40">
           <!-- 動態渲染 RWD 外觀設定 -->
@@ -347,7 +283,7 @@
     </div>
 
     <!-- ==================== MODAL: 管理員編輯演出 ==================== -->
-    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
           <div><h3 class="text-sm md:text-base font-black text-zinc-850">編輯演出資訊</h3><p class="text-[10px] text-zinc-500 mt-0.5">僅限已驗證管理員</p></div>
@@ -392,7 +328,7 @@
     </div>
 
     <!-- ==================== MODAL 4: 自訂防呆刪除確認彈窗 ==================== -->
-    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div id="modal-delete-confirm" onclick="closeDeleteConfirmModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
         <span class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 mx-auto grid place-items-center"><svg xmlns="http://www.w3.org/2000/svg" class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
         <div>
@@ -405,7 +341,7 @@
         </div>
       </div>
     </div>
-    <div id="modal-bookmark-confirm" onclick="closeBookmarkConfirmModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div id="modal-bookmark-confirm" onclick="closeBookmarkConfirmModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" 
       class="bg-white rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl text-center border border-zinc-100 overflow-hidden">
         <span class="w-11 h-11 rounded-2xl bg-pink-50 text-pink-600 mx-auto grid place-items-center">
@@ -493,52 +429,6 @@
         if (unsubscribeExchange) unsubscribeExchange();
         if (unsubscribeBookmarks) unsubscribeBookmarks();
     }
-    // async function isUserAdmin() {
-    //   const currentUser = auth.currentUser;
-    //   if (!currentUser) return false;
-    //   // 執行管理操作前強制刷新 Token，避免只信任畫面上的快取狀態。
-    //   const idTokenResult = await currentUser.getIdTokenResult(true);
-    //   hasAdminClaim = !!idTokenResult.claims.admin;
-    //   isAdminClaimResolved = true;
-    //   return hasAdminClaim;
-    // }
-
-    // async function adminApproveConcert() {
-    //   if (!state.selectedConcert) return;
-
-    //   if (!(await isUserAdmin())) {
-    //     showToast("您沒有管理員權限^^");
-    //     return;
-    //   }
-
-    //   const approveBtn = document.getElementById('admin-approve-btn');
-    //   approveBtn.disabled = true;
-    //   approveBtn.innerText = "處理中...";
-
-    //   try {
-    //     const concertDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
-    //     // 將 isPending 設為 false，正式上架
-    //     await updateDoc(concertDocRef, {
-    //       isPending: false,
-    //       approvedBy: state.currentUser.id,
-    //       approvedAt: new Date().toISOString()
-    //     });
-
-    //     // 隱藏審核區塊
-    //     document.getElementById('detail-concert-pending-box').classList.add('hidden');
-    //     showToast("已成功以管理員權限將此場次審核通過並正式上架！");
-
-    //     // 重新載入或更新畫面
-    //     if (typeof fetchConcerts === 'function') fetchConcerts();
-    //   } catch (error) {
-    //     console.error("Admin approve error:", error);
-    //     showToast("審核失敗，請稍後再試");
-    //   } finally {
-    //     approveBtn.disabled = false;
-    //     approveBtn.innerText = "直接通過";
-    //   }
-    // }
-    // window.adminApproveConcert = adminApproveConcert;
 
 
     // ==================== STREAMING_CHUNK: 監聽 Firebase 身分狀態變更並初始化 Profile ====================
@@ -552,7 +442,7 @@
           statusText.innerText = "驗證粉絲特許資料中...";
           // 在渲染任何管理功能前先確認 Firebase Custom Claim。
           await isUserAdmin();
-          if (state.selectedConcert) renderConcertDetail();
+          // if (state.selectedConcert) renderConcertDetail();
           state.currentUser.id = user.uid;
           state.currentUser.email = user.email;
           state.currentUser.isAnonymous = false;
@@ -603,7 +493,7 @@
             console.log("使用者未登入，功能限制為唯讀模式");
             hasAdminClaim = false;
             isAdminClaimResolved = true;
-            if (state.selectedConcert) renderConcertDetail();
+            // if (state.selectedConcert) renderConcertDetail();
             document.getElementById("loading-overlay").classList.add("hidden");
 
         }
@@ -865,20 +755,15 @@
         const bannerImg = concert.image;
         const countdownText = getDaysRemaining(concert.dates);
         return `
-          <div class="w-full flex-shrink-0 relative h-56 sm:h-72 md:h-80 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=${concert.id}'">
-            <img src="${bannerImg}" alt="${concert.tourName}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-
-            <div class="absolute bottom-0 left-0 right-0 p-5 md:p-8 flex flex-col items-start gap-2">
-              <h2 class="text-lg md:text-2xl font-black text-white tracking-tight line-clamp-1">
-                ${concert.tourName}
-              </h2>
-              <div class="flex items-center text-zinc-300 text-xs space-x-3 mt-1">
-                <span><i class="fa-solid fa-location-dot mr-1 text-zinc-400"></i>${concert.venue || '各大展演場館'}</span>
-                <span><i class="fa-regular fa-clock mr-1 text-zinc-400"></i>${countdownText}</span>
-              </div>
+          <div class="w-full flex-shrink-0 relative h-48 sm:h-64 md:h-64 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=' + '${concert.id}';">
+             <!-- 底層：被放大並模糊的背景圖 -->
+            <div class="bg-blur" style="background-image: url('${bannerImg}');"></div>
+            <div class="banner-content mt-2.5">
+              <img src="${bannerImg}" alt="${concert.tourName}" class="main-image w-[80%] sm:w-[70%] md:w-[60%] lg:w-[50%] h-32 sm:h-48 md:h-48 lg:h-48 z-10 h-full object-cover transform transition-transform duration-700">
+              <div class="banner-title mt-2 text-sm font-bold text-white text-center">${concert.tourName}</div>
             </div>
           </div>
+
         `;
       }).join('');
 
@@ -977,7 +862,7 @@
           card.className = "bg-white hover:bg-zinc-50 border border-zinc-150 rounded-xl overflow-hidden cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md flex flex-row";
           card.onclick = () => {window.location.href = `Concert.html?concertId=${c.id}`;};
           card.innerHTML = `
-            <div class="w-40 md:w-48 max-h-48 shrink-0 overflow-hidden relative border-r border-zinc-100 bg-zinc-100">
+            <div class="w-40 md:w-48 h-[100px] shrink-0 overflow-hidden relative border-r border-zinc-100 bg-zinc-100">
               <img src="${c.image}" alt="${c.artist}" class="w-full h-full rounded-xl object-cover">
               ${c.isPending ? `
                 <span class="absolute top-2 left-2 bg-amber-500 text-white text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
@@ -985,10 +870,10 @@
                 </span>
               ` : ""}
             </div>
-            <div class="flex-1 flex flex-col justify-between min-w-0 text-left m-4">
+            <div class="flex-1 flex flex-col justify-between min-w-0 text-left mt-1 mb-1 ml-2">
               <div>
-                <span class="text-zinc-800 text-xs font-black bg-zinc-100 px-2 py-0.5 rounded">${c.artist}</span>
-                <h4 class="text-xs md:text-sm font-bold text-zinc-800 text-wrap mt-1.5">${c.tourName}</h4>
+                <span class="hidden text-zinc-800 text-xs font-black bg-zinc-100 px-2 py-0.5 rounded">${c.artist}</span>
+                <h4 class="text-xs md:text-sm font-bold text-zinc-800 tour-name-2line mt-1.5">${c.tourName}</h4>
                 <p class="text-[10px] md:text-xs text-zinc-500 mt-1">${c.venue} · ${c.dates.length} Days</p>
               </div>
               <div class="flex gap-3 text-[10px] md:text-xs text-zinc-500 border-t border-zinc-50 pt-2.5 font-semibold">

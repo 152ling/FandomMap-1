@@ -395,3 +395,4 @@ window.getDaysRemaining=getDaysRemaining;
 window.isUserAdmin =isUserAdmin;
 window.resetAdminState =resetAdminState;
 window.adminApproveConcert = adminApproveConcert;
+window.openPostDetailModal = openPostDetailModal;

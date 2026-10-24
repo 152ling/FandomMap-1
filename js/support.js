@@ -581,7 +581,7 @@
     //   closePostDetailModal();
       document.getElementById("modal-delete-confirm").classList.remove("hidden");
     }
-    function closePostDetailModal() {
+    export function closePostDetailModal() {
       document.getElementById("modal-post-detail").classList.add("hidden");
       state.activeDetailItem = null;
       document.getElementById("detail-bookmark-btn").classList.remove("hidden");

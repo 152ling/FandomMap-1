@@ -173,6 +173,51 @@
       await executeDeleteConcert();
     }
 
+    function slugifyStorageName(value) { //將演唱會名稱轉為適合用於 Firebase Storage 的檔名格式
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-_]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 40) || 'concert';
+    }
+
+    function formatStorageDate(dateValue) { //將日期格式化為 YYYYMMDD 字串，若無效則回傳 'unknown'
+      if (!dateValue) return 'unknown';
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) return 'unknown';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}${month}${day}`;
+    }
+
+    async function deleteConcertCoverFolder(concertId) {
+      if (!concertId) return;
+      try {
+        const folderRef = ref(storage, `concert-covers/${concertId}`);
+        const res = await listAll(folderRef);
+        if (!res.items.length) return;
+        await Promise.all(res.items.map((fileRef) => deleteObject(fileRef)));
+      } catch (error) {
+        console.warn('清理演唱會封面圖片失敗:', error);
+      }
+    }
+
+    async function deleteConcertCoverFileIfExists(concertId, coverStoragePath) {
+      if (!concertId || !coverStoragePath) return;
+      try {
+        const fileRef = ref(storage, coverStoragePath);
+        await deleteObject(fileRef);
+      } catch (error) {
+        console.warn('刪除舊封面失敗，改用資料夾清理:', error);
+        await deleteConcertCoverFolder(concertId);
+      }
+    }
+
     async function executeDeleteConcert() {
       if (!state.selectedConcert) return;
       if (!(await isUserAdmin())) {
@@ -182,6 +227,7 @@
 
       try {
         const concertId = state.selectedConcert.id;
+        await deleteConcertCoverFolder(concertId);
         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', concertId));
 
         closeEditConcertModal();
@@ -217,21 +263,32 @@
         return;
       }
       const endDate = dates[dates.length - 1]; //存最後一天
+      const storageEndDate = formatStorageDate(endDate);
       const submitButton = document.getElementById('edit-concert-submit-btn');
       submitButton.disabled = true;
       submitButton.textContent = '儲存中…';
       try {
         let image = state.selectedConcert.image;
+        let coverStoragePath = state.selectedConcert.coverStoragePath || null;
         if (state.currentEditConcertImageBase64) {
+          const oldCoverPath = state.selectedConcert.coverStoragePath || null;
+          const fileName = `cover${Date.now()}.jpg`;
+          const newCoverPath = `concert-covers/${state.selectedConcert.id}/${fileName}`;
+          if (oldCoverPath) {
+            await deleteConcertCoverFileIfExists(state.selectedConcert.id, oldCoverPath);
+          } else {
+            await deleteConcertCoverFolder(state.selectedConcert.id);
+          }
           const blob = await (await fetch(state.currentEditConcertImageBase64)).blob();
-          const imageRef = ref(storage, `concert-covers/${state.selectedConcert.id}/${Date.now()}-cover.jpg`);
+          const imageRef = ref(storage, newCoverPath);
           await uploadBytes(imageRef, blob, { contentType: blob.type || 'image/jpeg', cacheControl: "public, max-age=31536000" });
           image = await getDownloadURL(imageRef);
+          coverStoragePath = newCoverPath;
         }
 
         const concertRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
         await updateDoc(concertRef, {
-          artist, tourName, venue, dates,endDate, image,
+          artist, tourName, venue, dates,endDate, image, coverStoragePath,
           updatedAt: serverTimestamp(),
           updatedBy: state.currentUser.id
         });
@@ -344,16 +401,19 @@
         }
       }
       const endDate = dates[dates.length - 1]; //存最後一天
-      const newId = `concert_${Date.now()}`;
-
+      const storageEndDate = formatStorageDate(endDate);
+      const slug = slugifyStorageName(tourName);
+      const newId = `concert_${slug}_${storageEndDate}`;
+      let coverStoragePath = null;
 
       try {
         // 若使用者有上傳照片，將圖片上傳至 Firebase Storage
         if (state.currentAddConcertImageBase64) {
           if (state.currentUser) {
             const blob = await (await fetch(state.currentAddConcertImageBase64)).blob();
-            const fileName = `${Date.now()}-cover.jpg`;
-            const imageRef = ref(storage, `concert-covers/${newId}/${fileName}`);
+            const fileName = `cover${Date.now()}.jpg`;
+            coverStoragePath = `concert-covers/${newId}/${fileName}`;
+            const imageRef = ref(storage, coverStoragePath);
             await uploadBytes(imageRef, blob, { contentType: blob.type || "image/jpeg", cacheControl: "public, max-age=31536000" });
             finalImageUrl = await getDownloadURL(imageRef);
           } else {
@@ -368,6 +428,7 @@
           id: newId,
           artist, tourName, venue, dates,endDate,
           image: finalImageUrl,
+          coverStoragePath,
           isPending: true,
           verifiedCount: 1,
           attendedCount: 0,

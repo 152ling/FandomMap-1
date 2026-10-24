@@ -30,10 +30,10 @@
 
       <!-- 桌機版選單列 (RWD: md 以上顯示) -->
       <div class="hidden md:flex items-center gap-8 border-l border-zinc-200 pl-8 mr-auto">
-        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="tab-active text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all">
+        <button onclick="switchTab('explore')" id="dk-nav-btn-explore" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
           探索場次
         </button>
-        <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
+        <button onclick="switchTab('bookmarks')" id="dk-nav-btn-bookmarks" class="tab-active text-sm font-bold text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-all ">
           我的收藏
         </button>
         <button onclick="switchTab('profile')" id="dk-nav-btn-profile" class="text-sm font-medium text-zinc-400 hover:text-zinc-600 pb-1 transition-all">
@@ -248,6 +248,7 @@
       try {
         if (user) {  //登入狀態
             document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+            await syncBookmarkStateFromFirestore();
             renderArtistTabs();
             updateConcertDropdown();
             renderBookmarks();

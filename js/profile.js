@@ -1,5 +1,6 @@
   import { state } from './state.js';
   import { openPostDetailModal } from "./common.js";
+  import { closePostDetailModal } from "./support.js";
   import { db,auth,storage,appId} from "./firebase-config.js";
   import { getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";

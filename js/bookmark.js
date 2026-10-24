@@ -102,6 +102,114 @@
       renderBookmarks();
     }
 
+    async function loadConcertSupportData() {
+      const concertIds = [...new Set(
+        Object.values(state.bookmarkData)
+          .map(bookmark => bookmark.concertId)
+          .filter(Boolean)
+      )];
+
+      if (concertIds.length === 0) {
+        state.supportEvents = [];
+        state.exchangePosts = [];
+        localStorage.setItem('fe_v1_supportEvents', JSON.stringify(state.supportEvents));
+        localStorage.setItem('fe_v1_exchangePosts', JSON.stringify(state.exchangePosts));
+        return;
+      }
+
+      const supportQueries = concertIds.map(concertId =>
+        query(collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents'), where('concertId', '==', concertId))
+      );
+      const exchangeQueries = concertIds.map(concertId =>
+        query(collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts'), where('concertId', '==', concertId))
+      );
+
+      const allSupportResults = await Promise.all(supportQueries.map(getDocs));
+      const allExchangeResults = await Promise.all(exchangeQueries.map(getDocs));
+
+      const nextSupportEvents = [];
+      allSupportResults.forEach(snap => {
+        snap.forEach(docSnap => {
+          nextSupportEvents.push({ id: docSnap.id, ...docSnap.data() });
+        });
+      });
+
+      const nextExchangePosts = [];
+      allExchangeResults.forEach(snap => {
+        snap.forEach(docSnap => {
+          nextExchangePosts.push({ id: docSnap.id, ...docSnap.data() });
+        });
+      });
+
+      state.supportEvents = nextSupportEvents;
+      state.exchangePosts = nextExchangePosts;
+      localStorage.setItem('fe_v1_supportEvents', JSON.stringify(state.supportEvents));
+      localStorage.setItem('fe_v1_exchangePosts', JSON.stringify(state.exchangePosts));
+    }
+
+    async function loadBookmarkedConcerts() {
+      const concertIds = [...new Set(
+        Object.values(state.bookmarkData)
+          .map(bookmark => bookmark.concertId)
+          .filter(Boolean)
+      )];
+
+      if (concertIds.length === 0) {
+        state.bookmarkedConcerts = {};
+        localStorage.setItem('fe_v1_bookmarkedConcerts', JSON.stringify(state.bookmarkedConcerts));
+        return;
+      }
+
+      const concertResults = await Promise.all(
+        concertIds.map(async (concertId) => {
+          const concertRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', concertId);
+          const concertSnap = await getDoc(concertRef);
+          if (!concertSnap.exists()) return null;
+          return { id: concertSnap.id, ...concertSnap.data() };
+        })
+      );
+
+      state.bookmarkedConcerts = {};
+      concertResults.forEach((concert) => {
+        if (concert) state.bookmarkedConcerts[concert.id] = concert;
+      });
+      localStorage.setItem('fe_v1_bookmarkedConcerts', JSON.stringify(state.bookmarkedConcerts));
+    }
+
+    async function syncBookmarkStateFromFirestore() {
+      if (!auth.currentUser) {
+        state.bookmarkedPostIds = [];
+        state.bookmarkData = {};
+        state.bookmarkedConcerts = {};
+        localStorage.setItem('fe_v1_bookmarkedPostIds', JSON.stringify(state.bookmarkedPostIds));
+        localStorage.setItem('fe_v1_bookmarkData', JSON.stringify(state.bookmarkData));
+        return;
+      }
+
+      const uid = auth.currentUser.uid;
+      const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
+      const snap = await getDocs(bookmarksCol);
+
+      state.bookmarkedPostIds = [];
+      state.bookmarkData = {};
+
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
+        state.bookmarkedPostIds.push(docSnap.id);
+        state.bookmarkData[docSnap.id] = {
+          postId: docSnap.id,
+          type: data.type || '',
+          concertId: data.concertId || null,
+        };
+      });
+
+      localStorage.setItem('fe_v1_bookmarkedPostIds', JSON.stringify(state.bookmarkedPostIds));
+      localStorage.setItem('fe_v1_bookmarkData', JSON.stringify(state.bookmarkData));
+
+      await loadBookmarkedConcerts();
+      await loadConcertSupportData();
+    }
+
     export function renderBookmarkGuestState() {
       const container = document.getElementById("bookmarks-list-container");
       const searchContainer = document.getElementById("search-container");
@@ -172,6 +280,7 @@
     }
     async function renderBookmarksItems() {
       const container = document.getElementById("bookmarks-list-container");
+      const filterStatusText = document.getElementById("filterStatusText");
       container.innerHTML = "";
       container.className = "space-y-4";
       const allBookmarked = [];
@@ -396,6 +505,9 @@
     window.clearKeywordSearch = clearKeywordSearch; //清input
     window.clearAllSearch=clearAllSearch; //全部清
     window.handleConcertSelect=handleConcertSelect;
+    window.loadConcertSupportData = loadConcertSupportData;
+    window.loadBookmarkedConcerts = loadBookmarkedConcerts;
+    window.syncBookmarkStateFromFirestore = syncBookmarkStateFromFirestore;
     window.renderBookmarks=renderBookmarks;
     window.renderBookmarksItems=renderBookmarksItems;
 

@@ -12,8 +12,7 @@
 </head>
 <body>
       <!-- 響應式主外框（手機版滿版、桌機版適配寬螢幕、具備圓角與柔和陰影） -->
-  <div class="w-full max-w-7xl bg-white md:shadow-2xl md:my-6 md:rounded-3xl flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-zinc-100 overflow-hidden">
-    
+  <div class="w-full max-w-7xl bg-white flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-zinc-100 overflow-hidden">
     <!-- ==================== TOP HEADER (響應式雙向導覽列) ==================== -->
     <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70 sticky top-0 z-30 flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -172,7 +171,7 @@
       <span id="toast-text"></span>
     </div>
     <!-- ==================== MODAL: 管理員編輯演出 ==================== -->
-    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-brand/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
+    <div id="modal-edit-concert" onclick="closeEditConcertModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-md p-6 space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
           <div><h3 class="text-sm md:text-base font-black text-zinc-850">編輯演出資訊</h3><p class="text-[10px] text-zinc-500 mt-0.5">僅限已驗證管理員</p></div>
