@@ -755,12 +755,18 @@
         const bannerImg = concert.image;
         const countdownText = getDaysRemaining(concert.dates);
         return `
-          <div class="w-full flex-shrink-0 relative h-48 sm:h-64 md:h-64 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=' + '${concert.id}';">
-             <!-- 底層：被放大並模糊的背景圖 -->
-            <div class="bg-blur" style="background-image: url('${bannerImg}');"></div>
-            <div class="banner-content mt-2.5">
-              <img src="${bannerImg}" alt="${concert.tourName}" class="main-image w-[80%] sm:w-[70%] md:w-[60%] lg:w-[50%] h-32 sm:h-48 md:h-48 lg:h-48 z-10 h-full object-cover transform transition-transform duration-700">
-              <div class="banner-title mt-2 text-sm font-bold text-white text-center">${concert.tourName}</div>
+          <div class="w-full flex-shrink-0 relative h-48 sm:h-64 md:h-80 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=' + '${concert.id}';">
+            <img src="${bannerImg}" alt="${concert.tourName}" class="w-full h-full object-cover md:object-contain transform transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+
+            <div class="absolute bottom-0 left-0 right-0 p-4 md:p-8 flex flex-col items-start gap-1">
+              <h2 class="text-lg md:text-2xl font-black text-white tracking-tight line-clamp-1">
+                ${concert.tourName}
+              </h2>
+              <div class="flex items-center text-zinc-300 text-xs space-x-3">
+                <span><i class="fa-solid fa-location-dot mr-1 text-zinc-400"></i>${concert.venue || '各大展演場館'}</span>
+                <span><i class="fa-regular fa-clock mr-1 text-zinc-400"></i>${countdownText}</span>
+              </div>
             </div>
           </div>
 
