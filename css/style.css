@@ -15,6 +15,14 @@
       font-family:'Averta', 'Noto Sans TC', 'Noto Sans Japanese', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+    input[type="date"],input[type="time"]{
+      -webkit-appearance: none; /* 移除 iOS 預設外觀 */
+      appearance: none;
+      min-height: 44px;
+      display: block;
+      width: 100%;
+      background-color: rgb(248 250 252 / var(--tw-bg-opacity, 1));
+    }
     .bg-brand { background: var(--brand-color) !important; }
     .border-brand { border-color: var(--brand-color) !important; }
     .text-brand { color: var(--brand-color) !important; }

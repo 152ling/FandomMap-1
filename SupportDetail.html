@@ -6,11 +6,14 @@
   <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="應援地圖">
   <link rel=stylesheet type="text/css" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="h-screen">
     <!-- ==================== MODAL 2: 發布與編輯應援/交換貼文 ==================== -->
     <div id="modal-publish-post" onclick="closePublishModal()" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in">
       <div onclick="event.stopPropagation()" class="bg-white rounded-t-3xl md:rounded-3xl w-full max-w-lg space-y-4 max-h-[90vh] md:max-h-[85vh] overflow-y-auto text-left shadow-2xl overflow-hidden">
