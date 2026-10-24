@@ -23,6 +23,7 @@ async function navigateToConcert(concertId) {
         window.location.href = "index.html";
     }
       if (!state.selectedConcert) return;
+      await loadConcertSupportData();
 
       state.selectedDate = state.selectedConcert.dates[0];
       state.selectedSubCategory = "support";
@@ -40,11 +41,60 @@ async function navigateToConcert(concertId) {
       }
       renderConcertDetail();
     }
+    async function refreshConcertPageData() {
+    if (!state.selectedConcert?.id) return;
 
-    function renderConcertDetail() {
+    const concertRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
+    const concertSnap = await getDoc(concertRef);
+    if (concertSnap.exists()) {
+        state.selectedConcert = concertSnap.data();
+        localStorage.setItem('fe_v1_selectedConcert', JSON.stringify(state.selectedConcert));
+    }
+
+    await loadConcertSupportData();
+    renderConcertDetail();
+}
+
+async function loadConcertSupportData() {
+    if (!state.selectedConcert?.id) return;
+
+    const concertId = state.selectedConcert.id;
+    const supportQuery = query(
+        collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents'),
+        where('concertId', '==', concertId)
+    );
+    const exchangeQuery = query(
+        collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts'),
+        where('concertId', '==', concertId)
+    );
+
+    const [supportSnap, exchangeSnap] = await Promise.all([
+        getDocs(supportQuery),
+        getDocs(exchangeQuery)
+    ]);
+
+    state.supportEvents = [];
+    state.exchangePosts = [];
+
+    supportSnap.forEach(docSnap => {
+        state.supportEvents.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    exchangeSnap.forEach(docSnap => {
+        state.exchangePosts.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    localStorage.setItem('fe_v1_supportEvents', JSON.stringify(state.supportEvents));
+    localStorage.setItem('fe_v1_exchangePosts', JSON.stringify(state.exchangePosts));
+}
+
+  async  function renderConcertDetail() {
       if (!state.selectedConcert) return;
-
-      document.getElementById("detail-concert-image").src = state.selectedConcert.image;
+      const img = document.getElementById("detail-concert-image");
+      console.log("Rendering concert detail" );
+      img.classList.add("loaded");
+      img.src = state.selectedConcert.image;
+      // document.getElementById("detail-concert-image").src = state.selectedConcert.image;
       document.getElementById("detail-concert-artist").innerText = state.selectedConcert.artist;
       document.getElementById("detail-concert-venue").innerText = state.selectedConcert.venue;
       document.getElementById("detail-concert-tour").innerText = state.selectedConcert.tourName;
@@ -56,7 +106,9 @@ async function navigateToConcert(concertId) {
       const adminActions = document.getElementById('admin-concert-actions');
       const adminBtn = document.getElementById('admin-approve-btn');
       // 按鈕只會在 Custom Claim 識別完成、且確定為管理員後出現。
-      adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
+      const isAdmin = await isUserAdmin();
+adminActions.classList.toggle('hidden', !isAdmin);
+      //adminActions.classList.toggle('hidden', !isAdminClaimResolved || !hasAdminClaim);
       if (state.selectedConcert.isPending) {
         pendingBox.classList.remove("hidden");
         attendContainer.classList.add("hidden");
@@ -261,8 +313,9 @@ async function navigateToConcert(concertId) {
 
       if (idx > -1) {
         showToast("已取消參加", "fa-circle-info");
-        const nextCount = state.selectedConcert.attendedCount - 1;
+        // const nextCount = state.selectedConcert.attendedCount - 1;
         state.userAttendedConcerts = state.userAttendedConcerts.filter(id => id !== state.selectedConcert.id);
+        localStorage.setItem("userAttendedConcerts",JSON.stringify(state.userAttendedConcerts));
         await deleteDoc(AttendedConcertsRef);
         await updateDoc(concertDocRef, {
           attendedCount: increment(-1),
@@ -270,8 +323,9 @@ async function navigateToConcert(concertId) {
 
       } else {
         showToast("已確認參加！當天現場見 🎉", "fa-circle-check");
-        const nextCount = state.selectedConcert.attendedCount + 1;
+        // const nextCount = state.selectedConcert.attendedCount + 1;
         state.userAttendedConcerts.push(state.selectedConcert.id);
+        localStorage.setItem("userAttendedConcerts",JSON.stringify(state.userAttendedConcerts));
         await setDoc(AttendedConcertsRef, {
             concertId: state.selectedConcert.id,
         });
@@ -297,18 +351,19 @@ async function navigateToConcert(concertId) {
 
       if (isAttended) {
         attendText.innerText = "已參加";
-        attendBtn.className = "bg-amber-400 text-zinc-950 text-[11px] px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 transition-all shadow-md active:scale-95";
-        attendIcon.className = "fa-solid fa-ticket text-zinc-950";
+        attendBtn.className = "bg-brand text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all";
+         attendIcon.className = "fa-solid fa-ticket text-white";
+        ;
       } else {
-        attendText.innerText = "我會去";
-        attendBtn.className = "bg-brand hover:bg-zinc-800 text-white text-[11px] px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm";
-        attendIcon.className = "fa-solid fa-ticket text-amber-400";
+        attendText.innerText = "標記為已參加";
+        attendBtn.className = "bg-white text-zinc-600 text-[11px] px-3.5 py-1.5 rounded-xl font-black flex items-center gap-1.5 transition-all border border-brand";
+        attendIcon.className = "fa-regular fa-circle-check text-brand"
       }
     }
     // 演唱會確認票數 +1
     async function voteForConcert() {
       if (!state.selectedConcert) return;
-      if (!state.currentUser){
+      if (state.currentUser.isAnonymous){
         showToast("請先前往登入才能執行這項操作");
         return;
       }

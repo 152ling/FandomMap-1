@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.0"></script>
   <link rel="manifest" href="./manifest.json">
   <link rel=stylesheet type="text/css" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -55,7 +54,7 @@
           
           <div class="lg:col-span-1 space-y-4">
             <!-- Firebase 登入與個人頭像卡 -->
-            <div class="bg-gradient-to-br from-zinc-50 to-zinc-100/50 border border-zinc-150 p-3 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
+            <div class="border border-zinc-200/80 p-3 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
               <div class="w-full flex items-start justify-between">
                     <div class="flex items-center space-x-3.5">
                         <!-- Avatar -->
@@ -350,6 +349,9 @@
     import { db,auth,storage,appId} from "./js/firebase-config.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    window.onload = () => {
+      applyTheme(state.themeColor);
+    }
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {  //登入狀態
@@ -416,7 +418,8 @@
           logoutBtn.classList.remove("hidden");
           document.getElementById("profile-input-username").disabled = false;
           document.getElementById("user-social-handle").disabled = false;
-          
+          document.getElementById("btn-open-settings").disabled = false;
+          document.getElementById("btn-edit-avatar").disabled = false;
           renderProfile();
         } else {
           // 未登入時，不做處理
@@ -424,7 +427,6 @@
             // hasAdminClaim = false;
             // isAdminClaimResolved = true;
             resetAdminState();
-            if (state.selectedConcert) renderConcertDetail();
             document.getElementById("profile-input-username").disabled = true;
             document.getElementById("user-social-handle").disabled = true;
             document.getElementById("profile-avatar-file").disabled = true;
@@ -465,7 +467,7 @@
       showToast("正在安全登出...");
       
       try {
-        unsubscribeListeners(); // 先關閉監聽
+        // unsubscribeListeners(); // 先關閉監聽
         state.bookmarkedPostIds = []; // 清空書籤狀態
         await signOut(auth);
         showToast("已成功登出");
@@ -482,148 +484,148 @@
     }
 
     // ==================== STREAMING_CHUNK: 開啟 Firestore 三大即時監聽即時更新 ====================
-    let initialDataLoaded = {
-        concerts: false,
-        supportEvents: false,
-        exchangePosts: false,
-        bookmarks: false,
-        attendedConcerts: false
-    };
-    function startRealtimeListeners(user) {
-      unsubscribeListeners(); // 確保重新開啟前先清理
-      initialDataLoaded = {
-        concerts: false,
-        supportEvents: false,
-        exchangePosts: false,
-        bookmarks: false,
-        attendedConcerts: false
-      };
-      // 1. Concerts 監聽
-      const today = new Date().toISOString().split('T')[0];
-      const concertsCol = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
-      const upcomingConcertsQuery = query(
-          concertsCol,
-          where("endDate", ">=", today)
-      );
-      onSnapshot(upcomingConcertsQuery, (snap) => {
-        let list = [];
-        snap.forEach(doc => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        if (list.length > 0) {
-          state.concerts = list;
-        } else {
-          showToast("目前尚無任何應援場次，請先新增一場演唱會或活動");
-        }
-        initialDataLoaded.concerts = true;
-        tryInitialRender();
-      }, (err) => {
-        console.error("Concert sync error:", err);
-      });
+    // let initialDataLoaded = {
+    //     concerts: false,
+    //     supportEvents: false,
+    //     exchangePosts: false,
+    //     bookmarks: false,
+    //     attendedConcerts: false
+    // };
+    // function startRealtimeListeners(user) {
+    //   unsubscribeListeners(); // 確保重新開啟前先清理
+    //   initialDataLoaded = {
+    //     concerts: false,
+    //     supportEvents: false,
+    //     exchangePosts: false,
+    //     bookmarks: false,
+    //     attendedConcerts: false
+    //   };
+    //   // 1. Concerts 監聽
+    //   const today = new Date().toISOString().split('T')[0];
+    //   const concertsCol = collection(db, 'artifacts', appId, 'public', 'data', 'concerts');
+    //   const upcomingConcertsQuery = query(
+    //       concertsCol,
+    //       where("endDate", ">=", today)
+    //   );
+    //   onSnapshot(upcomingConcertsQuery, (snap) => {
+    //     let list = [];
+    //     snap.forEach(doc => {
+    //       list.push({ id: doc.id, ...doc.data() });
+    //     });
+    //     if (list.length > 0) {
+    //       state.concerts = list;
+    //     } else {
+    //       showToast("目前尚無任何應援場次，請先新增一場演唱會或活動");
+    //     }
+    //     initialDataLoaded.concerts = true;
+    //     tryInitialRender();
+    //   }, (err) => {
+    //     console.error("Concert sync error:", err);
+    //   });
 
-      // 2. Support Events 監聽
-      const supportsCol = collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents');
-      onSnapshot(supportsCol, (snap) => {
-        let list = [];
-        snap.forEach(doc => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        state.supportEvents = list;
-        localStorage.setItem("fe_v1_supportEvents",JSON.stringify(state.supportEvents));
+    //   // 2. Support Events 監聽
+    //   const supportsCol = collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents');
+    //   onSnapshot(supportsCol, (snap) => {
+    //     let list = [];
+    //     snap.forEach(doc => {
+    //       list.push({ id: doc.id, ...doc.data() });
+    //     });
+    //     state.supportEvents = list;
+    //     localStorage.setItem("fe_v1_supportEvents",JSON.stringify(state.supportEvents));
         
-        initialDataLoaded.supportEvents = true;
-        tryInitialRender();
-      }, (err) => {
-        console.error("Support sync error:", err);
-      });
+    //     initialDataLoaded.supportEvents = true;
+    //     tryInitialRender();
+    //   }, (err) => {
+    //     console.error("Support sync error:", err);
+    //   });
 
-      // 3. Exchange Posts 監聽
-      const exchangesCol = collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts');
-      onSnapshot(exchangesCol, (snap) => {
-        let list = [];
-        snap.forEach(doc => {
-          list.push({ id: doc.id, ...doc.data() });
-        });
-        state.exchangePosts = list;
-        localStorage.setItem("fe_v1_exchangePosts",JSON.stringify(state.exchangePosts));
+    //   // 3. Exchange Posts 監聽
+    //   const exchangesCol = collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts');
+    //   onSnapshot(exchangesCol, (snap) => {
+    //     let list = [];
+    //     snap.forEach(doc => {
+    //       list.push({ id: doc.id, ...doc.data() });
+    //     });
+    //     state.exchangePosts = list;
+    //     localStorage.setItem("fe_v1_exchangePosts",JSON.stringify(state.exchangePosts));
 
-        initialDataLoaded.exchangePosts = true;
-        tryInitialRender();
+    //     initialDataLoaded.exchangePosts = true;
+    //     tryInitialRender();
 
-      }, (err) => {
-        console.error("Exchange sync error:", err);
-      });
-      if(user){
-        // 4. BooksMark 監聽
-        const uid = user.uid;
-        const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
-        onSnapshot(bookmarksCol, async (snap) => {
-          state.bookmarkedPostIds = [];
-          state.bookmarkData = {};
-          snap.forEach(docSnap => {
-            const data = docSnap.data();
-            state.bookmarkedPostIds.push(docSnap.id);
+    //   }, (err) => {
+    //     console.error("Exchange sync error:", err);
+    //   });
+    //   if(user){
+    //     // 4. BooksMark 監聽
+    //     const uid = user.uid;
+    //     const bookmarksCol = collection(db, 'artifacts', appId, 'users', uid, 'bookmarks');
+    //     onSnapshot(bookmarksCol, async (snap) => {
+    //       state.bookmarkedPostIds = [];
+    //       state.bookmarkData = {};
+    //       snap.forEach(docSnap => {
+    //         const data = docSnap.data();
+    //         state.bookmarkedPostIds.push(docSnap.id);
 
-            state.bookmarkData[docSnap.id] = {
-              postId: docSnap.id,
-              type: data.type || "",
-              concertId: data.concertId || null,
-            };
-          });
-          await loadBookmarkedConcerts();
-          localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
-          localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
-          localStorage.setItem("fe_v1_bookmarkedConcerts",JSON.stringify(state.bookmarkedConcerts));
+    //         state.bookmarkData[docSnap.id] = {
+    //           postId: docSnap.id,
+    //           type: data.type || "",
+    //           concertId: data.concertId || null,
+    //         };
+    //       });
+    //       await loadBookmarkedConcerts();
+    //       localStorage.setItem("fe_v1_bookmarkData",JSON.stringify(state.bookmarkData));
+    //       localStorage.setItem("fe_v1_bookmarkedPostIds",JSON.stringify(state.bookmarkedPostIds));
+    //       localStorage.setItem("fe_v1_bookmarkedConcerts",JSON.stringify(state.bookmarkedConcerts));
 
-          initialDataLoaded.bookmarks = true;
-          tryInitialRender();
-        }, (err) => {
-          initialDataLoaded.bookmarks = true;
-          console.error("Bookmark sync error:", err);
-        });
+    //       initialDataLoaded.bookmarks = true;
+    //       tryInitialRender();
+    //     }, (err) => {
+    //       initialDataLoaded.bookmarks = true;
+    //       console.error("Bookmark sync error:", err);
+    //     });
       
-        // 4. ConcertsAttended 監聽
-        const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
-        onSnapshot(attendedCol, (snap) => {
-          state.userAttendedConcerts = [];
-          snap.forEach(doc => {
-            state.userAttendedConcerts.push(doc.id);
-          });
-          initialDataLoaded.attendedConcerts = true;
-          tryInitialRender();
-        }, (err) => {
-          initialDataLoaded.attendedConcerts = true;
-          console.error("Attended sync error:", err);
-        });
-      }else{ // 未登入
-          state.bookmarkedPostIds = [];
-          state.bookmarkData = {};
-          state.bookmarkedConcerts = {};
-          state.userAttendedConcerts = [];
+    //     // 4. ConcertsAttended 監聽
+    //     const attendedCol = collection(db, 'artifacts', appId, 'users', uid, 'attendedConcerts');
+    //     onSnapshot(attendedCol, (snap) => {
+    //       state.userAttendedConcerts = [];
+    //       snap.forEach(doc => {
+    //         state.userAttendedConcerts.push(doc.id);
+    //       });
+    //       initialDataLoaded.attendedConcerts = true;
+    //       tryInitialRender();
+    //     }, (err) => {
+    //       initialDataLoaded.attendedConcerts = true;
+    //       console.error("Attended sync error:", err);
+    //     });
+    //   }else{ // 未登入
+    //       state.bookmarkedPostIds = [];
+    //       state.bookmarkData = {};
+    //       state.bookmarkedConcerts = {};
+    //       state.userAttendedConcerts = [];
 
-          // 未登入時沒有這兩個 Firebase listener
-          // 所以直接告訴初始化系統：「這兩項已完成」
-          initialDataLoaded.bookmarks = true;
-          initialDataLoaded.attendedConcerts = true;
+    //       // 未登入時沒有這兩個 Firebase listener
+    //       // 所以直接告訴初始化系統：「這兩項已完成」
+    //       initialDataLoaded.bookmarks = true;
+    //       initialDataLoaded.attendedConcerts = true;
 
-          tryInitialRender();
-      }
-    }
-    function tryInitialRender() {
-        const allLoaded =
-            initialDataLoaded.concerts &&
-            initialDataLoaded.supportEvents &&
-            initialDataLoaded.exchangePosts &&
-            initialDataLoaded.bookmarks &&
-            initialDataLoaded.attendedConcerts;
+    //       tryInitialRender();
+    //   }
+    // }
+    // function tryInitialRender() {
+    //     const allLoaded =
+    //         initialDataLoaded.concerts &&
+    //         initialDataLoaded.supportEvents &&
+    //         initialDataLoaded.exchangePosts &&
+    //         initialDataLoaded.bookmarks &&
+    //         initialDataLoaded.attendedConcerts;
 
-        if (!allLoaded) {
-            return;
-        }
+    //     if (!allLoaded) {
+    //         return;
+    //     }
 
-        renderAll();
-        document.getElementById("loading-overlay").classList.add("hidden");
-    }
+    //     renderAll();
+    //     document.getElementById("loading-overlay").classList.add("hidden");
+    // }
     window.handleGoogleSignIn = handleGoogleSignIn;
     window.handleSignOut = handleSignOut;
     </script>
@@ -740,7 +742,7 @@ export function renderAppearanceView() {
                 targetDark = localStorage.getItem('fe_v11_darkMode') === 'true';
             }
 
-            localStorage.setItem('fe_v11_darkMode', targetDark);
+            localStorage.setItem('fe_v1_darkMode', targetDark);
             if (targetDark) {
                 body.classList.add('dark-mode');
             } else {
@@ -749,7 +751,7 @@ export function renderAppearanceView() {
 
             root.style.setProperty('--brand-color', color);
             
-            localStorage.setItem('fe_v11_theme', color);
+            localStorage.setItem('fe_v1_theme', color);
         }
       window.renderAppearanceView=renderAppearanceView;
       window.toggleDarkMode=toggleDarkMode;

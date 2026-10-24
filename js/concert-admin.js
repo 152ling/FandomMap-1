@@ -255,7 +255,7 @@
         return;
       }
       const artist = document.getElementById('edit-concert-artist').value.trim();
-      const tourName = document.getElementById('edit-concert-tour').value.trim();
+      const tourName = document.getElementById('edit-concert-tour').value.trim().replace(/[‘’]/g, "'").replace(/[：]/g, ":");
       const venue = document.getElementById('edit-concert-venue').value.trim();
       const dates = Array.from(document.querySelectorAll('#edit-concert-dates-container input[type="date"]')).map(input => input.value).filter(Boolean);
       if (!artist || !tourName || !venue || !dates.length) {
@@ -382,7 +382,7 @@
       e.preventDefault();
       let finalImageUrl = "";
       const artist = document.getElementById("add-concert-artist").value.trim();
-      const tourName = document.getElementById("add-concert-tour").value.trim();
+      const tourName = document.getElementById("add-concert-tour").value.trim().replace(/[‘’]/g, "'").replace(/[：]/g, ":");;
       const venue = document.getElementById("add-concert-venue").value.trim();
       if(artist === "" || tourName === "" || venue === ""){
         showToast("請完整填寫演唱會資訊");

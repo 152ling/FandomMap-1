@@ -7,16 +7,12 @@
     }
     :root {
       --brand-color: #18181b; 
-      --app-bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-sub: #64748b;
     }
     .pb-safe {
       padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
     }
     body {
-      font-family: 'Noto Sans TC', sans-serif;
+      font-family:'Averta', 'Noto Sans TC', 'Noto Sans Japanese', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
     .bg-brand { background: var(--brand-color) !important; }

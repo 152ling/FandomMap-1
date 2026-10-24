@@ -209,7 +209,6 @@
       }
     }
   export function openProfileModal() {
-      // const state.currentUser = state.currentUser;
       document.getElementById('input-avatar-preview').src = state.currentUser.avatar;
       document.getElementById('input-display-name').value = state.currentUser.username;
       document.getElementById('input-social-link').value = state.currentUser.contact;
@@ -233,8 +232,8 @@
 
     async function saveUserProfile() {
       if (!state.currentUser) return;
-      const username = document.getElementById("profile-input-username").value.trim() || state.currentUser.username;
-      const contact = document.getElementById("profile-input-contact").value.trim();
+      const username = document.getElementById("input-display-name").value.trim() || state.currentUser.username;
+      const contact = document.getElementById("input-social-link").value.trim() || '';
 
       showToast("保存中...");
       try {
@@ -245,9 +244,16 @@
         state.currentUser.username = username;
         state.currentUser.contact = contact;
 
-        document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+        document.getElementById("profile-avatar-file").src = state.currentUser.avatar;
         showToast("個人資料已儲存！");
-        renderAll();
+        closeProfileModal();
+        // 同步個人中心編輯欄位
+        document.getElementById("profile-input-username").textContent = state.currentUser.username;
+        document.getElementById("user-social-handle").textContent = getSocialHandle(state.currentUser.contact);
+        document.getElementById('user-social-link').href = state.currentUser.contact;
+        document.getElementById("profile-display-avatar").src = state.currentUser.avatar;
+        document.getElementById("user-avatar-snapshot").src = state.currentUser.avatar;
+
       } catch (error) {
         console.error("Save profile error:", error);
         showToast("保存失敗，請稍後再試");

@@ -84,7 +84,9 @@ export function renderAppearanceView() {
             const isHex = /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
             
             if (isHex) {
+                state.themeColor = color;
                 applyTheme(color);
+                console.log("Applied custom hex color:", color);
                 showToast("顏色已更新"); //更新自訂主題色
             } else {
                 showToast("格式錯誤"); //格式錯誤 
@@ -105,10 +107,10 @@ export function renderAppearanceView() {
                 targetDark = isDarkMode;
             } else {
                 // 如果是點擊「粉藍」或其他預設顏色（只傳一個參數時），就讀取原本存的狀態
-                targetDark = localStorage.getItem('fe_v11_darkMode') === 'true';
+                targetDark = localStorage.getItem('fe_v1_darkMode') === 'true';
             }
 
-            localStorage.setItem('fe_v11_darkMode', targetDark);
+            localStorage.setItem('fe_v1_darkMode', targetDark);
             if (targetDark) {
                 body.classList.add('dark-mode');
             } else {

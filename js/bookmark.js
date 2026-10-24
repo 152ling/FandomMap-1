@@ -23,7 +23,7 @@
       artists.forEach(artist => {
       const isActive = state.currentArtist === artist;
       const displayName = artist === 'all' ? '全部藝人' : artist;
-      const activeClass = isActive ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200';
+      const activeClass = isActive ? 'bg-brand text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200';
                 
       html += `<button onclick="setArtistFilter('${artist}')" class="px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition cursor-pointer ${activeClass}">
         ${displayName}</button>`;
