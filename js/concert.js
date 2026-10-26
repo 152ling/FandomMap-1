@@ -36,7 +36,7 @@ async function navigateToConcert(concertId) {
         document.getElementById("floating-publish-btn").classList.add("bg-gray-200", "text-gray-400");
         document.getElementById("floating-publish-btn").classList.remove("hidden","bg-brand", "text-white");
       }else{
-        document.getElementById("floating-publish-btn").classList.remove("bg-gray-200", "text-gray-400");
+        document.getElementById("floating-publish-btn").classList.remove("hidden","bg-gray-200", "text-gray-400");
         document.getElementById("floating-publish-btn").classList.add("bg-brand", "text-white");
       }
       renderConcertDetail();
@@ -230,7 +230,7 @@ async function loadConcertSupportData() {
 
         `;
 
-        card.onclick =() =>window.location.href =`SupportDetail.html?id=${item.id}&type=${modalType}`;
+        card.onclick =() =>window.location.href =`SupportDetail.html?id=${item.id}&type=${modalType}&concertId=${encodeURIComponent(item.concertId)}`;
 
         const specificDateQty =
           (item.datesQuantities && item.datesQuantities[state.selectedDate]) !== undefined

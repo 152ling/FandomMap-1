@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="應援地圖">
+  <title>應援地圖 | 演唱會應援與卡片交換平台 </title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.0"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/map-logo.png">
+  <link rel="apple-touch-icon" href="/map-logo.png">
   <link rel=stylesheet type="text/css" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="preconnect" href="https://firebasestorage.googleapis.com">
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,7 +23,9 @@
     }
   </style>
 </head>
-<body class="h-screen">
+<body class="bg-zinc-50 text-zinc-800 flex justify-center font-sans antialiased h-screen">
+  <!-- 響應式主外框（手機版滿版、桌機版適配寬螢幕、具備圓角與柔和陰影） -->
+  <div class="w-full max-w-7xl bg-white flex flex-col relative min-h-screen md:min-h-[calc(100vh-3rem)] border border-zinc-100 overflow-hidden">
     <header class="bg-white/90 backdrop-blur-xl py-4 px-6 border-b border-zinc-200/70  top-0 z-30 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <div id="header-back-btn" class="hidden">
@@ -241,6 +246,7 @@
     <div id="toast-container" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-sm bg-brand backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2 animate-fade-in text-xs font-bold">
       <span id="toast-text"></span>
     </div>
+  </div>
 <script type="module">
     import { state } from './js/state.js';
     import './js/common.js';

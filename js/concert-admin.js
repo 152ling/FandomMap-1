@@ -289,7 +289,7 @@
         const concertRef = doc(db, 'artifacts', appId, 'public', 'data', 'concerts', state.selectedConcert.id);
         await updateDoc(concertRef, {
           artist, tourName, venue, dates,endDate, image, coverStoragePath,
-          updatedAt: serverTimestamp(),
+          updatedAt: new Date().toISOString(),
           updatedBy: state.currentUser.id
         });
 
@@ -467,7 +467,7 @@
           isPending: true,
           verifiedCount: 1,
           attendedCount: 0,
-          createdAt: serverTimestamp(),
+          createdAt: new Date().toISOString(),
         };
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'concerts', newId), newConcert);
         closeAddConcertModal();

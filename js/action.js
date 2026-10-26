@@ -28,7 +28,7 @@
       state.currentUploadedImageBase64 = state.currentUploadedImagesBase64[0] || "";
       document.getElementById("image-upload-hint").innerText = count
         ? `已選擇 ${count}/5 張照片`
-        : "可選擇最多 5 張照片，系統會自動壓縮。";
+        : "可上傳最多 5 張照片";
     }
 
     async function processImageUpload(event) { //應援物圖片上傳

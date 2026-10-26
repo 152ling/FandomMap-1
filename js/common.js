@@ -275,7 +275,7 @@ export function switchTab(tabId) {
 
       if (state.isPublishPreview) {
         actionContainer.innerHTML = `
-          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
               <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
               <div class="text-left">
@@ -304,7 +304,7 @@ export function switchTab(tabId) {
         `;
       } else if (item.userId === state.currentUser.id) {
         actionContainer.innerHTML = `
-          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
               <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
               <div class="text-left">
@@ -333,7 +333,7 @@ export function switchTab(tabId) {
         `;
       } else {
         actionContainer.innerHTML = `
-          <div class="bg-zinc-50 border border-zinc-150 p-3.5 rounded-xl flex items-center justify-between">
+          <div class="bg-zinc-50 border border-zinc-200 p-3.5 rounded-xl flex items-center justify-between">
             <div class="flex items-center gap-2">
               <img src="${item.userAvatar || 'https://api.dicebear.com/10.x/glyphs/svg?seed=fan'}" alt="發文者頭像" class="w-8 h-8 rounded-full border border-zinc-200 bg-white object-cover">
               <div class="text-left">
