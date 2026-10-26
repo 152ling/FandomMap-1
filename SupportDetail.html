@@ -205,7 +205,7 @@
           </header>
           <!-- 頂部滿版圖片區塊 -->
           <div class="relative w-full">
-              <div class="h-60 md:h-70 w-full overflow-hidden border border-zinc-100 bg-zinc-50">
+              <div class="h-80 md:h-80 w-full overflow-hidden border border-zinc-100 bg-zinc-50">
                   <img id="detail-item-image" src="" alt="Detail" class="w-full h-full object-cover">
               </div>
               <div id="detail-item-image-gallery" class="hidden flex gap-2 mx-2 mt-2 overflow-x-auto "></div>
@@ -310,8 +310,9 @@
         const params = new URLSearchParams(window.location.search);
         const id = params.get("id");
         const type=params.get("type");
-        if (type && id) {
-            renderPostDetail(type,id);
+        const concertId = params.get("concertId");
+        if (type && id && concertId) {
+            renderPostDetail(type,id,concertId);
         }else {
             //window.location.href = "index.html";
             console.log("沒有帶參數");
@@ -326,9 +327,15 @@
       showToast('已將連結複製到剪貼簿');
    }
     window.copyURL=copyURL;
-    async function renderPostDetail(type, itemId) {
+    async function renderPostDetail(type, itemId, concertId = state.selectedConcert?.id) {
       const isFreeSupport = type === "free-support";
-      const supportRef = doc(db,"artifacts",appId,"public","data","supportEvents",itemId);
+      const collectionName = isFreeSupport ? "supportEvents" : "exchangePosts";
+      if (!concertId) {
+        console.error("找不到應援所屬場次");
+        window.location.href = "index.html";
+        return;
+      }
+      const supportRef = getConcertSupportDoc(db, appId, concertId, collectionName, itemId);
 
         const snapshot = await getDoc(supportRef);
         if (!snapshot.exists()) {
@@ -523,16 +530,19 @@
               <span>查看社群</span>
             </a>
           </div>
-          <div class="space-y-2 mt-2">
-            <p class="text-[10px] text-purple-600 font-bold">這是您發佈的看板項目：</p>
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="startEditPost()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 shadow-xs transition-all">
-                編輯項目
+          <div class="space-y-2 mt-4 border-t border-slate-100">
+            <p class="text-[10px] text-brand font-bold">這是您發佈的應援物：</p>
+            <div class="pt-1  flex items-center gap-3">
+              <button onclick="startEditPost()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs md:text-sm font-extrabold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>編輯我的應援物</span>
               </button>
-              <button onclick="triggerDeletePost()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs py-2.5 rounded-xl font-bold flex items-center justify-center gap-1 transition-all">
-                刪除項目
+              <button onclick="triggerDeletePost()" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs md:text-sm font-extrabold px-4 py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-trash-can"></i>
+                <span class="hidden sm:inline">刪除</span>
               </button>
             </div>
+
           </div>
         `;
       } else {
@@ -569,7 +579,7 @@
       const collectionName = postType === "free-support"? "supportEvents" :"exchangePosts";
 
       const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-      const postRef = doc( db, "artifacts", appId, "public", "data",collectionName,postId);
+      const postRef = getConcertSupportDoc(db, appId, state.activeDetailItem.data.concertId, collectionName, postId);
       const isBookmarked = state.bookmarkedPostIds.includes(postId);
 
       try{
@@ -586,7 +596,7 @@
             await setDoc(bookmarkRef, {
                 postId,
                 type: state.activeDetailItem.type,
-                concertId: state.activeDetailItem.data.id,
+                concertId: state.activeDetailItem.data.concertId,
                 bookmarkedAt: serverTimestamp()
                 
             });

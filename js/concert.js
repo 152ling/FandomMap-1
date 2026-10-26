@@ -4,6 +4,7 @@ import './color.js';
 import './profile.js';
 import './bookmark.js'
 import { db,auth,storage,appId} from "./firebase-config.js";
+import { getConcertSupportCollection } from "./support-data.js";
 import { getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -59,14 +60,8 @@ async function loadConcertSupportData() {
     if (!state.selectedConcert?.id) return;
 
     const concertId = state.selectedConcert.id;
-    const supportQuery = query(
-        collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents'),
-        where('concertId', '==', concertId)
-    );
-    const exchangeQuery = query(
-        collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts'),
-        where('concertId', '==', concertId)
-    );
+    const supportQuery = getConcertSupportCollection(db, appId, concertId, "supportEvents");
+    const exchangeQuery = getConcertSupportCollection(db, appId, concertId, "exchangePosts");
 
     const [supportSnap, exchangeSnap] = await Promise.all([
         getDocs(supportQuery),
@@ -91,9 +86,10 @@ async function loadConcertSupportData() {
   async  function renderConcertDetail() {
       if (!state.selectedConcert) return;
       const img = document.getElementById("detail-concert-image");
-      console.log("Rendering concert detail" );
       img.classList.add("loaded");
       img.src = state.selectedConcert.image;
+      const bgblur = document.getElementById("bg-blur");
+      bgblur.style.backgroundImage = `url("${state.selectedConcert.image}")`;
       // document.getElementById("detail-concert-image").src = state.selectedConcert.image;
       document.getElementById("detail-concert-artist").innerText = state.selectedConcert.artist;
       document.getElementById("detail-concert-venue").innerText = state.selectedConcert.venue;

@@ -1,5 +1,6 @@
     import { state } from './state.js';
     import {db,auth,storage,appId} from "./firebase-config.js";
+    import { getConcertSupportDoc } from "./support-data.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { query,where,getCountFromServer} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { openPostDetailModal } from "./common.js";
@@ -393,7 +394,7 @@
             }
           // A. 編輯存檔
           if (state.publishPostType === "free-support") {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', state.editingItemId);
+            const docRef = getConcertSupportDoc(db, appId, state.selectedConcert.id, "supportEvents", state.editingItemId);
             await updateDoc(docRef, {
               concertEndDate:state.selectedConcert.endDate,
               type: state.publishPostType,
@@ -409,7 +410,7 @@
               ...authorData
             });
           } else { //交換應援
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', state.editingItemId);
+            const docRef = getConcertSupportDoc(db, appId, state.selectedConcert.id, "exchangePosts", state.editingItemId);
             await updateDoc(docRef, {
               concertEndDate:state.selectedConcert.endDate,
               type: state.publishPostType,
@@ -473,7 +474,7 @@
               ...authorData,
               bookmarkCount: 0,
             };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'supportEvents', newSupportId), newSupport);
+            await setDoc(getConcertSupportDoc(db, appId, state.selectedConcert.id, "supportEvents", newSupportId), newSupport);
             showToast("成功新增免費應援！");
           } else { //交換應援
             const checkboxes = document.getElementsByName("pub-dates");
@@ -498,7 +499,7 @@
               ...authorData,
               bookmarkCount: 0,
             };
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exchangePosts', newExchangeId), newExchange);
+            await setDoc(getConcertSupportDoc(db, appId, state.selectedConcert.id, "exchangePosts", newExchangeId), newExchange);
             showToast("成功新增交換應援！");
           }
         }
@@ -574,7 +575,7 @@
     export function triggerDeletePost() {
       if (!state.activeDetailItem) return;
       const { type, data } = state.activeDetailItem;
-      state.deleteTarget = { type, id: data.id };
+      state.deleteTarget = { type, id: data.id, concertId: data.concertId };
       state.isDeletingPost = false;
       resetDeleteButtons();
 
@@ -633,19 +634,20 @@
         }
 
         const collectionName = type === "free-support" ? "supportEvents" : "exchangePosts";
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, id);
+        const concertId = state.deleteTarget.concertId || state.selectedConcert?.id;
+        const docRef = getConcertSupportDoc(db, appId, concertId, collectionName, id);
         await deleteDoc(docRef);
 
         state.bookmarkedPostIds = state.bookmarkedPostIds.filter(postId => postId !== id);
 
-        const concertId = state.activeDetailItem?.data?.concertId || state.deleteTarget?.concertId;
+        const redirectConcertId = state.activeDetailItem?.data?.concertId || state.deleteTarget?.concertId;
         showToast("項目成功自即時看板下架！");
         state.isDeletingPost = false;
         closeDeleteConfirmModal();
 
         setTimeout(() => {
-          if (concertId) {
-            window.location.href = `Concert.html?concertId=${concertId}`;
+          if (redirectConcertId) {
+            window.location.href = `Concert.html?concertId=${redirectConcertId}`;
           } else {
             window.location.href = 'index.html';
           }

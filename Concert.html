@@ -20,12 +20,30 @@
 
   <style>
     #detail-concert-image {
-      background: linear-gradient(135deg, #f4f4f5, #e4e4e7);
       transition: opacity 0.25s ease;
       opacity: 0;
     }
     #detail-concert-image.loaded {
       opacity: 1;
+    }
+    /* 底層模糊背景效果 */
+    .bg-blur {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(5px) brightness(0.4); /* 調整模糊度與明暗 */
+      transform: scale(1.2); /* 放大以避免模糊邊緣露出白邊 */
+    }
+
+    /* 確保上層內容壓在模糊背景上方 */
+    .banner-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
     }
   </style>
 </head>
@@ -76,8 +94,10 @@
         <!-- 演唱會頭部 Banner -->
         <div class="bg-white border border-zinc-200/90 rounded-2xl overflow-hidden ui-card">
           <!-- 1. 上方純海報視覺 Banner (無混亂文字重疊，維持高質感) -->
-          <div class="relative h-44 sm:h-52 w-full overflow-hidden bg-brand">
-            <img id="detail-concert-image" src="" alt="Poster" class="w-full h-full object-cover">
+          <div class="relative h-44 md:h-64 w-full overflow-hidden bg-brand">
+            <!-- 底層：被放大並模糊的背景圖 -->
+            <div id="bg-blur" class="bg-blur" style="background-image: url('');"></div>
+            <img id="detail-concert-image" src="" alt="Poster" class="banner-content w-full h-full object-cover sm:object-contain">
           </div>
           <!-- 2. 下方獨立資訊與操作按鈕卡片區塊 (獨立白底，清晰高對比) -->
           <div class="p-4 sm:p-5 space-y-1">

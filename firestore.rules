@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+
+  
+  match /databases/{database}/documents {
+     // 僅允許使用者本人讀寫自己的個人中心名片設定
+    match /artifacts/{appId}/users/{userId}/profile/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // 僅允許使用者本人讀寫刪除自己的應援收藏
+    match /artifacts/{appId}/users/{userId}/bookmarks/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // 僅允許使用者本人讀寫刪除自己的演唱會審核
+    match /artifacts/{appId}/users/{userId}/verifiedConcerts/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  	// 僅允許使用者本人讀寫刪除自己的演唱會收藏
+    match /artifacts/{appId}/users/{userId}/attendedConcerts/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    match /artifacts/{appId}/public/data/concerts/{concertId} {
+      allow read: if true;
+      allow create: if request.auth != null && (
+      request.auth.token.admin == true || (
+        request.resource.data.isPending == true &&
+        request.resource.data.verifiedCount == 0
+      	)
+    	);
+      allow update: if request.auth != null && (
+        // 情境 1: 管理員可以任意修改 (包含審核通過，將 isPending 改為 false)
+        request.auth.token.admin == true ||
+
+     // 情境 2a: 一般使用者投票/應援認證 — 純投票，只動 verifiedCount
+    (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['verifiedCount']) &&
+        request.resource.data.verifiedCount == resource.data.verifiedCount + 1
+    ) ||
+    // 情境 2b: 投票剛好跨過 20 票門檻，允許同時把 isPending 從 true 翻成 false
+    (
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['verifiedCount','isPending']) &&
+    request.resource.data.verifiedCount == resource.data.verifiedCount + 1 &&
+    resource.data.isPending == true &&
+    request.resource.data.isPending == false &&
+    request.resource.data.verifiedCount >= 20
+  )
+      );
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+    // 應援資料已改為每場演唱會各自的子集合。
+    match /artifacts/{appId}/public/data/supportData/{concertId}/supportEvents/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId;
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+    match /artifacts/{appId}/public/data/supportData/{concertId}/exchangePosts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId;
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+  }
+}

@@ -19,40 +19,25 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* 外層容器，設定滿版或固定寬度並隱藏溢出範圍 */
-.banner-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  max-height: 400px;
-  margin: 0 auto;
-  background-color: #0b0f19; /* 整體深色底色 */
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    /* 底層模糊背景效果 */
+    .bg-blur {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(5px) brightness(0.4); /* 調整模糊度與明暗 */
+      transform: scale(1.2); /* 放大以避免模糊邊緣露出白邊 */
+      z-index: -1;
+    }
 
-/* 底層模糊背景效果 */
-.bg-blur {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: blur(5px) brightness(0.4); /* 調整模糊度與明暗 */
-  transform: scale(1.2); /* 放大以避免模糊邊緣露出白邊 */
-  z-index: -1;
-}
-
-/* 確保上層內容壓在模糊背景上方 */
-.banner-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
+    /* 確保上層內容壓在模糊背景上方 */
+    .banner-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
 
 
   </style>
@@ -161,7 +146,7 @@
         <!-- 熱門演唱會列表 -->
         <div class="space-y-4  px-4 ">
           <h3 class="text-zinc-500 text-xs font-bold uppercase section-kicker">熱門演出看板</h3>
-          <div id="concert-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div id="concert-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             <!-- 動態渲染 RWD 卡片 -->
           </div>
         </div>
@@ -369,6 +354,7 @@
     import './js/support.js';
     import './js/bookmark.js';
     import './js/concert.js';
+    import { getSupportCollectionGroup } from './js/support-data.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth,signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -564,8 +550,8 @@
       });
 
       // 2. Support Events 監聽
-      const supportsCol = collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents');
-      onSnapshot(supportsCol, (snap) => {
+      const supportsCol = getSupportCollectionGroup(db, 'supportEvents');
+      unsubscribeSupport = onSnapshot(supportsCol, (snap) => {
         let list = [];
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() });
@@ -580,8 +566,8 @@
       });
 
       // 3. Exchange Posts 監聽
-      const exchangesCol = collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts');
-      onSnapshot(exchangesCol, (snap) => {
+      const exchangesCol = getSupportCollectionGroup(db, 'exchangePosts');
+      unsubscribeExchange = onSnapshot(exchangesCol, (snap) => {
         let list = [];
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() });
@@ -737,7 +723,8 @@
         const countdownText = getDaysRemaining(concert.dates);
         return `
           <div class="w-full flex-shrink-0 relative h-48 sm:h-64 md:h-80 overflow-hidden cursor-pointer" onclick="window.location.href = 'Concert.html?concertId=' + '${concert.id}';">
-            <img src="${bannerImg}" alt="${concert.tourName}" class="w-full h-full object-cover md:object-contain transform transition-transform duration-700">
+            <div id="bg-blur" class="bg-blur" style="background-image: url('${bannerImg}');"></div>
+            <img src="${bannerImg}" alt="${concert.tourName}" class="banner-content w-full h-full object-cover md:object-contain transform transition-transform duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
             <div class="absolute bottom-0 left-0 right-0 p-4 md:p-8 flex flex-col items-start gap-1">
@@ -839,7 +826,7 @@
           return;
         }
 
-        container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
+        container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6";
 
         filtered.forEach(c => {
           const supportCount = state.supportEvents.filter(e => e.concertId === c.id).length;
@@ -857,7 +844,7 @@
                 </span>
               ` : ""}
             </div>
-            <div class="flex-1 flex flex-col justify-between min-w-0 text-left mt-1 mb-1 ml-2">
+            <div class="flex-1 flex flex-col justify-between min-w-0 text-left mt-1 mb-1 ml-2 mr-1">
               <div>
                 <span class="hidden text-zinc-800 text-xs font-black bg-zinc-100 px-2 py-0.5 rounded">${c.artist}</span>
                 <h4 class="text-xs md:text-sm font-bold text-zinc-800 tour-name-2line mt-1.5">${c.tourName}</h4>

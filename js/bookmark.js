@@ -3,6 +3,7 @@
     import { openPostDetailModal } from "./common.js";
     import './color.js';
     import { db,auth,storage,appId} from "./firebase-config.js";
+    import { getConcertSupportCollection, getConcertSupportDoc } from "./support-data.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import {query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject,listAll } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -118,10 +119,10 @@
       }
 
       const supportQueries = concertIds.map(concertId =>
-        query(collection(db, 'artifacts', appId, 'public', 'data', 'supportEvents'), where('concertId', '==', concertId))
+        getConcertSupportCollection(db, appId, concertId, "supportEvents")
       );
       const exchangeQueries = concertIds.map(concertId =>
-        query(collection(db, 'artifacts', appId, 'public', 'data', 'exchangePosts'), where('concertId', '==', concertId))
+        getConcertSupportCollection(db, appId, concertId, "exchangePosts")
       );
 
       const allSupportResults = await Promise.all(supportQueries.map(getDocs));
@@ -399,7 +400,7 @@
         const collectionName = supportItem ? "supportEvents": "exchangePosts";
 
         const bookmarkRef = doc(db,"artifacts",appId,"users",uid,"bookmarks",postId);
-        const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
+        const postRef = getConcertSupportDoc(db, appId, item.concertId, collectionName, postId);
         const isBookmarked = state.bookmarkedPostIds.includes(postId);
         if (isBookmarked) {  
             state.pendingRemoveBookmarkId = postId; // 暫存要取消收藏的 ID
@@ -464,7 +465,7 @@
 
         const collectionName =bookmarkData.type === "free-support"? "supportEvents": "exchangePosts";
 
-        const postRef = doc(db,"artifacts",appId,"public","data",collectionName,postId);
+        const postRef = getConcertSupportDoc(db, appId, bookmarkData.concertId, collectionName, postId);
 
         await deleteDoc(bookmarkRef);
 

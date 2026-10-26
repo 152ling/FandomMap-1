@@ -2,6 +2,7 @@
   import { openPostDetailModal } from "./common.js";
   import { closePostDetailModal } from "./support.js";
   import { db,auth,storage,appId} from "./firebase-config.js";
+  import { getSupportCollectionGroup } from "./support-data.js";
   import { getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection,increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { query,where,getCountFromServer,getDocs} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -29,14 +30,14 @@
       // 1. 查詢我參加的演唱會數量
       const attendedRef = collection(db,"artifacts",appId,"users",uid,"attendedConcerts");
       // 2. 查詢我發布的免費應援
-      const supportRef = collection(db,"artifacts",appId,"public","data","supportEvents");
+      const supportRef = getSupportCollectionGroup(db, "supportEvents");
       const supportQuery = query(
         supportRef,
         where("userId", "==", uid)
       );
 
       // 3. 查詢我發布的交換應援
-      const exchangeRef = collection(db,"artifacts",appId,"public","data","exchangePosts");
+      const exchangeRef = getSupportCollectionGroup(db, "exchangePosts");
       const exchangeQuery = query(
         exchangeRef,
         where("userId", "==", uid)
@@ -68,6 +69,13 @@
         id: doc.id,
         myType: "support-exchange"
       }));
+
+      // 個人中心的「管理」按鈕會透過 common.js 從 state 找資料；
+      // collection group 查回來後先同步目前使用者的貼文，避免仍使用舊的平面集合快取。
+      state.supportEvents = mySupports;
+      state.exchangePosts = myExchanges;
+      localStorage.setItem('fe_v1_supportEvents', JSON.stringify(mySupports));
+      localStorage.setItem('fe_v1_exchangePosts', JSON.stringify(myExchanges));
 
       // 6. 發布數量
       const SupportCount = mySupports.length;
