@@ -1,16 +1,21 @@
-const CACHE_NAME = 'fanmap-v0.0.2';
+const CACHE_NAME = 'fanmap-v0.0.3';
 const ASSETS = [
   './',
   '/index.html',
   '/Concert.html',
   '/SupportDetail.html',
   '/Bookmark.html',
+  '/Profile.html',
   '/css/style.css',
-  '/js/state.js',
-  '/js/common.js',
-  '/js/support.js',
   '/js/action.js',
+  '/js/bookmark.js',
+  '/js/color.js',
+  '/js/common.js',
   '/js/concert.js',
+  '/js/profile.js',
+  '/js/state.js',
+  '/js/support-data.js',
+  '/js/support.js',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.0',
 ];
